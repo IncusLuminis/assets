@@ -1,6 +1,6 @@
-# {{PROJECT_NAME}}
+# assets
 
-> {{PROJECT_DESCRIPTION}}
+> Shared visual assets, icons, templates and design resources.
 
 ---
 
