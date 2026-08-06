@@ -1,0 +1,2111 @@
+/* ================================================================
+   NebulaCast HUD-02 — Blogger Template CSS
+   Version : 1.1  (2026-06-09)
+   Covers  : HUD-02 (object report panel, nc-or-*)
+   Scope   : All nc-or-* and nc-hud-02-* classes — safe for Blogger,
+             no :root overrides, no global resets.
+
+   REQUIRES: blogger-hud-shared.css must be loaded first.
+             (keyframes, .nc-panel-sweep, paper rows,
+              media base, .nc-hud-row)
+
+   WHERE TO PUT THIS:
+   Blogger → Theme → Edit HTML
+   Paste the <style> block from optional/blogger-template-snippet.txt
+   just before the closing </head> tag.
+   ================================================================ */
+
+/* ── Box-sizing (scoped — does not touch Blogger theme) ────────── */
+
+.nc-or-widget,
+.nc-or-widget * {
+  box-sizing: border-box;
+}
+
+/* Keyframes, .nc-panel-sweep → blogger-hud-shared.css */
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+.nc-or-widget {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  max-height: 600px;
+  transition: max-height 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── Main panel ──────────────────────────────────────────────── */
+
+.nc-or-panel {
+  position: relative;
+  width: 120px;
+  max-width: 100%;
+  min-height: 420px; /* allows html-mode content to grow; 420px fixed via JS in mini */
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 30% 70%;
+
+  overflow: clip;
+  background: transparent;
+
+  opacity: .65;
+
+  animation:
+    ncOrOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+
+  transform-origin: top center;
+  transition: transform 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── SVG frame ───────────────────────────────────────────────── */
+
+.nc-or-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.nc-or-frame-main {
+  fill: rgba(5,18,38,0);
+  stroke: rgba(80,220,255,.92);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+}
+
+.nc-or-frame-inner,
+.nc-or-frame-teeth-box {
+  fill: none;
+  stroke: rgba(145,245,255,.62);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.65));
+}
+
+/* Same fix as HUD-01: non-scaling-stroke keeps this line at its literal
+   width even when the panel is shrunk to mini/micro, so it anti-aliases
+   away against the outer frame's glow. Widen only in the collapsed state. */
+.nc-or-widget.is-mini .nc-or-frame-inner {
+  stroke-width: 2.4;
+}
+
+.nc-or-frame-teeth rect {
+  fill: rgba(80,220,255,.92);
+  filter: drop-shadow(0 0 6px rgba(80,220,255,.8));
+}
+
+/* ── Sweep ───────────────────────────────────────────────────── */
+
+.nc-or-sweep {
+  z-index: 2;
+  opacity: .65;
+}
+
+/* ── Columns ─────────────────────────────────────────────────── */
+
+.nc-or-left {
+  position: relative;
+  z-index: 3;
+  min-width: 0;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+}
+
+.nc-or-right {
+  position: relative;
+  z-index: 5;
+  height: 420px;
+  padding: 58px 72px 28px 46px;
+  color: #cfffff;
+  background: transparent;
+  overflow: hidden;
+}
+
+.nc-or-right > * {
+  position: relative;
+  z-index: 7;
+}
+
+/* ── Image ───────────────────────────────────────────────────── */
+
+.nc-or-image {
+  position: absolute;
+  left: 25%;
+  top: 18%;
+  width: 80%;
+  height: 66%;
+  object-fit: cover;
+  filter: brightness(.72) contrast(1.18) saturate(.85);
+}
+
+/* ── Reticle ─────────────────────────────────────────────────── */
+
+.nc-or-reticle {
+  position: absolute;
+  left: 25%;
+  top: 18%;
+  width: 80%;
+  height: 66%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.nc-or-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.nc-or-ring-1 {
+  width: 210px;
+  height: 210px;
+  border: 2px solid rgba(80,245,255,.75);
+  box-shadow: 0 0 18px rgba(80,245,255,.5);
+  animation: hudPulseOuter 4s ease-in-out infinite;
+}
+
+.nc-or-ring-2 {
+  width: 166px;
+  height: 166px;
+  border: 2px dashed rgba(80,245,255,.82);
+  animation: hudRotate 10s linear infinite;
+}
+
+.nc-or-ring-3 {
+  width: 94px;
+  height: 94px;
+  border: 1px solid rgba(170,255,255,.88);
+  opacity: .65;
+  animation: hudPulseInner 2.5s ease-in-out infinite;
+}
+
+.nc-or-cross {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+}
+
+.nc-or-cross::before,
+.nc-or-cross::after {
+  content: "";
+  position: absolute;
+  background: rgba(120,255,255,.85);
+  box-shadow: 0 0 10px rgba(80,245,255,.72);
+}
+
+.nc-or-cross::before {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+  left: 0;
+}
+
+.nc-or-cross::after {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+}
+
+.nc-or-lock-box {
+  position: absolute;
+  width: 122px;
+  height: 122px;
+  animation: hudLockBoxPulse 3.2s ease-in-out infinite;
+}
+
+.nc-or-lock-box span {
+  position: absolute;
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.nc-or-lock-box span::before,
+.nc-or-lock-box span::after {
+  content: "";
+  position: absolute;
+  background: rgba(150,255,255,.95);
+  box-shadow: 0 0 10px rgba(80,245,255,.75);
+}
+
+.nc-or-lock-box span::before { width: 30px; height: 3px; }
+.nc-or-lock-box span::after  { width: 3px;  height: 30px; }
+
+.nc-or-lock-box span:nth-child(1)         { top: 0;    left: 0; }
+.nc-or-lock-box span:nth-child(1)::before { top: 0;    left: 0; }
+.nc-or-lock-box span:nth-child(1)::after  { top: 0;    left: 0; }
+
+.nc-or-lock-box span:nth-child(2)         { top: 0;    right: 0; }
+.nc-or-lock-box span:nth-child(2)::before { top: 0;    right: 0; }
+.nc-or-lock-box span:nth-child(2)::after  { top: 0;    right: 0; }
+
+.nc-or-lock-box span:nth-child(3)         { bottom: 0; left: 0; }
+.nc-or-lock-box span:nth-child(3)::before { bottom: 0; left: 0; }
+.nc-or-lock-box span:nth-child(3)::after  { bottom: 0; left: 0; }
+
+.nc-or-lock-box span:nth-child(4)         { bottom: 0; right: 0; }
+.nc-or-lock-box span:nth-child(4)::before { bottom: 0; right: 0; }
+.nc-or-lock-box span:nth-child(4)::after  { bottom: 0; right: 0; }
+
+.nc-or-corner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-color: rgba(210,255,255,.95);
+}
+
+.nc-or-corner-tl { top: 26px;    left: 26px;  border-top: 2px solid; border-left: 2px solid; }
+.nc-or-corner-tr { top: 26px;    right: 26px; border-top: 2px solid; border-right: 2px solid; }
+.nc-or-corner-bl { bottom: 26px; left: 26px;  border-bottom: 2px solid; border-left: 2px solid; }
+.nc-or-corner-br { bottom: 26px; right: 26px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.nc-or-center-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 0 18px rgba(80,245,255,.95);
+}
+
+.nc-or-target-lock {
+  position: absolute;
+  bottom: 16px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .24em;
+  color: #d8ffff;
+  text-shadow: 0 0 12px rgba(80,245,255,.95);
+  animation: hudBlinkSoft 1.4s ease-in-out infinite;
+}
+
+/* ── Right column content ─────────────────────────────────────── */
+
+.nc-or-system {
+  margin-bottom: 10px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  color: rgba(80,220,255,.62);
+}
+
+.nc-or-title {
+  margin: 0 0 16px 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: .18em;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-or-desc {
+  max-width: 92%;
+  margin-bottom: 18px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: .08em;
+  color: rgba(170,245,255,.84);
+}
+
+.nc-or-textbox {
+  max-width: 82%;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid rgba(80,220,255,.28);
+  background: rgba(0,32,52,.16);
+}
+
+.nc-or-text-title {
+  margin-bottom: 7px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .2em;
+  color: rgba(80,220,255,.82);
+}
+
+.nc-or-text {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: .06em;
+  color: rgba(190,250,255,.78);
+}
+
+.nc-or-log {
+  max-width: 82%;
+  margin-top: 14px;
+  padding: 9px 11px;
+  border-left: 2px solid rgba(80,220,255,.6);
+  background: rgba(0,24,42,.16);
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(170,245,255,.72);
+}
+
+/* Object mode title centering */
+.nc-hud-02[data-mode="object"] .nc-or-title {
+  margin: 23px auto 18px auto;
+  width: max-content;
+}
+
+/* ── Animated loader bar ──────────────────────────────────────── */
+
+.nc-or-frame-loader {
+  position: absolute;
+  top: 38px;
+  left: 23.67%;
+  width: 200px;
+  height: 24px;
+  z-index: 25;
+  pointer-events: none;
+
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+
+  transform: skewX(49deg);
+  padding: 3px;
+  border: 1px solid rgba(80,220,255,.45);
+
+  background: linear-gradient(
+    90deg,
+    rgba(80,220,255,.08),
+    rgba(80,220,255,.02)
+  );
+
+  filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+}
+
+.nc-or-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 12px rgba(80,220,255,.85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.nc-or-frame-loader span:nth-child(1) { animation-name: ncOrLoader1; }
+.nc-or-frame-loader span:nth-child(2) { animation-name: ncOrLoader2; }
+.nc-or-frame-loader span:nth-child(3) { animation-name: ncOrLoader3; }
+.nc-or-frame-loader span:nth-child(4) { animation-name: ncOrLoader4; }
+.nc-or-frame-loader span:nth-child(5) { animation-name: ncOrLoader5; }
+.nc-or-frame-loader span:nth-child(6) { animation-name: ncOrLoader6; }
+.nc-or-frame-loader span:nth-child(7) { animation-name: ncOrLoader7; }
+.nc-or-frame-loader span:nth-child(8) { animation-name: ncOrLoader8; }
+
+/* ── Aladin Lite layer (HUD02-2) ─────────────────────────────── */
+
+.nc-hud-02-aladdin {
+  display: none;
+  position: absolute;
+  left: var(--nc-aladin-left, 25%);
+  top: var(--nc-aladin-top, 18%);
+  width: var(--nc-aladin-width, 80%);
+  height: var(--nc-aladin-height, 66%);
+  z-index: 2;
+  pointer-events: all;
+  overflow: hidden;
+  background: rgba(0, 8, 18, .96);
+  border: 1px solid rgba(80,220,255,.28);
+  box-shadow: inset 0 0 40px rgba(0,220,255,.06);
+}
+
+.nc-hud-02-aladdin > div:first-child {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.nc-hud-02-aladdin__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.nc-hud-02-aladdin--ready .nc-hud-02-aladdin__placeholder {
+  display: none;
+}
+
+/* ── Aladin UI — dark theme overrides ──────────────────────────── */
+.nc-hud-02-aladdin .aladin-logo-container,
+.nc-hud-02-aladdin .aladin-logo,
+.nc-hud-02-aladdin .aladin-location {
+  display: none !important;
+}
+
+.nc-hud-02-aladdin .aladin-location {
+  background:    rgba(0, 8, 20, 0.82) !important;
+  border:        1px solid rgba(80, 220, 255, 0.28) !important;
+  border-radius: 2px !important;
+  backdrop-filter: blur(3px);
+}
+
+.nc-hud-02-aladdin .aladin-location .aladin-input-text {
+  background:     transparent !important;
+  color:          rgba(80, 220, 255, 0.90) !important;
+  border:         none !important;
+  font-family:    "Share Tech Mono", monospace;
+  font-size:      0.65rem;
+  letter-spacing: 0.04em;
+  padding:        2px 4px;
+}
+
+.nc-hud-02-aladdin .aladin-location .aladin-input-text::placeholder {
+  color:       rgba(80, 220, 255, 0.32);
+  font-family: "Share Tech Mono", monospace;
+}
+
+.nc-hud-02-aladdin .aladin-location .aladin-input-text:focus {
+  outline: none;
+  color:   rgba(120, 240, 255, 1) !important;
+  box-shadow: 0 0 6px rgba(80, 220, 255, 0.25);
+}
+
+.nc-hud-02-aladdin .aladin-location .aladin-location-copy {
+  background:   rgba(0, 8, 20, 0.82) !important;
+  border-color: rgba(80, 220, 255, 0.28) !important;
+}
+
+.nc-hud-02-aladdin .aladin-location .aladin-location-copy img {
+  filter: invert(75%) sepia(60%) saturate(600%) hue-rotate(162deg) brightness(1.2);
+}
+
+.nc-hud-02-aladdin__label {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.60);
+  text-shadow: 0 0 10px rgba(80,220,255,.40);
+}
+
+.nc-hud-02-aladdin__sub {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.30);
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────── */
+
+.nc-or-toolbar {
+  position: absolute;
+  bottom: 42px;
+  right: 142px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: all;
+}
+
+.nc-or-tb-group {
+  display: flex;
+  gap: 6px;
+}
+
+.nc-or-tb-sep {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(80, 220, 255, 0.18);
+  margin: 0 6px;
+}
+
+.nc-or-tb-btn {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 4px 10px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-or-tb-btn:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+}
+
+.nc-or-tb-btn[aria-pressed="true"] {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Data-attribute CSS rules ─────────────────────────────────── */
+
+.nc-or-widget[data-target-lock="off"] .nc-or-reticle,
+.nc-or-widget[data-reticle="off"] .nc-or-reticle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nc-or-reticle {
+  transition: opacity .3s ease;
+}
+
+.nc-or-widget[data-aladdin="on"] .nc-hud-02-aladdin {
+  display: block;
+}
+
+/* ── Info panel visibility ────────────────────────────────────── */
+
+.nc-or-info-panel {
+  display: none !important;
+}
+
+.nc-or-widget[data-info-mode="data"] .nc-or-info-panel--data {
+  display: grid !important;
+}
+
+.nc-or-widget[data-info-mode="catalog"] .nc-or-info-panel--catalog {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.nc-or-widget[data-info-mode="catalog"] .nc-or-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 200px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-or-widget[data-info-mode="papers"] .nc-or-info-panel--papers {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.nc-or-widget[data-info-mode="papers"] .nc-hud-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 200px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-or-info-panel--catalog::-webkit-scrollbar,
+.nc-or-info-panel--papers::-webkit-scrollbar  { width: 3px; }
+.nc-or-info-panel--catalog::-webkit-scrollbar-track,
+.nc-or-info-panel--papers::-webkit-scrollbar-track  { background: transparent; }
+.nc-or-info-panel--catalog::-webkit-scrollbar-thumb,
+.nc-or-info-panel--papers::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.25); border-radius: 2px; }
+
+.nc-or-info-placeholder {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.55);
+  text-align: center;
+  line-height: 1.8;
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.25);
+}
+
+/* ── DATA panel grid ──────────────────────────────────────────── */
+
+.nc-or-grid {
+  display: grid;
+  grid-template-columns: 95px minmax(0, 1fr) 95px minmax(0, 1fr);
+  row-gap: 8px;
+  column-gap: 14px;
+  padding-top: 26px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.05;
+  letter-spacing: .05em;
+}
+
+.nc-or-label,
+.nc-or-value {
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(80,220,255,.26);
+}
+
+.nc-or-label {
+  font-weight: 400;
+  color: #dfffff;
+  white-space: nowrap;
+}
+
+.nc-or-value {
+  color: #9ffcff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+/* ── Data status / spinner / note ─────────────────────────────── */
+
+.nc-or-data-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 10px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.nc-or-data-status--loading { color: rgba(80, 220, 255, 0.50); }
+.nc-or-data-status--error   { color: rgba(255, 100, 100, 0.60); }
+
+.nc-or-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(80, 220, 255, 0.14);
+  border-top-color: rgba(80, 220, 255, 0.75);
+  border-radius: 50%;
+  animation: hudSpinner02 0.85s linear infinite;
+  flex-shrink: 0;
+}
+
+.nc-or-data-note {
+  grid-column: 1 / -1;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-align: center;
+  color: rgba(80, 220, 255, 0.22);
+  padding-top: 8px;
+  border-top: 1px solid rgba(80, 220, 255, 0.10);
+  margin-top: 4px;
+}
+
+/* ── Catalog / paper cards ────────────────────────────────────── */
+
+.nc-or-paper-card {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.14);
+}
+
+.nc-or-paper-card:last-child {
+  border-bottom: none;
+}
+
+.nc-or-paper-title {
+  display: block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgba(130, 245, 255, 0.90);
+  text-decoration: none;
+  text-shadow: 0 0 6px rgba(80, 220, 255, 0.30);
+  margin-bottom: 4px;
+}
+
+.nc-or-paper-title:hover {
+  color: rgba(160, 255, 255, 1);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.40);
+  text-underline-offset: 2px;
+}
+
+.nc-or-paper-meta {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(80, 200, 255, 0.50);
+  margin-bottom: 4px;
+}
+
+.nc-or-paper-abstract {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(160, 240, 255, 0.45);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* .nc-hud-panel-header, .nc-hud-paper-* → blogger-hud-shared.css */
+
+/* ── Mode: object / html ──────────────────────────────────────── */
+
+.nc-hud-02[data-mode="html"] .nc-or-left,
+.nc-hud-02[data-mode="html"] .nc-or-right,
+.nc-hud-02[data-mode="html"] .nc-or-toolbar {
+  display: none !important;
+}
+
+/* HTML slot — positioned in fixed-height object mode */
+.nc-hud-02-html-slot {
+  display: none;
+  position: absolute;
+  inset: 76px 30px 20px 30px;
+  z-index: 10;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 40px 16px 40px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-hud-02[data-mode="html"] .nc-hud-02-html-slot {
+  display: block;
+}
+
+.nc-hud-02-html-slot::-webkit-scrollbar       { width: 4px; }
+.nc-hud-02-html-slot::-webkit-scrollbar-track  { background: transparent; }
+.nc-hud-02-html-slot::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.28); border-radius: 2px; }
+
+/* HTML slot typography */
+.nc-hud-02-html-slot h1,
+.nc-hud-02-html-slot h2,
+.nc-hud-02-html-slot h3,
+.nc-hud-02-html-slot h4 {
+  font-family: "Share Tech Mono", monospace;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(130, 245, 255, 0.92);
+  text-shadow: 0 0 8px rgba(80, 220, 255, 0.40);
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.nc-hud-02-html-slot h1 { font-size: 22px; }
+.nc-hud-02-html-slot h2 { font-size: 17px; }
+.nc-hud-02-html-slot h3 { font-size: 13px; letter-spacing: .16em; }
+.nc-hud-02-html-slot h4 { font-size: 11px; letter-spacing: .18em; color: rgba(80, 220, 255, 0.70); }
+
+.nc-hud-02-html-slot p {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+}
+
+.nc-hud-02-html-slot a {
+  color: rgba(80, 220, 255, 0.90);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.35);
+  text-underline-offset: 3px;
+}
+
+.nc-hud-02-html-slot a:hover {
+  color: rgba(140, 245, 255, 1);
+  text-decoration-color: rgba(140, 245, 255, 0.60);
+}
+
+.nc-hud-02-html-slot img:not(.nc-hud-media img) {
+  max-width: 100%;
+  width: auto !important;
+  height: auto !important;
+  display: block;
+  border: 1px solid rgba(80, 220, 255, 0.22);
+  margin-bottom: 10px;
+  object-fit: contain;
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot img:not(.nc-hud-media img),
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot img:not(.nc-hud-media img) {
+  max-height: var(--nc-image-maxi-height, 280px);
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .separator,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .separator {
+  float: left;
+  max-width: var(--nc-image-maxi-width, 42%);
+  margin: 0 16px 12px 0;
+  box-sizing: border-box;
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .separator a,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .separator a {
+  float: none !important;
+  display: block;
+  max-width: 100%;
+  margin: 0 !important;
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .separator img,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .separator img {
+  max-width: 100%;
+  max-height: var(--nc-image-maxi-height, 280px);
+  width: auto !important;
+  height: auto !important;
+  margin-bottom: 0;
+}
+
+/* ── HUD-02 title classes (5 independent variants) ───────────── */
+/* All five share an identical base (mirrors HUD-01 nc-ol-title).
+   Edit the comma block once to change the base for all variants.
+   Add per-variant overrides in the stubs below — no cascade bleed.
+
+   NOTE: nc-or-title (no suffix) is reserved for object-mode use (line ~372).
+   These five use the -maxi / -mini / -micro / -b / -c suffixes to stay clear.
+
+   Variants:
+     nc-or-title-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-or-title-mini   — mini thumbnail
+     nc-or-title-micro  — micro thumbnail
+     nc-or-title-b      — reserve B
+     nc-or-title-c      — reserve C                              */
+
+.nc-or-title-maxi,
+.nc-or-title-mini,
+.nc-or-title-micro,
+.nc-or-title-b,
+.nc-or-title-c {
+  position: relative;
+  /* !important: .nc-hud-02-html-slot h1..h4 (generic fallback typography,
+     below) has higher specificity (class+element vs. this plain class) and
+     would otherwise win, silently shrinking this margin/line-height on the
+     live site regardless of what's declared here. */
+  margin: 0 auto 34px auto !important;
+  width: max-content;
+  font-family: "Share Tech Mono", monospace;
+  font-size: var(--nc-title-maxi-size, var(--nc-title-size, 30px)) !important;
+  line-height: 1 !important;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-ol-widget.is-mini .nc-ol-title-maxi,
+.nc-or-widget.is-mini .nc-or-title-maxi {
+  font-size: var(--nc-title-mini-size, var(--nc-title-size, 30px)) !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-title-micro,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-title-micro {
+  font-size: var(--nc-title-micro-size, var(--nc-title-size, 30px)) !important;
+}
+
+/* Decorative corner brackets — shared across all variants */
+.nc-or-title-maxi::before,  .nc-or-title-maxi::after,
+.nc-or-title-mini::before,  .nc-or-title-mini::after,
+.nc-or-title-micro::before, .nc-or-title-micro::after,
+.nc-or-title-b::before,     .nc-or-title-b::after,
+.nc-or-title-c::before,     .nc-or-title-c::after {
+  content: "";
+  position: absolute;
+  top: var(--nc-title-bracket-top, -12px);
+  width: var(--nc-title-bracket-size, 18px);
+  height: var(--nc-title-bracket-size, 18px);
+  border-color: rgba(120,245,255,.85);
+}
+
+.nc-or-title-maxi::before,
+.nc-or-title-mini::before,
+.nc-or-title-micro::before,
+.nc-or-title-b::before,
+.nc-or-title-c::before {
+  left: calc(-1 * var(--nc-title-bracket-gap, 40px));
+  border-top: var(--nc-title-bracket-stroke, 2px) solid;
+  border-left: var(--nc-title-bracket-stroke, 2px) solid;
+}
+
+.nc-or-title-maxi::after,
+.nc-or-title-mini::after,
+.nc-or-title-micro::after,
+.nc-or-title-b::after,
+.nc-or-title-c::after {
+  right: calc(-1 * var(--nc-title-bracket-gap, 40px));
+  border-top: var(--nc-title-bracket-stroke, 2px) solid;
+  border-right: var(--nc-title-bracket-stroke, 2px) solid;
+}
+
+/* ── Per-variant position vars ───────────────────────────────── */
+/* Set on WIDGET ROOT via style="". Uses position:relative from base.
+   Maxi/micro coords are in screen px.
+   Mini coords are in UNSCALED panel space (÷ 0.352 → screen px). */
+.nc-or-title-maxi {
+  top:  var(--nc-title-maxi-top,  0px);
+  left: var(--nc-title-maxi-left, 0px);
+}
+.nc-or-title-mini {
+  top:  var(--nc-title-mini-top,  0px);
+  left: var(--nc-title-mini-left, 0px);
+}
+/* When widget is is-mini, apply mini-vars regardless of title class suffix */
+.nc-ol-widget.is-mini .nc-ol-title-maxi,
+.nc-or-widget.is-mini .nc-or-title-maxi {
+  top:  var(--nc-title-mini-top,  var(--nc-title-maxi-top,  0px));
+  left: var(--nc-title-mini-left, var(--nc-title-maxi-left, 0px));
+}
+/* nc-or-title-micro position: see micro-mini state rule below.
+   .nc-or-title-b { }  .nc-or-title-c { }                       */
+
+/* ── HUD-02 button classes (5 independent variants) ──────────── */
+/* All five share an identical base (mirrors nc-or-tb-btn style).
+   Edit the comma block once to change the base for all variants.
+   Add per-variant overrides in the stubs below — no cascade bleed.
+
+   NOTE: nc-or-tb-btn (no suffix) is reserved for object-mode tab buttons.
+   These five use the -maxi / -mini / -micro / -b / -c suffixes to stay clear.
+
+   Variants:
+     nc-or-btn-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-or-btn-mini   — mini thumbnail
+     nc-or-btn-micro  — micro thumbnail
+     nc-or-btn-b      — reserve B
+     nc-or-btn-c      — reserve C                               */
+
+.nc-or-btn-maxi,
+.nc-or-btn-mini,
+.nc-or-btn-micro,
+.nc-or-btn-b,
+.nc-or-btn-c {
+  display: inline-block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 6px 14px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-or-btn-maxi:hover,
+.nc-or-btn-mini:hover,
+.nc-or-btn-micro:hover,
+.nc-or-btn-b:hover,
+.nc-or-btn-c:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+  text-decoration: none;
+}
+
+.nc-or-btn-maxi:active,
+.nc-or-btn-mini:active,
+.nc-or-btn-micro:active,
+.nc-or-btn-b:active,
+.nc-or-btn-c:active {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Per-variant overrides ────────────────────────────────────── */
+/* Add properties here to diverge from the shared base.
+   Same specificity, later source order → always wins over the base block.
+
+.nc-or-btn-maxi   { }
+.nc-or-btn-mini   { }
+.nc-or-btn-micro  { }
+.nc-or-btn-b      { }
+.nc-or-btn-c      { }                                           */
+
+/* ── HTML mode auto-height override (Blogger — content grows panel) */
+
+.nc-hud-02[data-mode="html"] .nc-or-panel {
+  display: block;
+  height: auto;
+  min-height: 420px;
+  overflow: hidden;
+}
+
+/* HTML mode maxi: remove widget max-height so long content isn't clipped */
+.nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) {
+  max-height: none;
+  overflow: visible;
+}
+
+.nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-or-panel:has(.nc-hud-vertical-maxi),
+.nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-or-panel:has(.nc-hud-heygen-maxi) {
+  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 24px);
+}
+
+
+.nc-hud-02[data-mode="html"] .nc-hud-02-html-slot {
+  position: static;
+  inset: unset;
+  overflow-x: hidden;
+  overflow-y: visible;
+  padding: 76px 52px var(--nc-slot-padding-bottom, 90px) 52px;
+}
+
+.nc-hud-01-html-slot::after,
+.nc-hud-02-html-slot::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* .nc-hud-media, .nc-yt-facade, .nc-tt-facade, etc. → blogger-hud-shared.css */
+
+/* Video position — vars on widget or .nc-hud-media */
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-media,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-media {
+  top: var(--nc-video-maxi-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-maxi-left, var(--nc-video-left, 0px));
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .nc-hud-media,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .nc-hud-media {
+  top: var(--nc-video-mini-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-mini-left, var(--nc-video-left, 0px));
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot .nc-hud-media,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot .nc-hud-media {
+  top: var(--nc-video-micro-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-micro-left, var(--nc-video-left, 0px));
+}
+
+/* Video (YouTube / HeyGen): description + title only in maxi; mini/micro = media thumbnail */
+.nc-hud-only-maxi { }
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .nc-hud-only-maxi,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .nc-hud-only-maxi {
+  display: none !important;
+}
+
+/* YouTube maxi: video full width, copy below; mini/micro = video thumbnail only */
+.nc-hud-youtube-maxi {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+}
+.nc-hud-youtube-maxi > .nc-hud-media.nc-hud-media-horizontal {
+  flex: 0 0 auto;
+  width: var(--nc-video-maxi-width, var(--nc-video-width, 100%));
+  height: var(--nc-video-maxi-height, var(--nc-video-height, auto));
+  max-width: 100%;
+  margin-bottom: 0;
+}
+.nc-hud-youtube-copy {
+  width: 100%;
+  min-width: 0;
+}
+.nc-hud-youtube-copy p {
+  margin-bottom: 10px;
+}
+.nc-hud-youtube-copy p:last-child {
+  margin-bottom: 0;
+}
+
+/* Vertical video (9:16): HeyGen, YouTube Shorts, TikTok */
+.nc-or-widget:has(.nc-hud-vertical-maxi),
+.nc-or-widget:has(.nc-hud-heygen-maxi) {
+  --nc-vertical-video-h: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-heygen-video-h, 300px)));
+  --nc-vertical-row-h: calc(var(--nc-vertical-video-h, 300px) + 20px);
+}
+
+.nc-hud-vertical-maxi,
+.nc-hud-heygen-maxi {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  height: var(--nc-vertical-row-h, 320px);
+  min-height: var(--nc-vertical-row-h, 320px);
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+/* min-width: 0 — see the matching HUD-01 rule in blogger-hud01-template.css
+   for the full explanation: .nc-hud-media-vertical is a shared "public
+   API" class also used unscoped by HUD-03's CSS (min-width:220px), which
+   otherwise wins by default here since nothing below sets min-width. */
+.nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-hud-heygen-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: var(--nc-video-maxi-width, var(--nc-video-width, calc(var(--nc-vertical-video-h, 300px) * 9 / 16)));
+  min-width: 0;
+  height: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-vertical-video-h, 300px)));
+  max-height: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-vertical-video-h, 300px)));
+  aspect-ratio: 9 / 16;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* TikTok direct iframe /embed/v2/ — вписать в 9:16 бокс (как YouTube) */
+.nc-hud-media.nc-hud-media-tiktok > iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  border: none !important;
+  display: block !important;
+}
+
+/* Fallback: blockquote + embed.js (если вставлен вручную без facade) */
+.nc-hud-media.nc-hud-media-tiktok .tiktok-embed,
+.nc-hud-media.nc-hud-media-tiktok .tiktok-embed > div,
+.nc-hud-media.nc-hud-media-tiktok .tiktok-embed iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+  border: none !important;
+}
+
+/* TikTok: ширино-управляемый размер.
+   --nc-tt-w задаётся на ряде, наследуется медиа-элементом.
+   min-height ряда = высота видео + 20px gap (динамически). */
+.nc-hud-vertical-maxi:has(.nc-hud-media-tiktok),
+.nc-hud-heygen-maxi:has(.nc-hud-media-tiktok) {
+  --nc-tt-w: max(200px, var(--nc-video-maxi-width, var(--nc-video-width, 250px)));
+  align-items: stretch;
+  height: auto;
+  min-height: calc(var(--nc-tt-w) * 16 / 9 + 20px);
+}
+
+.nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  width:      var(--nc-tt-w) !important;
+  height:     calc(var(--nc-tt-w) * 16 / 9) !important;
+  max-height: none !important;
+  min-width:  200px;
+  min-height: 356px;
+}
+
+.nc-hud-vertical-copy,
+.nc-hud-heygen-copy {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  max-height: var(--nc-vertical-video-h, 300px);
+  overflow-y: auto;
+  text-align: left;
+}
+
+.nc-hud-vertical-copy p,
+.nc-hud-heygen-copy p {
+  margin-bottom: 10px;
+}
+
+.nc-hud-vertical-copy p:last-child,
+.nc-hud-heygen-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.nc-ol-widget.is-mini .nc-hud-vertical-copy,
+.nc-ol-widget.is-mini .nc-hud-heygen-copy {
+  display: block !important;
+  visibility: visible !important;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot:has(.nc-hud-media):not(:has(.nc-hud-vertical-maxi)):not(:has(.nc-hud-heygen-maxi)) > h2,
+.nc-or-widget.is-mini .nc-hud-02-html-slot:has(.nc-hud-media):not(:has(.nc-hud-vertical-maxi)):not(:has(.nc-hud-heygen-maxi)) > h2 {
+  display: none !important;
+}
+
+/* Mini slot with non-youtube media (vertical/heygen): keep flex-column layout */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(.nc-hud-media),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(.nc-hud-media) {
+  padding: 58px 24px 18px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  height: 420px !important;
+  max-height: 420px !important;
+}
+
+/* Mini slot with youtube-maxi: switch to block+relative so absolute children work */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(.nc-hud-youtube-maxi),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(.nc-hud-youtube-maxi) {
+  display: block !important;
+  position: relative !important;
+}
+
+/* Mini youtube-maxi: absolute fill of slot content area */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi {
+  position: absolute !important;
+  top: 24px !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+.nc-or-widget.is-mini .nc-hud-vertical-maxi,
+.nc-or-widget.is-mini .nc-hud-heygen-maxi {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  gap: 10px !important;
+}
+
+.nc-or-widget.is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-or-widget.is-mini .nc-hud-heygen-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-or-widget.is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  flex: 0 0 auto !important;
+  max-width: 40% !important;
+  min-width: 0 !important;
+  width: var(--nc-video-mini-width, var(--nc-video-width, auto)) !important;
+  height: var(--nc-video-mini-height, var(--nc-video-height, 100%)) !important;
+  max-height: var(--nc-video-mini-height, var(--nc-video-height, 100%)) !important;
+  aspect-ratio: 9 / 16 !important;
+  overflow: hidden !important;
+}
+
+.nc-or-widget.is-mini .nc-hud-vertical-maxi:has(.nc-hud-media-tiktok) {
+  align-items: stretch !important;
+}
+
+.nc-or-widget.is-mini .nc-hud-vertical-copy,
+.nc-or-widget.is-mini .nc-hud-heygen-copy {
+  flex: 1 1 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(.nc-hud-media) > .nc-hud-media,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(.nc-hud-media) > .nc-hud-media,
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi > .nc-hud-media,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi > .nc-hud-media {
+  /* absolute fill: parent (youtube-maxi) is position:absolute with explicit bounds */
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  aspect-ratio: unset !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-media,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-media {
+  position: relative !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-media iframe,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-media iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Image position — vars on widget (см. cheat-sheet) */
+.nc-hud-float-image,
+.nc-hud-slot-image {
+  position: relative;
+  display: block;
+  border: 1px solid rgba(80,220,255,.22);
+  object-fit: contain;
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-float-image,
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-slot-image,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-float-image,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-slot-image {
+  float: right;
+  top: var(--nc-image-maxi-top, var(--nc-image-top, 0px));
+  left: var(--nc-image-maxi-left, var(--nc-image-left, auto));
+  width: var(--nc-image-maxi-width, var(--nc-image-width, auto)) !important;
+  height: var(--nc-image-maxi-height, var(--nc-image-height, auto)) !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 0 12px 16px;
+}
+
+.nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-float-image,
+.nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-slot-image,
+.nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-hud-02-html-slot .nc-hud-float-image,
+.nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-hud-02-html-slot .nc-hud-slot-image {
+  float: none;
+  position: absolute;
+  top: var(--nc-image-mini-top, var(--nc-image-top, 0px)) !important;
+  left: var(--nc-image-mini-left, var(--nc-image-left, 0px)) !important;
+  width: var(--nc-image-mini-width, auto) !important;
+  max-width: none !important;
+  height: var(--nc-image-mini-height, 100%) !important;
+  max-height: none !important;
+  margin: 0;
+  object-fit: contain;
+  object-position: left top;
+}
+
+.nc-hud-01[data-mode="html"].nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-ol-panel,
+.nc-hud-02[data-mode="html"].nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-or-panel {
+  height: 420px !important;
+  max-height: 420px !important;
+  min-height: 420px !important;
+}
+
+.nc-hud-01[data-mode="html"].nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot:not(:has(.nc-hud-media)),
+.nc-hud-02[data-mode="html"].nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-hud-02-html-slot:not(:has(.nc-hud-media)) {
+  position: absolute;
+  inset: 5px 20px 5px 10px;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box;
+  display: block !important;
+}
+
+/* HUD-02 mini html: tighten text box to avoid left overflow */
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) {
+  inset: 5px 24px 5px 24px;
+  padding-left: var(--nc-hud02-mini-left-offset, 14px) !important;
+}
+
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) h2 {
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: .08em;
+  margin: 0 0 4px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) h2::before,
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) h2::after {
+  display: none;
+}
+
+/* HUD-02 mini html: default left offset for floated image */
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot .nc-hud-float-image,
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot .nc-hud-slot-image {
+  left: var(--nc-image-mini-left, var(--nc-image-left, 14px));
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot img:not(.nc-hud-media img),
+.nc-or-widget.is-mini .nc-hud-02-html-slot img:not(.nc-hud-media img) {
+  max-height: var(--nc-image-mini-height, 100%);
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .separator,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .separator {
+  float: left;
+  max-width: var(--nc-image-mini-width, 40%);
+  margin: 0 10px 6px 0;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .separator img,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .separator img {
+  max-height: var(--nc-image-mini-height, 160px);
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot p,
+.nc-or-widget.is-mini .nc-hud-02-html-slot p {
+  font-size: 11px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot h2,
+.nc-or-widget.is-mini .nc-hud-02-html-slot h2 {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+/* Prevent non-floated images from overflowing the slot width */
+.nc-hud-02-html-slot img:not(.nc-hud-float-image):not(.nc-hud-slot-image) {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Mini / Expanded toggle ───────────────────────────────────── */
+
+/* Default (mini) slot — 317×148, scale 0.352 */
+.nc-or-widget.is-mini {
+  max-height: 148px;
+  max-width: 317px;
+  cursor: pointer;
+}
+
+/* ── Mini external button (nc-or-btn-mini) ───────────────────────
+   Placement: direct child of widget AFTER the panel, same pattern as nc-or-btn-micro.
+   The panel's layout height is ~420px (scale shrinks it visually, not in flow), so
+   the button MUST be position:absolute to escape the flow.
+   !important overrides JS widget.style.maxHeight = '148px' and overflow = 'hidden'. */
+.nc-or-widget[data-collapse="mini"].is-mini > .nc-or-btn-mini,
+.nc-or-widget:not([data-collapse]).is-mini > .nc-or-btn-mini {
+  position: absolute !important;
+  top:  var(--nc-btn-mini-top,  152px) !important;  /* thumbnail (148px) + gap (4px) */
+  left: var(--nc-btn-mini-left, 0px)   !important;
+  z-index: 100 !important;
+}
+.nc-or-widget:not(.is-mini) > .nc-or-btn-mini {
+  display: none !important;
+}
+.nc-or-widget[data-collapse="mini"].is-mini:has(> .nc-or-btn-mini),
+.nc-or-widget:not([data-collapse]).is-mini:has(> .nc-or-btn-mini) {
+  max-height: 174px !important;   /* 148px + 4px gap + 22px button */
+  overflow: visible !important;
+}
+
+/* Micro slot — no scale; custom layout: unscaled h2 label above + portrait image slot.
+   JS passes scale=null / panelW=87 / panelH=130 / miniH=149 to NcHudMini by default.
+   Widget overflow:visible lets the outer h2 (direct child, before panel) show above. */
+.nc-or-widget[data-collapse="micro"].is-mini {
+  max-height: calc(var(--nc-micro-h, 130px) + 19px); /* slot + label (~15px) + gap (4px) */
+  max-width: var(--nc-micro-w, 87px);
+  padding: 0 !important;
+  overflow: visible !important;
+}
+/* When an external micro button is present — extend height to fit it below the slot */
+.nc-or-widget[data-collapse="micro"].is-mini:has(> .nc-or-btn-micro) {
+  max-height: calc(var(--nc-micro-h, 130px) + 45px); /* +26px btn (22px + 4px gap) */
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-panel,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel {
+  min-height: 0 !important;
+  height: var(--nc-micro-h, 130px) !important;
+  max-height: var(--nc-micro-h, 130px) !important;
+  overflow: visible !important; /* allow SVG frame drop-shadow to extend beyond panel bounds */
+  margin: 0 !important;
+  transform: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+/* Scale loader bar to fit the portrait slot (original bar is sized for 1200×420 panel) */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-frame-loader {
+  top:    calc(var(--nc-micro-h, 130px) * 0.09);   /* SVG bevel y=38/420 */
+  left:   20%;
+  width:  calc(var(--nc-micro-w, 87px) * 0.72);   /* usable bevel width */
+  height: calc(var(--nc-micro-h, 130px) * 0.055);  /* SVG bevel span 24/420 */
+  padding: 2px;
+  gap: 4px;
+}
+
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="micro"][data-content="image"].is-mini .nc-hud-01-html-slot,
+.nc-or-widget[data-collapse="micro"][data-content="image"].is-mini .nc-hud-02-html-slot {
+  position: absolute !important;
+  inset: 0 !important;
+  overflow: visible !important;
+  z-index: auto !important;
+}
+
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:has(.nc-hud-media) {
+  height: 100% !important;
+}
+
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:has(.nc-hud-media) > *:not(.nc-hud-media):not(.nc-hud-youtube-maxi):not(.nc-hud-vertical-maxi):not(.nc-hud-heygen-maxi):not(.nc-or-btn-micro) {
+  display: none !important;
+}
+
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: var(--nc-micro-h, 130px) !important;
+  min-height: var(--nc-micro-h, 130px) !important;
+  max-height: var(--nc-micro-h, 130px) !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  z-index: auto !important;
+  box-sizing: border-box !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) .separator,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) .separator,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) a:has(> img),
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) a:has(> img) {
+  display: contents !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) > *:not(img):not(.nc-ol-btn-micro):not(:has(img)),
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) > *:not(img):not(.nc-or-btn-micro):not(:has(img)),
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) :is(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, pre, table, .nc-hud-text, .nc-ol-btn-maxi, .nc-or-btn-maxi, br, hr),
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) :is(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, pre, table, .nc-hud-text, .nc-ol-btn-maxi, .nc-or-btn-maxi, br, hr) {
+  display: none !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) img,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) img,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) > img,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) > img,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) iframe,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) iframe,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) object,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) object,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) embed,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) embed {
+  display: block !important;
+  visibility: visible !important;
+  position: absolute !important;
+  top: var(--nc-image-micro-top, var(--nc-image-top, 0px)) !important;
+  left: var(--nc-image-micro-left, var(--nc-image-left, 0px)) !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: var(--nc-image-micro-width, var(--nc-image-width, 100%)) !important;
+  height: var(--nc-image-micro-height, var(--nc-image-height, 100%)) !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  float: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border: none !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+  z-index: 0 !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) img ~ img,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) img ~ img {
+  display: none !important;
+}
+
+/* Explicit slot-image rule deliberately avoids :has(); see HUD-01 template. */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot .nc-hud-float-image,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot .nc-hud-slot-image,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot .nc-hud-float-image,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot .nc-hud-slot-image {
+  display: block !important;
+  position: absolute !important;
+  top: var(--nc-image-micro-top, var(--nc-image-top, 0px)) !important;
+  left: var(--nc-image-micro-left, var(--nc-image-left, 0px)) !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: var(--nc-image-micro-width, var(--nc-image-width, 100%)) !important;
+  height: var(--nc-image-micro-height, var(--nc-image-height, 100%)) !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  float: none !important;
+  object-fit: contain !important;
+  z-index: 0 !important;
+}
+
+.nc-ol-widget[data-collapse="micro"][data-content="image"].is-mini .nc-hud-01-html-slot,
+.nc-or-widget[data-collapse="micro"][data-content="image"].is-mini .nc-hud-02-html-slot {
+  position: absolute !important;
+  inset: 0 !important;
+  overflow: visible !important;
+  z-index: auto !important;
+}
+
+/* Video embed fills micro slot */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-youtube-maxi {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  display: block !important;
+}
+
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-vertical-copy,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-heygen-copy {
+  display: none !important;
+}
+
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-vertical-maxi,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-heygen-maxi {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+/* Fill the whole micro frame instead of a 9:16-letterboxed box inside
+   it — see the matching HUD-01 rule for the full explanation. */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-heygen-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  width: var(--nc-video-micro-width, var(--nc-video-width, var(--nc-micro-w, 87px))) !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: var(--nc-video-micro-height, var(--nc-video-height, var(--nc-micro-h, 130px))) !important;
+  max-height: var(--nc-video-micro-height, var(--nc-video-height, var(--nc-micro-h, 130px))) !important;
+  aspect-ratio: 9 / 16 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-media {
+  float: none !important;
+  width: var(--nc-video-micro-width, var(--nc-video-width, 100%)) !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  max-height: var(--nc-video-micro-height, var(--nc-video-height, var(--nc-micro-h, 130px))) !important;
+  aspect-ratio: 16 / 9;
+  height: var(--nc-video-micro-height, var(--nc-video-height, auto)) !important;
+}
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-media-vertical {
+  aspect-ratio: 9 / 16;
+}
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-media iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Some pasted Blogger blocks use an iframe/object as the image source.
+   When the widget explicitly says data-content="image", size the outer
+   media box with the image variables; the cross-origin iframe then fills it. */
+.nc-or-widget[data-collapse="micro"][data-content="image"].is-mini .nc-hud-media,
+.nc-or-widget[data-collapse="micro"][style*="--nc-image-micro-width"].is-mini .nc-hud-media {
+  position: absolute !important;
+  top: var(--nc-image-micro-top, var(--nc-image-top, 0px)) !important;
+  left: var(--nc-image-micro-left, var(--nc-image-left, 0px)) !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: var(--nc-image-micro-width, var(--nc-image-width, 100%)) !important;
+  height: var(--nc-image-micro-height, var(--nc-image-height, 100%)) !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: none !important;
+  overflow: hidden !important;
+  z-index: 0 !important;
+}
+
+.nc-or-widget[data-collapse="micro"][data-content="image"].is-mini .nc-hud-media :is(iframe, object, embed),
+.nc-or-widget[data-collapse="micro"][style*="--nc-image-micro-width"].is-mini .nc-hud-media :is(iframe, object, embed) {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+
+/* (float-image — см. img в :not(:has(.nc-hud-media)) выше) */
+
+/* Outer h2 (direct child of widget, before panel):
+   hidden in expanded, shown as label above the slot in micro mini */
+.nc-or-widget[data-collapse="micro"] > .nc-or-title-micro {
+  display: none !important;
+}
+.nc-or-widget[data-collapse="micro"].is-mini > .nc-or-title-micro {
+  display: block !important;
+  font-size: var(--nc-title-micro-size, 11px) !important;
+  letter-spacing: .10em;
+  text-align: center;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  max-width: var(--nc-micro-w, 87px);
+  width: auto;
+  top: 0 !important;
+  left: 0 !important;
+  transform: translate(var(--nc-title-micro-left, 0px), var(--nc-title-micro-top, 0px)) !important;
+}
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot .nc-or-title-maxi {
+  display: none !important;
+}
+.nc-or-widget[data-collapse="micro"].is-mini > .nc-or-title-micro::before,
+.nc-or-widget[data-collapse="micro"].is-mini > .nc-or-title-micro::after {
+  display: none !important;
+}
+
+/* In collapsed micro only the direct-child micro label is allowed. */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel :is(
+  .nc-or-title, .nc-or-title-maxi, .nc-or-title-mini,
+  .nc-or-title-micro, .nc-or-title-b, .nc-or-title-c,
+  .nc-ol-title-brackets
+) {
+  display: none !important;
+}
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel :is(
+  .nc-or-title, .nc-or-title-maxi, .nc-or-title-mini,
+  .nc-or-title-micro, .nc-or-title-b, .nc-or-title-c
+)::before,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel :is(
+  .nc-or-title, .nc-or-title-maxi, .nc-or-title-mini,
+  .nc-or-title-micro, .nc-or-title-b, .nc-or-title-c
+)::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Toggle button in micro mini: scaled down, coords in screen px.
+   top/left override prevents clipping by panel overflow:hidden.
+   Per-panel vars: --nc-toggle-micro-top/left/scale (→ --nc-toggle-top/left → --nc-btn-* fallback). */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Micro button: absolute within widget/panel — descendant selector handles any placement */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-btn-micro {
+  position: absolute !important;
+  top:  var(--nc-btn-micro-top,  19px) !important;  /* label (~15px) + gap (4px) */
+  left: var(--nc-btn-micro-left, 0px)  !important;
+  z-index: 9999 !important;
+}
+/* Hidden in expanded state (btn-maxi inside slot handles that) */
+.nc-or-widget[data-collapse="micro"]:not(.is-mini) .nc-or-btn-micro {
+  display: none !important;
+}
+
+/* ── Micro size modifier classes ──────────────────────────────── */
+/* Add one of these classes to the widget root alongside data-collapse="micro"
+   to change the slot dimensions.  Omit the class for the 106×49 default.
+
+   Usage:  <div class="nc-hud-02 nc-or-widget nc-micro-l" data-collapse="micro" …>
+
+   Sizes (w × h of the image slot; total widget height = h + 19px):
+     nc-micro-s    —  87 × 130 px
+     (default)     —  87 × 130 px
+     nc-micro-l    — 200 × 308 px                                 */
+
+.nc-micro-s { --nc-micro-w: 87px; --nc-micro-h: 130px; }
+.nc-micro-l { --nc-micro-w: 200px; --nc-micro-h: 308px; }
+
+/* .nc-or-widget.is-mini .nc-or-panel constraints (transform, transformOrigin,
+   width, height, margin, overflow) are applied as inline styles by hud-mini.js.
+   No CSS rule needed — removing avoids duplication and specificity fights. */
+
+/* Toggle button — scoped to nc-or-panel to avoid conflict with nc-ol-panel.
+   Per-mode CSS vars (all optional, set on widget root):
+     --nc-toggle-maxi-top/left      expanded state only
+     --nc-toggle-mini-top/left/scale  mini state only (coords in UNSCALED panel space, ÷ 0.352)
+     --nc-toggle-micro-top/left/scale micro state only (coords in screen px)
+     --nc-toggle-top/left           shared fallback across all modes
+   Old vars --nc-btn-top/left/scale remain as ultimate fallback (backward compat). */
+.nc-or-panel .nc-ol-toggle-btn {
+  position: absolute;
+  top:  var(--nc-toggle-maxi-top,  var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left: var(--nc-toggle-maxi-left, var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  right: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 38px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+  clip-path: polygon(
+    5px 0%, calc(100% - 5px) 0%,
+    100% 5px, 100% calc(100% - 5px),
+    calc(100% - 5px) 100%, 5px 100%,
+    0% calc(100% - 5px), 0% 5px
+  );
+  box-shadow: none;
+  transition: border-color .18s ease, box-shadow .18s ease,
+              color .18s ease, background .18s ease;
+  pointer-events: all;
+}
+
+.nc-or-panel .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  background: transparent;
+  border-color: rgba(80, 220, 255, .75);
+  box-shadow: none;
+}
+
+/* Mini mode: button scales with the 0.352× panel.
+   Coords in UNSCALED panel space (÷ 0.352 to convert to screen px).
+   Per-panel vars: --nc-toggle-mini-top/left/scale (→ --nc-toggle-* → --nc-btn-* fallback). */
+.nc-or-widget.is-mini .nc-or-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-mini-top,   var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left:      var(--nc-toggle-mini-left,  var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  transform: scale(var(--nc-toggle-mini-scale, var(--nc-btn-scale, 1)));
+  transform-origin: top left;
+}
+
+/* Micro mode: duplicate of the rule in the micro layout section above — kept here
+   for cascade legibility. Specificity wins over the base rule and mini rule. */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Tooltip */
+.nc-or-panel .nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+
+.nc-or-panel .nc-ol-toggle-btn:hover::after { display: block; }
+
+/* ── Contour sweep runner (HUD-02 SVG path) ───────────────────── */
+
+.nc-hud-02 .nc-or-sweep {
+  display: none;
+}
+
+.nc-or-runner-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 40;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.nc-or-runner-tail {
+  fill: none;
+  stroke: rgba(60, 190, 255, .13);
+  stroke-width: 72;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter: blur(32px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+.nc-or-runner-body {
+  fill: none;
+  stroke: rgba(90, 210, 255, .26);
+  stroke-width: 32;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter: blur(16px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+.nc-or-runner-head {
+  fill: none;
+  stroke: rgba(150, 232, 255, .55);
+  stroke-width: 10;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter: blur(3px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+.nc-or-runner-spark {
+  fill: none;
+  stroke: rgba(200, 240, 255, .77);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter:
+    drop-shadow(0 0 3px  rgba(180, 240, 255, .80))
+    drop-shadow(0 0 10px rgba(80,  200, 255, .64));
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+/* .nc-hud-row + widget sizing → blogger-hud-shared.css */
+
+/* ── Mobile ───────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .nc-or-widget { padding: 12px; }
+
+  .nc-or-panel {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .nc-or-sweep,
+  .nc-or-frame-svg { display: none; }
+
+  .nc-or-left {
+    min-width: 0;
+    width: 100%;
+    height: 320px;
+  }
+
+  .nc-or-image {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-or-reticle {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-or-right {
+    min-width: 0;
+    height: auto;
+    padding: 28px 22px 30px;
+  }
+
+  .nc-or-title { font-size: 22px; }
+
+  .nc-or-grid {
+    grid-template-columns: 100px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+}
+
+/* ── Keyframes — HUD-02 local ─────────────────────────────────── */
+
+@keyframes ncOrLoader1 {
+  0%           { opacity: 0; }
+  13%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader2 {
+  0%, 6.5%     { opacity: 0; }
+  19.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader3 {
+  0%, 13%      { opacity: 0; }
+  26%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader4 {
+  0%, 19.5%    { opacity: 0; }
+  32.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader5 {
+  0%, 26%      { opacity: 0; }
+  39%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader6 {
+  0%, 32.5%    { opacity: 0; }
+  45.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader7 {
+  0%, 39%      { opacity: 0; }
+  52%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader8 {
+  0%, 45.5%    { opacity: 0; }
+  58.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+
+@keyframes hudSpinner02 {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ncOrOpenHud {
+  from { width: 120px; opacity: .65; }
+  to   { width: min(1200px, 100%); opacity: 1; }
+}
+
+@keyframes ncOrSweepBar {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: calc(-1 * var(--nc-or-runner-p, 2871px)); }
+}
