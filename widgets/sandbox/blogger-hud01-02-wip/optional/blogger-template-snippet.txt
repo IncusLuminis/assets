@@ -1699,14 +1699,14 @@ a.nc-hud-paper-title:hover {
 .nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-slot-image,
 .nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-float-image,
 .nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-slot-image {
-  float: right;
+  float: var(--nc-image-maxi-float, left);
   top: var(--nc-image-maxi-top, var(--nc-image-top, 0px));
   left: var(--nc-image-maxi-left, var(--nc-image-left, auto));
-  width: var(--nc-image-maxi-width, var(--nc-image-width, auto)) !important;
+  width: var(--nc-image-maxi-width, var(--nc-image-width, 28%)) !important;
   height: var(--nc-image-maxi-height, var(--nc-image-height, auto)) !important;
   max-width: none !important;
   max-height: none !important;
-  margin: 0 0 12px 16px;
+  margin: 0 34px 22px 0;
 }
 
 .nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-float-image,
@@ -3932,14 +3932,14 @@ a.nc-hud-paper-title:hover {
 .nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-slot-image,
 .nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-float-image,
 .nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-slot-image {
-  float: right;
+  float: var(--nc-image-maxi-float, left);
   top: var(--nc-image-maxi-top, var(--nc-image-top, 0px));
   left: var(--nc-image-maxi-left, var(--nc-image-left, auto));
-  width: var(--nc-image-maxi-width, var(--nc-image-width, auto)) !important;
+  width: var(--nc-image-maxi-width, var(--nc-image-width, 28%)) !important;
   height: var(--nc-image-maxi-height, var(--nc-image-height, auto)) !important;
   max-width: none !important;
   max-height: none !important;
-  margin: 0 0 12px 16px;
+  margin: 0 34px 22px 0;
 }
 
 .nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-float-image,
