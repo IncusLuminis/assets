@@ -1281,7 +1281,7 @@
 .nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-slot-image,
 .nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-float-image,
 .nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-slot-image {
-  float: var(--nc-image-maxi-float, left);
+  float: var(--nc-image-maxi-float, left) !important;
   top: var(--nc-image-maxi-top, var(--nc-image-top, 0px));
   left: var(--nc-image-maxi-left, var(--nc-image-left, auto));
   width: var(--nc-image-maxi-width, var(--nc-image-width, 28%)) !important;
@@ -1289,6 +1289,14 @@
   max-width: none !important;
   max-height: none !important;
   margin: 0 34px 22px 0;
+}
+
+/* Compatibility for snippets generated while `auto` was the maxi default. */
+:is(.nc-ol-widget, .nc-or-widget):not(.is-mini):is(
+  [style*="--nc-image-maxi-width: auto"],
+  [style*="--nc-image-maxi-width:auto"]
+) :is(.nc-hud-float-image, .nc-hud-slot-image) {
+  width: 28% !important;
 }
 
 .nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-float-image,
