@@ -980,6 +980,21 @@
   left: var(--nc-video-micro-left, var(--nc-video-left, 0px));
 }
 
+/* Opt-in modifier (add alongside .nc-hud-media in markup): true corner anchor.
+   Maxi-only — .nc-ol-panel/.nc-or-panel is the nearest position:relative
+   ancestor while the html-slot stays position:static in maxi, so absolute
+   here is measured from the panel's own top-left corner instead of the
+   slot's padded/title-offset flow position. Scoped to :not(.is-mini) so it
+   never fights the mini/micro !important position overrides below, and
+   opt-in via an extra class so existing --nc-video-maxi-top/left nudges on
+   other frames keep their current relative-offset behavior unchanged. */
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-media.nc-hud-media-corner-anchor,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-media.nc-hud-media-corner-anchor {
+  position: absolute;
+  top: var(--nc-video-maxi-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-maxi-left, var(--nc-video-left, 0px));
+}
+
 /* Video (YouTube / HeyGen): description + title only in maxi; mini/micro = media thumbnail */
 .nc-hud-only-maxi { }
 
