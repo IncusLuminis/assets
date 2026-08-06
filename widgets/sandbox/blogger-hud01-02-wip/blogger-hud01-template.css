@@ -1299,6 +1299,16 @@
   width: 28% !important;
 }
 
+/* `center` is a HUD API value, not a native CSS float value. */
+:is(.nc-ol-widget, .nc-or-widget):not(.is-mini):is(
+  [style*="--nc-image-maxi-float: center"],
+  [style*="--nc-image-maxi-float:center"]
+) :is(.nc-hud-float-image, .nc-hud-slot-image) {
+  float: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
 .nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-float-image,
 .nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-slot-image,
 .nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-hud-02-html-slot .nc-hud-float-image,
