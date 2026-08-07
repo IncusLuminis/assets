@@ -809,7 +809,12 @@
   inset: unset;
   overflow-x: hidden;
   overflow-y: visible;
-  padding: 70px 52px var(--nc-slot-padding-bottom, 90px);
+  /* --nc-inner-left/right: see blogger-hud02-template.css for the full
+     explanation — real px distance to the inner-frame SVG line, written
+     by ncFrameAdapt (hud01-frame-adapt.js) on every resize. 52px is the
+     pre-JS/no-JS fallback. +14px: breathing room so content doesn't land
+     flush on the line — see blogger-hud02-template.css for why. */
+  padding: 70px calc(var(--nc-inner-right, 52px) + 14px) var(--nc-slot-padding-bottom, 90px) calc(var(--nc-inner-left, 52px) + 14px);
 }
 
 /* Clear floats after Blogger / pasted HTML */
@@ -980,6 +985,21 @@
   left: var(--nc-video-micro-left, var(--nc-video-left, 0px));
 }
 
+/* Opt-in modifier (add alongside .nc-hud-media in markup): true corner anchor.
+   Maxi-only — .nc-ol-panel/.nc-or-panel is the nearest position:relative
+   ancestor while the html-slot stays position:static in maxi, so absolute
+   here is measured from the panel's own top-left corner instead of the
+   slot's padded/title-offset flow position. Scoped to :not(.is-mini) so it
+   never fights the mini/micro !important position overrides below, and
+   opt-in via an extra class so existing --nc-video-maxi-top/left nudges on
+   other frames keep their current relative-offset behavior unchanged. */
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-media.nc-hud-media-corner-anchor,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-media.nc-hud-media-corner-anchor {
+  position: absolute;
+  top: var(--nc-video-maxi-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-maxi-left, var(--nc-video-left, 0px));
+}
+
 /* Video (YouTube / HeyGen): description + title only in maxi; mini/micro = media thumbnail */
 .nc-hud-only-maxi { }
 
@@ -1019,13 +1039,17 @@
 .nc-hud-01.nc-ol-widget:has(.nc-hud-vertical-maxi),
 .nc-hud-01.nc-ol-widget:has(.nc-hud-heygen-maxi) {
   --nc-vertical-video-h: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-heygen-video-h, 300px)));
-  --nc-vertical-row-h: calc(var(--nc-vertical-video-h, 300px) + 20px);
+  /* See blogger-hud02-template.css for why the "+20px" was dropped: it
+     made the video-taller case end up with a bigger bottom gap than the
+     text-taller case. Row height now exactly matches whichever of
+     video/text is tallest. */
+  --nc-vertical-row-h: var(--nc-vertical-video-h, 300px);
 }
 
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-ol-panel:has(.nc-hud-vertical-maxi),
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-ol-panel:has(.nc-hud-heygen-maxi) {
   height: auto;
-  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 24px);
+  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 48px);
   max-height: none;
 }
 
@@ -1039,7 +1063,12 @@
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot:has(.nc-hud-vertical-maxi),
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot:has(.nc-hud-heygen-maxi) {
   overflow: visible;
-  padding-bottom: 20px;
+  /* ncFrameAdapt's updateOl()/olPaths() draws the inner frame line at
+     H-26 (26px above panel.offsetHeight) — see blogger-hud02-template.css
+     for the full explanation of this margin AND why real clearance is
+     (padding-bottom - 26), not padding-bottom itself. 48 = 26 + ~22px,
+     matching HUD-02's ~20-26px inner-line gap target. */
+  padding-bottom: 48px;
 }
 
 .nc-hud-vertical-maxi,
@@ -1050,7 +1079,7 @@
   gap: 16px;
   width: 100%;
   max-width: 100%;
-  height: var(--nc-vertical-row-h, 320px);
+  height: auto;
   min-height: var(--nc-vertical-row-h, 320px);
   margin-bottom: 0;
   box-sizing: border-box;
@@ -1138,8 +1167,6 @@
   display: block;
   flex: 1 1 0;
   min-width: 0;
-  max-height: var(--nc-vertical-video-h, 300px);
-  overflow-y: auto;
   text-align: left;
 }
 

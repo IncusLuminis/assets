@@ -212,6 +212,19 @@
           microImageTarget.style.removeProperty(prop);
         });
       }
+      /* applyMicroImageGeometry() also pins microImageSlot itself (the
+         .nc-hud-0X-html-slot) to position:absolute + a fixed micro height
+         — inline !important, so it outranks any expanded/html-mode CSS
+         rule regardless of specificity. Only the *target* image/media's
+         styles were being cleared above; the slot's own pin never was,
+         so the slot (and anything that needs it back in normal flow —
+         e.g. a HeyGen video + text row) stayed frozen at the micro height
+         after expanding, even though .is-mini was gone. */
+      if (collapseMode === 'micro' && microImageSlot) {
+        ['position','inset','width','height','overflow'].forEach(function (prop) {
+          microImageSlot.style.removeProperty(prop);
+        });
+      }
     }
 
     /* ── Expand (FLIP) ───────────────────────────────────────────── */

@@ -1227,7 +1227,12 @@ a.nc-hud-paper-title:hover {
   inset: unset;
   overflow-x: hidden;
   overflow-y: visible;
-  padding: 70px 52px var(--nc-slot-padding-bottom, 90px);
+  /* --nc-inner-left/right: see blogger-hud02-template.css for the full
+     explanation — real px distance to the inner-frame SVG line, written
+     by ncFrameAdapt (hud01-frame-adapt.js) on every resize. 52px is the
+     pre-JS/no-JS fallback. +14px: breathing room so content doesn't land
+     flush on the line — see blogger-hud02-template.css for why. */
+  padding: 70px calc(var(--nc-inner-right, 52px) + 14px) var(--nc-slot-padding-bottom, 90px) calc(var(--nc-inner-left, 52px) + 14px);
 }
 
 /* Clear floats after Blogger / pasted HTML */
@@ -1398,6 +1403,21 @@ a.nc-hud-paper-title:hover {
   left: var(--nc-video-micro-left, var(--nc-video-left, 0px));
 }
 
+/* Opt-in modifier (add alongside .nc-hud-media in markup): true corner anchor.
+   Maxi-only — .nc-ol-panel/.nc-or-panel is the nearest position:relative
+   ancestor while the html-slot stays position:static in maxi, so absolute
+   here is measured from the panel's own top-left corner instead of the
+   slot's padded/title-offset flow position. Scoped to :not(.is-mini) so it
+   never fights the mini/micro !important position overrides below, and
+   opt-in via an extra class so existing --nc-video-maxi-top/left nudges on
+   other frames keep their current relative-offset behavior unchanged. */
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-media.nc-hud-media-corner-anchor,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-media.nc-hud-media-corner-anchor {
+  position: absolute;
+  top: var(--nc-video-maxi-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-maxi-left, var(--nc-video-left, 0px));
+}
+
 /* Video (YouTube / HeyGen): description + title only in maxi; mini/micro = media thumbnail */
 .nc-hud-only-maxi { }
 
@@ -1437,13 +1457,17 @@ a.nc-hud-paper-title:hover {
 .nc-hud-01.nc-ol-widget:has(.nc-hud-vertical-maxi),
 .nc-hud-01.nc-ol-widget:has(.nc-hud-heygen-maxi) {
   --nc-vertical-video-h: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-heygen-video-h, 300px)));
-  --nc-vertical-row-h: calc(var(--nc-vertical-video-h, 300px) + 20px);
+  /* See blogger-hud02-template.css for why the "+20px" was dropped: it
+     made the video-taller case end up with a bigger bottom gap than the
+     text-taller case. Row height now exactly matches whichever of
+     video/text is tallest. */
+  --nc-vertical-row-h: var(--nc-vertical-video-h, 300px);
 }
 
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-ol-panel:has(.nc-hud-vertical-maxi),
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-ol-panel:has(.nc-hud-heygen-maxi) {
   height: auto;
-  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 24px);
+  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 48px);
   max-height: none;
 }
 
@@ -1457,7 +1481,12 @@ a.nc-hud-paper-title:hover {
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot:has(.nc-hud-vertical-maxi),
 .nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot:has(.nc-hud-heygen-maxi) {
   overflow: visible;
-  padding-bottom: 20px;
+  /* ncFrameAdapt's updateOl()/olPaths() draws the inner frame line at
+     H-26 (26px above panel.offsetHeight) — see blogger-hud02-template.css
+     for the full explanation of this margin AND why real clearance is
+     (padding-bottom - 26), not padding-bottom itself. 48 = 26 + ~22px,
+     matching HUD-02's ~20-26px inner-line gap target. */
+  padding-bottom: 48px;
 }
 
 .nc-hud-vertical-maxi,
@@ -1468,7 +1497,7 @@ a.nc-hud-paper-title:hover {
   gap: 16px;
   width: 100%;
   max-width: 100%;
-  height: var(--nc-vertical-row-h, 320px);
+  height: auto;
   min-height: var(--nc-vertical-row-h, 320px);
   margin-bottom: 0;
   box-sizing: border-box;
@@ -1556,8 +1585,6 @@ a.nc-hud-paper-title:hover {
   display: block;
   flex: 1 1 0;
   min-width: 0;
-  max-height: var(--nc-vertical-video-h, 300px);
-  overflow-y: auto;
   text-align: left;
 }
 
@@ -3649,7 +3676,7 @@ a.nc-hud-paper-title:hover {
 
 .nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-or-panel:has(.nc-hud-vertical-maxi),
 .nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-or-panel:has(.nc-hud-heygen-maxi) {
-  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 24px);
+  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 76px);
 }
 
 
@@ -3658,7 +3685,41 @@ a.nc-hud-paper-title:hover {
   inset: unset;
   overflow-x: hidden;
   overflow-y: visible;
-  padding: 76px 52px var(--nc-slot-padding-bottom, 90px) 52px;
+  /* --nc-inner-left/right: real px distance from the panel edge to the
+     decorative inner-frame SVG line, written by ncFrameAdapt on every
+     resize (see hud02-frame-adapt.js / the playground's inline copy).
+     The frame is a non-uniformly-scaled SVG (preserveAspectRatio="none"),
+     so that distance isn't a fixed constant — it moves with panel width.
+     52px is the pre-JS/no-JS fallback (close at typical panel widths).
+     Content positioned via --nc-text-left etc. now aligns to this same
+     reference: see textStyleAttr()/absTextStyleAttr() in hud-playground.
+     +14px on both sides: landing content flush on the inner line (0px
+     gap) read as touching the frame rather than framed by it — at usual
+     panel widths inner/outer are only ~15-30px apart, close enough that
+     "flush with inner" was easy to mistake for "flush with outer" at a
+     glance. This keeps --nc-inner-left/right meaning the frame's literal
+     position (useful as-is elsewhere) and adds the breathing room here,
+     at the point of use, instead of baking it into that variable. */
+  padding: 76px calc(var(--nc-inner-right, 52px) + 14px) var(--nc-slot-padding-bottom, 90px) calc(var(--nc-inner-left, 52px) + 14px);
+}
+
+/* Vertical/HeyGen row: the generic 90px slot bottom padding (sized for
+   scrolling paper-mode text) left a large fixed gap below the video/copy
+   whenever they were shorter than that padding, so the panel looked like
+   it wasn't really hugging the block's actual bottom edge.
+   76px, not less: ncFrameAdapt's updateOr()/orPaths() draws the decorative
+   INNER frame line (the thin bracket, not the big glowing outer one) at
+   H-54 (54px above the panel's own bottom edge, H = panel.offsetHeight —
+   see the <script> block below). The gap between the row's actual bottom
+   and that inner line is (padding-bottom - 54), NOT padding-bottom itself,
+   since the row sits (panel-bottom - padding-bottom) from the top.
+   76 = 54 + ~22px, landing the inner-line gap in the ~20-26px range that
+   actually reads as "framing" the block instead of a stray empty margin
+   below it. Matches the equivalent HUD-01 override, against HUD-01's own
+   (smaller) inner-frame inset. */
+.nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-hud-02-html-slot:has(.nc-hud-vertical-maxi),
+.nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-hud-02-html-slot:has(.nc-hud-heygen-maxi) {
+  padding-bottom: 76px;
 }
 
 .nc-hud-01-html-slot::after,
@@ -3687,6 +3748,21 @@ a.nc-hud-paper-title:hover {
 .nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot .nc-hud-media {
   top: var(--nc-video-micro-top, var(--nc-video-top, 0px));
   left: var(--nc-video-micro-left, var(--nc-video-left, 0px));
+}
+
+/* Opt-in modifier (add alongside .nc-hud-media in markup): true corner anchor.
+   Maxi-only — .nc-ol-panel/.nc-or-panel is the nearest position:relative
+   ancestor while the html-slot stays position:static in maxi, so absolute
+   here is measured from the panel's own top-left corner instead of the
+   slot's padded/title-offset flow position. Scoped to :not(.is-mini) so it
+   never fights the mini/micro !important position overrides below, and
+   opt-in via an extra class so existing --nc-video-maxi-top/left nudges on
+   other frames keep their current relative-offset behavior unchanged. */
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-media.nc-hud-media-corner-anchor,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-media.nc-hud-media-corner-anchor {
+  position: absolute;
+  top: var(--nc-video-maxi-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-maxi-left, var(--nc-video-left, 0px));
 }
 
 /* Video (YouTube / HeyGen): description + title only in maxi; mini/micro = media thumbnail */
@@ -3728,7 +3804,12 @@ a.nc-hud-paper-title:hover {
 .nc-or-widget:has(.nc-hud-vertical-maxi),
 .nc-or-widget:has(.nc-hud-heygen-maxi) {
   --nc-vertical-video-h: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-heygen-video-h, 300px)));
-  --nc-vertical-row-h: calc(var(--nc-vertical-video-h, 300px) + 20px);
+  /* No "+20px" here on purpose: that used to make the row taller than the
+     video even when video was the tallest child, so the gap to the frame
+     below ended up ~20px bigger than in the text-taller case — an
+     inconsistent bottom margin depending on which side was taller. Row
+     height now exactly matches whichever of video/text is tallest. */
+  --nc-vertical-row-h: var(--nc-vertical-video-h, 300px);
 }
 
 .nc-hud-vertical-maxi,
@@ -3738,7 +3819,7 @@ a.nc-hud-paper-title:hover {
   align-items: flex-start;
   gap: 16px;
   width: 100%;
-  height: var(--nc-vertical-row-h, 320px);
+  height: auto;
   min-height: var(--nc-vertical-row-h, 320px);
   margin-bottom: 0;
   box-sizing: border-box;
@@ -3819,8 +3900,6 @@ a.nc-hud-paper-title:hover {
   display: block;
   flex: 1 1 0;
   min-width: 0;
-  max-height: var(--nc-vertical-video-h, 300px);
-  overflow-y: auto;
   text-align: left;
 }
 
@@ -5732,6 +5811,19 @@ a.nc-hud-paper-title:hover {
         ['position','top','left','right','bottom','width','height','min-width',
          'max-width','min-height','max-height','transform','z-index'].forEach(function (prop) {
           microImageTarget.style.removeProperty(prop);
+        });
+      }
+      /* applyMicroImageGeometry() also pins microImageSlot itself (the
+         .nc-hud-0X-html-slot) to position:absolute + a fixed micro height
+         — inline !important, so it outranks any expanded/html-mode CSS
+         rule regardless of specificity. Only the *target* image/media's
+         styles were being cleared above; the slot's own pin never was,
+         so the slot (and anything that needs it back in normal flow —
+         e.g. a HeyGen video + text row) stayed frozen at the micro height
+         after expanding, even though .is-mini was gone. */
+      if (collapseMode === 'micro' && microImageSlot) {
+        ['position','inset','width','height','overflow'].forEach(function (prop) {
+          microImageSlot.style.removeProperty(prop);
         });
       }
     }
@@ -8428,9 +8520,32 @@ a.nc-hud-paper-title:hover {
            ' L60 '   + (H - 26)  + ' L26 '   + (H - 56) + ' L26 96 Z';
   }
 
+  /* innerD()'s leftmost/rightmost X (viewBox units, from the L170 26
+     L1145 26 run — the long flat stretch of the inner bevel). The frame
+     SVG stretches non-uniformly onto the panel's real width
+     (preserveAspectRatio="none"), so the inner line's true px distance
+     from the panel edge moves with panel width — not a fixed CSS
+     constant. Recomputed on every adapt() call, written as
+     --nc-inner-left/right on the widget so the html-slot's own padding
+     (blogger-hud01-template.css) can reference the frame's true position
+     instead of an approximate constant. */
+  var INNER_X = [26, 1174];
+  function setInnerInsetVars(panel) {
+    var widget = panel.parentElement;
+    if (!widget || !widget.style) return;
+    var w = panel.offsetWidth || 1;
+    var scaleX = w / 1200;
+    var left  = INNER_X[0] * scaleX;
+    var right = w - INNER_X[1] * scaleX;
+    widget.style.setProperty('--nc-inner-left',  left.toFixed(1)  + 'px');
+    widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
+  }
+
   /* ── Core update ──────────────────────────────────────────────── */
 
   function adapt(panel, overrideH) {
+    setInnerInsetVars(panel);
+
     var svg = panel.querySelector('.nc-ol-frame-svg');
     if (!svg) return;
 
@@ -8659,9 +8774,31 @@ a.nc-hud-paper-title:hover {
            ' L98 '  + (H - 8)  + ' Z';
   }
 
+  /* innerD()'s leftmost/rightmost X (viewBox units). The frame SVG is
+     stretched non-uniformly onto the panel's real width
+     (preserveAspectRatio="none"), so the inner line's true px distance
+     from the panel edge moves with panel width — it can't be a fixed CSS
+     constant. Recomputed on every adapt() call and written as
+     --nc-inner-left/right on the widget so the html-slot's own padding
+     (blogger-hud02-template.css) — and anything positioned relative to
+     it, e.g. --nc-text-left — can reference the frame's true position. */
+  var INNER_X = [58, 1140];
+  function setInnerInsetVars(panel) {
+    var widget = panel.parentElement;
+    if (!widget || !widget.style) return;
+    var w = panel.offsetWidth || 1;
+    var scaleX = w / 1200;
+    var left  = INNER_X[0] * scaleX;
+    var right = w - INNER_X[1] * scaleX;
+    widget.style.setProperty('--nc-inner-left',  left.toFixed(1)  + 'px');
+    widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
+  }
+
   /* ── Core update ──────────────────────────────────────────────── */
 
   function adapt(panel, overrideH) {
+    setInnerInsetVars(panel);
+
     /* Try both SVG elements used in HUD-02 (frame + runner) */
     var svgs = panel.querySelectorAll('.nc-or-frame-svg, .nc-or-runner-svg');
     if (!svgs.length) return;
