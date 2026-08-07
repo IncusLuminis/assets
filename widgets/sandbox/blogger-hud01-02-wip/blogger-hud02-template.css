@@ -1085,7 +1085,7 @@
 
 .nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-or-panel:has(.nc-hud-vertical-maxi),
 .nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-or-panel:has(.nc-hud-heygen-maxi) {
-  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 24px);
+  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 76px);
 }
 
 
@@ -1094,7 +1094,41 @@
   inset: unset;
   overflow-x: hidden;
   overflow-y: visible;
-  padding: 76px 52px var(--nc-slot-padding-bottom, 90px) 52px;
+  /* --nc-inner-left/right: real px distance from the panel edge to the
+     decorative inner-frame SVG line, written by ncFrameAdapt on every
+     resize (see hud02-frame-adapt.js / the playground's inline copy).
+     The frame is a non-uniformly-scaled SVG (preserveAspectRatio="none"),
+     so that distance isn't a fixed constant — it moves with panel width.
+     52px is the pre-JS/no-JS fallback (close at typical panel widths).
+     Content positioned via --nc-text-left etc. now aligns to this same
+     reference: see textStyleAttr()/absTextStyleAttr() in hud-playground.
+     +14px on both sides: landing content flush on the inner line (0px
+     gap) read as touching the frame rather than framed by it — at usual
+     panel widths inner/outer are only ~15-30px apart, close enough that
+     "flush with inner" was easy to mistake for "flush with outer" at a
+     glance. This keeps --nc-inner-left/right meaning the frame's literal
+     position (useful as-is elsewhere) and adds the breathing room here,
+     at the point of use, instead of baking it into that variable. */
+  padding: 76px calc(var(--nc-inner-right, 52px) + 14px) var(--nc-slot-padding-bottom, 90px) calc(var(--nc-inner-left, 52px) + 14px);
+}
+
+/* Vertical/HeyGen row: the generic 90px slot bottom padding (sized for
+   scrolling paper-mode text) left a large fixed gap below the video/copy
+   whenever they were shorter than that padding, so the panel looked like
+   it wasn't really hugging the block's actual bottom edge.
+   76px, not less: ncFrameAdapt's updateOr()/orPaths() draws the decorative
+   INNER frame line (the thin bracket, not the big glowing outer one) at
+   H-54 (54px above the panel's own bottom edge, H = panel.offsetHeight —
+   see the <script> block below). The gap between the row's actual bottom
+   and that inner line is (padding-bottom - 54), NOT padding-bottom itself,
+   since the row sits (panel-bottom - padding-bottom) from the top.
+   76 = 54 + ~22px, landing the inner-line gap in the ~20-26px range that
+   actually reads as "framing" the block instead of a stray empty margin
+   below it. Matches the equivalent HUD-01 override, against HUD-01's own
+   (smaller) inner-frame inset. */
+.nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-hud-02-html-slot:has(.nc-hud-vertical-maxi),
+.nc-hud-02[data-mode="html"].nc-or-widget:not(.is-mini) .nc-hud-02-html-slot:has(.nc-hud-heygen-maxi) {
+  padding-bottom: 76px;
 }
 
 .nc-hud-01-html-slot::after,
@@ -1179,7 +1213,12 @@
 .nc-or-widget:has(.nc-hud-vertical-maxi),
 .nc-or-widget:has(.nc-hud-heygen-maxi) {
   --nc-vertical-video-h: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-heygen-video-h, 300px)));
-  --nc-vertical-row-h: calc(var(--nc-vertical-video-h, 300px) + 20px);
+  /* No "+20px" here on purpose: that used to make the row taller than the
+     video even when video was the tallest child, so the gap to the frame
+     below ended up ~20px bigger than in the text-taller case — an
+     inconsistent bottom margin depending on which side was taller. Row
+     height now exactly matches whichever of video/text is tallest. */
+  --nc-vertical-row-h: var(--nc-vertical-video-h, 300px);
 }
 
 .nc-hud-vertical-maxi,
@@ -1189,7 +1228,7 @@
   align-items: flex-start;
   gap: 16px;
   width: 100%;
-  height: var(--nc-vertical-row-h, 320px);
+  height: auto;
   min-height: var(--nc-vertical-row-h, 320px);
   margin-bottom: 0;
   box-sizing: border-box;
@@ -1270,8 +1309,6 @@
   display: block;
   flex: 1 1 0;
   min-width: 0;
-  max-height: var(--nc-vertical-video-h, 300px);
-  overflow-y: auto;
   text-align: left;
 }
 
