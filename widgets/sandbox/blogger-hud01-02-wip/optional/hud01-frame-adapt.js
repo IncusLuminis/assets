@@ -74,6 +74,25 @@
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
   }
 
+  /* Image content type: see the equivalent function in
+     blogger-hud02-template.css's hud02-frame-adapt.js for the full
+     explanation — .nc-hud-text is position:absolute, so the panel's
+     height:auto can't see it and overflow:hidden clips it. Grow the
+     panel's min-height to match. Not folding in .nc-hud-slot-image on
+     purpose: its height is itself a % of the panel, which would make
+     panel height depend on a value that depends on panel height. */
+  function growPanelForAbsoluteText(panel) {
+    var text = panel.querySelector('.nc-hud-text');
+    if (!text || getComputedStyle(text).position !== 'absolute') {
+      panel.style.minHeight = '';
+      return;
+    }
+    /* 48px, not a round guess: matches blogger-hud01-template.css's
+       html-slot padding-bottom (26px inner-frame inset + ~22px cushion —
+       see the HUD-02 version of this file for the full explanation). */
+    panel.style.minHeight = (text.offsetTop + text.offsetHeight + 48) + 'px';
+  }
+
   /* ── Core update ──────────────────────────────────────────────── */
 
   function adapt(panel, overrideH) {
@@ -228,6 +247,18 @@
     }
 
     adapt(panel);   /* initial pass */
+
+    /* Image content type only: keep the panel tall enough for the
+       absolutely-positioned .nc-hud-text — see growPanelForAbsoluteText()
+       above. Its own observer, since the text's height tracks its own
+       content/width, not the panel's. */
+    var textEl = panel.querySelector('.nc-hud-text');
+    if (textEl) {
+      growPanelForAbsoluteText(panel);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
+      }
+    }
   }
 
   /* ── Entry point ──────────────────────────────────────────────── */

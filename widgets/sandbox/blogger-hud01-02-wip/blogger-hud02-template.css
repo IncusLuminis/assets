@@ -1448,6 +1448,21 @@
   margin: 0 34px 22px 0;
 }
 
+/* Image content type: .nc-hud-text is position:absolute at a user-set
+   --nc-text-left/width (often a %), which has no idea where the frame's
+   right line actually is — see hud-playground's absTextStyleAttr() for
+   the full math this mirrors. Posts pasted before that inline max-width
+   existed still overflow past it; this is the same formula as a CSS-level
+   fallback, so older content gets it too. Inline max-width (when present)
+   always outranks this regardless of specificity, so it's a no-op on
+   freshly-regenerated posts — purely a safety net for existing ones.
+   :not(.is-mini) only: mini/micro reposition .nc-hud-text entirely via
+   their own --nc-text-mini-* / micro vars at a different panel scale, where
+   this maxi-width-based formula wouldn't apply. */
+.nc-or-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
+  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
+}
+
 /* Compatibility for snippets generated while `auto` was the maxi default. */
 :is(.nc-ol-widget, .nc-or-widget):not(.is-mini):is(
   [style*="--nc-image-maxi-width: auto"],

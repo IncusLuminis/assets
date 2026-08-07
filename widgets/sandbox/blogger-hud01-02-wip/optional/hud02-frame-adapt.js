@@ -75,6 +75,32 @@
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
   }
 
+  /* Image content type: .nc-hud-text is position:absolute (the only way to
+     place text at an exact px offset from the portrait image), so it's out
+     of normal flow and panel height:auto has no idea how tall it really is
+     — the panel sizes to the title (the only in-flow content) and
+     overflow:hidden then clips everything below that. Measure the text
+     directly and grow the panel's own min-height to match.
+     Deliberately NOT folding .nc-hud-slot-image into this: its own height
+     is itself a % of the panel (--nc-image-micro-height etc), so using it
+     here would make panel height depend on a value that depends on panel
+     height — growing forever instead of settling. */
+  function growPanelForAbsoluteText(panel) {
+    var text = panel.querySelector('.nc-hud-text');
+    if (!text || getComputedStyle(text).position !== 'absolute') {
+      panel.style.minHeight = '';
+      return;
+    }
+    /* 76px, not a round guess: matches blogger-hud02-template.css's
+       html-slot padding-bottom, which clears the inner-frame line (54px
+       above the panel's real bottom edge — vertical scale is always 1:1,
+       unlike the horizontal preserveAspectRatio="none" stretch) plus a
+       ~22px cushion. Anything less and the text lands flush on the frame
+       line instead of sitting inside it, same bug already fixed for the
+       HeyGen row's bottom padding. */
+    panel.style.minHeight = (text.offsetTop + text.offsetHeight + 76) + 'px';
+  }
+
   /* ── Core update ──────────────────────────────────────────────── */
 
   function adapt(panel, overrideH) {
@@ -208,6 +234,19 @@
     }
 
     adapt(panel);
+
+    /* Image content type only: keep the panel tall enough for the
+       absolutely-positioned .nc-hud-text — see growPanelForAbsoluteText()
+       above. Independent of the is-mini/RO machinery above (that's purely
+       about the decorative SVG); this needs its own observer because the
+       text's height changes with its own content/width, not the panel's. */
+    var textEl = panel.querySelector('.nc-hud-text');
+    if (textEl) {
+      growPanelForAbsoluteText(panel);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
+      }
+    }
   }
 
   /* ── Entry point ──────────────────────────────────────────────── */

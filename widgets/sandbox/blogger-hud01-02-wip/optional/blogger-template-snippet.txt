@@ -1736,6 +1736,15 @@ a.nc-hud-paper-title:hover {
   margin: 0 34px 22px 0;
 }
 
+/* Image content type: see blogger-hud02-template.css for the full
+   explanation — CSS-level fallback matching hud-playground's
+   absTextStyleAttr() inline max-width, for posts pasted before that
+   existed. Inline max-width (when present) always wins regardless of
+   specificity, so this is a no-op on freshly-regenerated posts. */
+.nc-ol-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
+  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
+}
+
 /* Compatibility for snippets generated while `auto` was the maxi default. */
 :is(.nc-ol-widget, .nc-or-widget):not(.is-mini):is(
   [style*="--nc-image-maxi-width: auto"],
@@ -4037,6 +4046,21 @@ a.nc-hud-paper-title:hover {
   max-width: none !important;
   max-height: none !important;
   margin: 0 34px 22px 0;
+}
+
+/* Image content type: .nc-hud-text is position:absolute at a user-set
+   --nc-text-left/width (often a %), which has no idea where the frame's
+   right line actually is — see hud-playground's absTextStyleAttr() for
+   the full math this mirrors. Posts pasted before that inline max-width
+   existed still overflow past it; this is the same formula as a CSS-level
+   fallback, so older content gets it too. Inline max-width (when present)
+   always outranks this regardless of specificity, so it's a no-op on
+   freshly-regenerated posts — purely a safety net for existing ones.
+   :not(.is-mini) only: mini/micro reposition .nc-hud-text entirely via
+   their own --nc-text-mini-* / micro vars at a different panel scale, where
+   this maxi-width-based formula wouldn't apply. */
+.nc-or-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
+  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
 }
 
 /* Compatibility for snippets generated while `auto` was the maxi default. */
@@ -8541,6 +8565,25 @@ a.nc-hud-paper-title:hover {
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
   }
 
+  /* Image content type: see the equivalent function in
+     blogger-hud02-template.css's hud02-frame-adapt.js for the full
+     explanation — .nc-hud-text is position:absolute, so the panel's
+     height:auto can't see it and overflow:hidden clips it. Grow the
+     panel's min-height to match. Not folding in .nc-hud-slot-image on
+     purpose: its height is itself a % of the panel, which would make
+     panel height depend on a value that depends on panel height. */
+  function growPanelForAbsoluteText(panel) {
+    var text = panel.querySelector('.nc-hud-text');
+    if (!text || getComputedStyle(text).position !== 'absolute') {
+      panel.style.minHeight = '';
+      return;
+    }
+    /* 48px, not a round guess: matches blogger-hud01-template.css's
+       html-slot padding-bottom (26px inner-frame inset + ~22px cushion —
+       see the HUD-02 version of this file for the full explanation). */
+    panel.style.minHeight = (text.offsetTop + text.offsetHeight + 48) + 'px';
+  }
+
   /* ── Core update ──────────────────────────────────────────────── */
 
   function adapt(panel, overrideH) {
@@ -8695,6 +8738,18 @@ a.nc-hud-paper-title:hover {
     }
 
     adapt(panel);   /* initial pass */
+
+    /* Image content type only: keep the panel tall enough for the
+       absolutely-positioned .nc-hud-text — see growPanelForAbsoluteText()
+       above. Its own observer, since the text's height tracks its own
+       content/width, not the panel's. */
+    var textEl = panel.querySelector('.nc-hud-text');
+    if (textEl) {
+      growPanelForAbsoluteText(panel);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
+      }
+    }
   }
 
   /* ── Entry point ──────────────────────────────────────────────── */
@@ -8792,6 +8847,32 @@ a.nc-hud-paper-title:hover {
     var right = w - INNER_X[1] * scaleX;
     widget.style.setProperty('--nc-inner-left',  left.toFixed(1)  + 'px');
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
+  }
+
+  /* Image content type: .nc-hud-text is position:absolute (the only way to
+     place text at an exact px offset from the portrait image), so it's out
+     of normal flow and panel height:auto has no idea how tall it really is
+     — the panel sizes to the title (the only in-flow content) and
+     overflow:hidden then clips everything below that. Measure the text
+     directly and grow the panel's own min-height to match.
+     Deliberately NOT folding .nc-hud-slot-image into this: its own height
+     is itself a % of the panel (--nc-image-micro-height etc), so using it
+     here would make panel height depend on a value that depends on panel
+     height — growing forever instead of settling. */
+  function growPanelForAbsoluteText(panel) {
+    var text = panel.querySelector('.nc-hud-text');
+    if (!text || getComputedStyle(text).position !== 'absolute') {
+      panel.style.minHeight = '';
+      return;
+    }
+    /* 76px, not a round guess: matches blogger-hud02-template.css's
+       html-slot padding-bottom, which clears the inner-frame line (54px
+       above the panel's real bottom edge — vertical scale is always 1:1,
+       unlike the horizontal preserveAspectRatio="none" stretch) plus a
+       ~22px cushion. Anything less and the text lands flush on the frame
+       line instead of sitting inside it, same bug already fixed for the
+       HeyGen row's bottom padding. */
+    panel.style.minHeight = (text.offsetTop + text.offsetHeight + 76) + 'px';
   }
 
   /* ── Core update ──────────────────────────────────────────────── */
@@ -8927,6 +9008,19 @@ a.nc-hud-paper-title:hover {
     }
 
     adapt(panel);
+
+    /* Image content type only: keep the panel tall enough for the
+       absolutely-positioned .nc-hud-text — see growPanelForAbsoluteText()
+       above. Independent of the is-mini/RO machinery above (that's purely
+       about the decorative SVG); this needs its own observer because the
+       text's height changes with its own content/width, not the panel's. */
+    var textEl = panel.querySelector('.nc-hud-text');
+    if (textEl) {
+      growPanelForAbsoluteText(panel);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
+      }
+    }
   }
 
   /* ── Entry point ──────────────────────────────────────────────── */

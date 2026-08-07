@@ -1318,6 +1318,15 @@
   margin: 0 34px 22px 0;
 }
 
+/* Image content type: see blogger-hud02-template.css for the full
+   explanation — CSS-level fallback matching hud-playground's
+   absTextStyleAttr() inline max-width, for posts pasted before that
+   existed. Inline max-width (when present) always wins regardless of
+   specificity, so this is a no-op on freshly-regenerated posts. */
+.nc-ol-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
+  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
+}
+
 /* Compatibility for snippets generated while `auto` was the maxi default. */
 :is(.nc-ol-widget, .nc-or-widget):not(.is-mini):is(
   [style*="--nc-image-maxi-width: auto"],
