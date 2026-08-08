@@ -229,6 +229,51 @@ a.nc-hud-paper-title:hover {
 .nc-hud-media-vertical   { aspect-ratio: 9/16; position: relative; overflow: hidden; }
 .nc-hud-media-horizontal { aspect-ratio: 16/9; position: relative; overflow: hidden; }
 
+/* Raw HTML5 video pasted into HUD-01/02 HTML content.
+   In mini mode the html slot already describes the frame's inner opening.
+   Make the pasted wrapper fill that opening, then contain the video inside it
+   without letting its own aspect-ratio resize the HUD panel. */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) {
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video) > :has(video),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) > :has(video) {
+  position: absolute !important;
+  inset: 24px 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot video,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot video {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+
+/* Mini is a media preview: keep accompanying copy for expanded/maxi view. */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video) > :not(:has(video)):not(style),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) > :not(:has(video)):not(style) {
+  display: none !important;
+}
+
 /* ── Micro-mode poster overlay (static frame + play icon) ────────
    For media types without a click-to-load facade (HeyGen currently —
    YouTube/TikTok already replace themselves with the real iframe on
@@ -2592,6 +2637,13 @@ a.nc-hud-paper-title:hover {
 
   .nc-ol-value { white-space: normal; }
 }
+
+/* Mini raw <video>: the slot itself is the HUD frame's inner opening. */
+.nc-hud-01[data-mode="html"].nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video) {
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
 /*]]>*/
 </style>
 
@@ -4793,6 +4845,13 @@ a.nc-hud-paper-title:hover {
 @keyframes ncOrSweepBar {
   from { stroke-dashoffset: 0; }
   to   { stroke-dashoffset: calc(-1 * var(--nc-or-runner-p, 2871px)); }
+}
+
+/* Mini raw <video>: the slot itself is the HUD frame's inner opening. */
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) {
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
 }
 /*]]>*/
 </style>

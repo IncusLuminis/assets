@@ -2174,3 +2174,10 @@
 
   .nc-ol-value { white-space: normal; }
 }
+
+/* Mini raw <video>: the slot itself is the HUD frame's inner opening. */
+.nc-hud-01[data-mode="html"].nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video) {
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}

@@ -2194,3 +2194,10 @@
   from { stroke-dashoffset: 0; }
   to   { stroke-dashoffset: calc(-1 * var(--nc-or-runner-p, 2871px)); }
 }
+
+/* Mini raw <video>: the slot itself is the HUD frame's inner opening. */
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) {
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
