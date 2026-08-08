@@ -1324,7 +1324,12 @@
    existed. Inline max-width (when present) always wins regardless of
    specificity, so this is a no-op on freshly-regenerated posts. */
 .nc-ol-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
-  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
+  --nc-text-maxi-effective-left: max(
+    calc(var(--nc-inner-left, 52px) + 14px + var(--nc-text-left, 320px)),
+    var(--nc-image-text-clearance, 0px)
+  );
+  left: var(--nc-text-maxi-effective-left) !important;
+  max-width: calc(100% - var(--nc-inner-right, 52px) - 14px - var(--nc-text-maxi-effective-left)) !important;
 }
 
 /* Compatibility for snippets generated while `auto` was the maxi default. */
