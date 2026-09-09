@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUD-01 Object Lock — NebulaCast</title>
+
+  <!--
+  ════════════════════════════════════════════════════════
+   HUD-01 CONFIG — edit this block to switch panel mode
+  ════════════════════════════════════════════════════════
+
+  objectMode:   true   → Object viewer (reticle / Aladin / DATA/PAPERS/CATALOG)
+  objectMode:   false  → Generic HTML frame (paste Blogger HTML into html-slot)
+  vizierLimit:  10     → Max VizieR catalog entries shown in PAPERS tab (1–20)
+  -->
+  <script>
+    window.NC_HUD_01_CONFIG = {
+      objectMode:  true,
+      vizierLimit: 8
+    };
+  </script>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+
+  <!-- Shared layer -->
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+
+  <!-- Aladin Lite CSS + JS are injected dynamically by hud-01.js on first
+       ALADIN toggle — zero CDN dependency at page load. -->
+
+  <!-- Widget -->
+  <link rel="stylesheet" href="./hud-01.css?v=16">
+</head>
+<body>
+
+  <main class="nc-hud01-stage">
+
+    <!--
+      .nc-hud-01 — new root class for mode-scoped CSS (HUD01-4)
+      .nc-ol-widget — existing class, unchanged (HUD01-1/2/3 CSS still works)
+      data-mode — set by JS from NC_HUD_01_CONFIG: "object" | "html"
+    -->
+    <div class="nc-hud-01 nc-ol-widget"
+         data-mode="object"
+         data-target-lock="on"
+         data-reticle="on"
+         data-aladdin="on"
+         data-info-mode="data">
+      <div class="nc-ol-panel">
+
+        <svg class="nc-ol-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+          <path class="nc-ol-frame-line"
+            d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+
+          <path class="nc-ol-frame-line nc-ol-frame-inner"
+            d="M36 62 L126 62 L170 26 L1145 26 L1174 54 L1174 366 L1145 394 L60 394 L26 364 L26 96 Z" />
+
+          <path class="nc-ol-frame-line nc-ol-frame-photo-top"
+            d="M132 58 L548 58 L586 12 L708 12" />
+
+          <path class="nc-ol-frame-line nc-ol-frame-photo-bottom"
+            d="M62 392 L500 392" />
+
+          <!-- Stripes replaced by .nc-ol-progress CSS bar (HUD01-1) -->
+
+          <rect class="nc-ol-frame-tab nc-ol-frame-tab-top" x="770" y="10" width="285" height="14" rx="3" />
+          <path class="nc-ol-frame-tab" d="M0 190 L12 200 L12 250 L0 260 Z" />
+          <path class="nc-ol-frame-tab" d="M1200 178 L1188 190 L1188 250 L1200 262 Z" />
+
+          <!-- Glow bar sweep — 4 layers: wide aura → mid-outer → mid-inner → sharp centre -->
+          <path class="nc-ol-runner-tail"
+            d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+          <path class="nc-ol-runner-body"
+            d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+          <path class="nc-ol-runner-head"
+            d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+          <path class="nc-ol-runner-spark"
+            d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+        </svg>
+
+        <!-- nc-panel-sweep provides geometry + animation from effects.css -->
+        <!-- nc-ol-sweep provides widget-specific z-index + opacity -->
+        <div class="nc-ol-sweep nc-panel-sweep"></div>
+
+        <!-- Animated progress bar (HUD01-1) — replaces comb stripes in SVG header -->
+        <div class="nc-ol-progress" aria-hidden="true">
+          <div class="nc-ol-progress__fill"></div>
+        </div>
+
+        <!-- ═══ OBJECT MODE content ═══════════════════════════════════════ -->
+
+        <div class="nc-ol-left">
+          <img
+            class="nc-ol-image"
+            src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiAvZTaY8e9hNUoSMGKa3JJV51dJXNagMd1I33gweoNVXEvya_5lve5ZpDbQIWtbmztZu3n8dI0Q-Nc0b6uUxn7cB307vHI59fKa7jU9H_qmDtCYHV8wuvI0lc6nlWP6h9utJFJys-uH-9yiX_NGTaAP6CB3JyWDWx2FJUOjHjg_tcsOy1ZkwH8jEa6J1g/s1920/NGC1300_HST_6637.jpg"
+            alt="NGC 1300 — Barred Spiral Galaxy"
+          />
+
+          <!-- Aladin Lite layer (HUD01-2) — lazy-initialised on first ALADIN toggle -->
+          <div class="nc-hud-01-aladdin">
+            <!-- Viewer container: Aladin renders into this div -->
+            <div id="nc-hud-01-aladin-viewer"></div>
+            <!-- Placeholder shown before init / on fallback -->
+            <div class="nc-hud-01-aladdin__placeholder" aria-hidden="true">
+              <span class="nc-hud-01-aladdin__label">ALADIN LAYER STANDBY</span>
+              <span class="nc-hud-01-aladdin__sub">INTEGRATION PENDING</span>
+            </div>
+          </div>
+
+          <div class="nc-ol-reticle">
+            <div class="nc-ol-ring nc-ol-ring-1"></div>
+            <div class="nc-ol-ring nc-ol-ring-2"></div>
+            <div class="nc-ol-ring nc-ol-ring-3"></div>
+
+            <div class="nc-ol-cross"></div>
+
+            <div class="nc-ol-lock-box">
+              <span></span><span></span><span></span><span></span>
+            </div>
+
+            <div class="nc-ol-corner nc-ol-corner-tl"></div>
+            <div class="nc-ol-corner nc-ol-corner-tr"></div>
+            <div class="nc-ol-corner nc-ol-corner-bl"></div>
+            <div class="nc-ol-corner nc-ol-corner-br"></div>
+
+            <div class="nc-ol-center-dot"></div>
+            <div class="nc-ol-target-lock">TARGET LOCK</div>
+          </div>
+        </div>
+
+        <div class="nc-ol-right">
+          <h2 class="nc-ol-title">NGC 1300</h2>
+          <div class="nc-ol-title-brackets"></div>
+
+          <!-- DATA panel — dynamic SIMBAD rows injected by hud-01.js -->
+          <div class="nc-ol-info-panel nc-ol-info-panel--data nc-ol-grid" id="nc-hud01-data-panel">
+            <div class="nc-ol-data-status">
+              <span>QUERYING SIMBAD…</span>
+            </div>
+          </div>
+
+          <!-- CATALOG panel — VizieR catalog references (loaded on tab activation) -->
+          <div class="nc-ol-info-panel nc-ol-info-panel--catalog">
+            <span class="nc-ol-info-placeholder">VIZIER CATALOG MODULE STANDBY</span>
+          </div>
+
+          <!-- PAPERS panel — ADS papers integration (not yet implemented) -->
+          <div class="nc-ol-info-panel nc-ol-info-panel--papers">
+            <span class="nc-ol-info-placeholder">ADS PAPERS MODULE STANDBY</span>
+          </div>
+        </div>
+
+        <!-- Toolbar (HUD01-3) — Group A: visual overlays | Group B: info tabs -->
+        <div class="nc-ol-toolbar" role="toolbar" aria-label="HUD-01 overlay controls">
+
+          <!-- Group A — visual overlay toggles (independent) -->
+          <div class="nc-ol-tb-group" role="group" aria-label="View overlays">
+            <button class="nc-ol-tb-btn"
+                    type="button"
+                    data-action="reticle"
+                    aria-pressed="true">⊕ RETICLE</button>
+          </div>
+
+          <div class="nc-ol-tb-sep" aria-hidden="true"></div>
+
+          <!-- Group B — info mode tabs (mutually exclusive) -->
+          <div class="nc-ol-tb-group" role="group" aria-label="Object information">
+            <button class="nc-ol-tb-btn"
+                    type="button"
+                    data-action="data"
+                    aria-pressed="true">≡ DATA</button>
+            <button class="nc-ol-tb-btn"
+                    type="button"
+                    data-action="papers"
+                    aria-pressed="false">◎ PAPERS</button>
+            <button class="nc-ol-tb-btn"
+                    type="button"
+                    data-action="catalog"
+                    aria-pressed="false">▦ CATALOGS</button>
+          </div>
+
+        </div>
+
+        <!-- ═══ HTML MODE content slot ════════════════════════════════════
+             Visible only when data-mode="html" on the widget root.
+             Paste arbitrary Blogger-style HTML here.
+             Frame, glow, and progress bar remain visible in both modes.
+        ══════════════════════════════════════════════════════════════════ -->
+        <div class="nc-hud-01-html-slot" aria-hidden="true">
+          <!-- ▼ PASTE BLOGGER HTML HERE ▼ -->
+
+          <h2 class="nc-ol-title">Реплика д-ра Макса</h2>
+          <br /><br />
+          Есть в этой работе один момент, который мне особенно нравится.<br /><br />
+        	
+        	Она не про «громкое открытие». Она про точность.<br /><br />
+        	
+        	<div class="separator" style="clear: both; text-align: center;"><a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj-JZVbuGMjdN-6T1LaOB24szndvMyY4bZzsbYVvI-_SjwVVAgVb1oPz4ynPfD_NaMSRyvqLaEjNZuQbRyjvMyTKT92FCVqBjhf9UNySLmBTqWpq_azD8GSSMqNcAQR63LJ9NxO4CDBuCByqU7qv5RL7s8DisOen5KshLcPuAJuCX_vS0eSWowAWldGK3g/s640/Max_9_2_640px.png" imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0" data-original-height="640" data-original-width="490" height="320" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj-JZVbuGMjdN-6T1LaOB24szndvMyY4bZzsbYVvI-_SjwVVAgVb1oPz4ynPfD_NaMSRyvqLaEjNZuQbRyjvMyTKT92FCVqBjhf9UNySLmBTqWpq_azD8GSSMqNcAQR63LJ9NxO4CDBuCByqU7qv5RL7s8DisOen5KshLcPuAJuCX_vS0eSWowAWldGK3g/s320/Max_9_2_640px.png" width="245" /></a></div>Мы привыкли думать, что главное в астрономии — это новые объекты: новая планета, новая галактика, новая вспышка. А здесь — ничего нового в этом смысле. Те же самые M-карлики, те же спектры, те же линии поглощения. Но меняется способ, которым мы на них смотрим.
+        	<br /><br />
+        	Оказывается, даже такая, казалось бы, «простая» величина, как скорость вращения звезды, — это тонкая комбинация эффектов. Вращение, турбулентность, инструмент, потемнение к краю… И если один из этих факторов учесть грубо, вся картина чуть-чуть съезжает. Чуть-чуть — но систематически.
+        	<br /><br />
+        	А дальше начинается цепная реакция.
+	        <br /><br />
+        	Мы занижаем скорость вращения → неправильно оцениваем магнитную активность → путаем сигнал звезды с сигналом планеты → и уже на уровне экзопланетной системы получаем искажённую интерпретацию.
+	        <br /><br />
+        	Вот за что я люблю такие работы: они чинят фундамент. И особенно показательно здесь потемнение к краю диска. Казалось бы — эффект известен десятилетиями. Но стоило начать учитывать его по-настоящему, а не «одним коэффициентом на всё» — и точность измерений выросла в разы.
+        	<br /><br />
+        	Это хороший урок.
+        	<br /><br />
+        	В астрофизике часто не хватает не данных, а аккуратности в деталях. И иногда прогресс — это не новый телескоп, а правильная свёртка спектра.
+        	<br /><br />
+        	А значит, мы становимся не просто наблюдателями Вселенной.
+    		<br /><br />
+    		Мы учимся её измерять.</i>
+
+          <!-- ▲ END BLOGGER HTML ▲ -->
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Aladin Lite JS is injected dynamically by hud-01.js on first ALADIN
+       toggle — no CDN dependency at page load. -->
+
+  <script src="../../shared/js/hud-core.js?v=3"></script>
+  <script src="../../shared/js/hud_papers.js?v=3"></script>
+  <script src="./hud-01.js?v=8"></script>
+</body>
+</html>

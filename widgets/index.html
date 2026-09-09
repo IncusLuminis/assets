@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUD Widget Gallery — NebulaCast</title>
+
+  <link rel="stylesheet" href="./shared/css/reset.css">
+  <link rel="stylesheet" href="./shared/css/tokens.css">
+  <link rel="stylesheet" href="./shared/css/base.css">
+  <link rel="stylesheet" href="./shared/css/animations.css">
+  <link rel="stylesheet" href="./shared/css/typography.css">
+  <link rel="stylesheet" href="./shared/css/layout.css">
+  <link rel="stylesheet" href="./shared/css/effects.css">
+
+  <style>
+    body {
+      padding: var(--hud-space-xl) var(--hud-space-lg);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Page header */
+    .nc-gallery-header {
+      border-bottom: 1px solid rgba(0, 255, 231, 0.25);
+      padding-bottom: var(--hud-space-md);
+      margin-bottom: var(--hud-space-xl);
+    }
+
+    .nc-gallery-subtitle {
+      margin-top: var(--hud-space-xs);
+      color: var(--hud-text-dim);
+      font-size: var(--hud-font-sm);
+      letter-spacing: 0.1em;
+    }
+
+    /* Section */
+    .nc-gallery-section {
+      margin-bottom: var(--hud-space-xl);
+    }
+
+    .nc-gallery-section__title {
+      font-size: var(--hud-font-sm);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--hud-text-dim);
+      margin-bottom: var(--hud-space-md);
+    }
+
+    /* Card grid */
+    .nc-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: var(--hud-space-md);
+    }
+
+    /* Card link */
+    .nc-gallery-card {
+      display: block;
+      background: var(--hud-panel);
+      border: 1px solid rgba(0, 255, 231, 0.18);
+      border-radius: var(--hud-radius-lg);
+      padding: var(--hud-space-md);
+      transition: border-color var(--hud-transition), box-shadow var(--hud-transition);
+      text-decoration: none;
+    }
+
+    .nc-gallery-card:hover {
+      border-color: var(--hud-line);
+      box-shadow: 0 0 12px var(--hud-glow);
+    }
+
+    .nc-gallery-card__name {
+      font-size: var(--hud-font-md);
+      color: var(--hud-text-accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: var(--hud-space-xs);
+    }
+
+    .nc-gallery-card__desc {
+      font-size: var(--hud-font-sm);
+      color: var(--hud-text-dim);
+      line-height: 1.5;
+    }
+
+    .nc-gallery-card__arrow {
+      display: block;
+      margin-top: var(--hud-space-sm);
+      font-size: var(--hud-font-xs);
+      color: var(--hud-line);
+      letter-spacing: 0.15em;
+    }
+
+    /* Featured: playground card */
+    .nc-gallery-card--featured {
+      border-color: var(--hud-line);
+      box-shadow: 0 0 8px var(--hud-glow);
+      grid-column: 1 / -1;
+    }
+
+    .nc-gallery-footer {
+      margin-top: var(--hud-space-xl);
+      padding-top: var(--hud-space-md);
+      border-top: 1px solid rgba(0, 255, 231, 0.1);
+      font-size: var(--hud-font-xs);
+      color: var(--hud-text-dim);
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="nc-gallery-header nc-anim-flicker">
+    <h1 class="nc-heading-1">HUD WIDGETS</h1>
+    <p class="nc-gallery-subtitle">NEBULACAST / SCI-FI INTERFACE COMPONENTS</p>
+  </header>
+
+  <main>
+
+    <!-- Playground -->
+    <section class="nc-gallery-section">
+      <div class="nc-gallery-section__title">Preview</div>
+      <div class="nc-gallery-grid">
+        <a class="nc-gallery-card nc-gallery-card--featured" href="./playground/index.html">
+          <div class="nc-gallery-card__name">Playground</div>
+          <p class="nc-gallery-card__desc">Live preview of all widgets side-by-side in a single viewport.</p>
+          <span class="nc-gallery-card__arrow">OPEN PLAYGROUND &#8594;</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Legacy Panels (migrated from Blogger template) -->
+    <section class="nc-gallery-section">
+      <div class="nc-gallery-section__title">Legacy Panels</div>
+      <div class="nc-gallery-grid">
+
+        <a class="nc-gallery-card" href="./panels/hud-01/index.html">
+          <div class="nc-gallery-card__name">HUD-01 Object Lock</div>
+          <p class="nc-gallery-card__desc">Deep sky object lock panel with targeting reticle, expand animation, and telemetry grid.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/hud-02/index.html">
+          <div class="nc-gallery-card__name">HUD-02 Object Report</div>
+          <p class="nc-gallery-card__desc">Object report panel with image, targeting overlay, mission notes, and event log.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/hud-03/index.html">
+          <div class="nc-gallery-card__name">HUD-03 HUD Post</div>
+          <p class="nc-gallery-card__desc">Narrative post panel with clipped frame, animated loader bar, ticker, and float image.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/hud-04/index.html">
+          <div class="nc-gallery-card__name">HUD-04 HUD Post (Video)</div>
+          <p class="nc-gallery-card__desc">Narrative post panel with embedded vertical video, clipped frame, loader bar, and ticker.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/hud-05/index.html">
+          <div class="nc-gallery-card__name">HUD-05 Wide Video</div>
+          <p class="nc-gallery-card__desc">JS-driven wide video panel with SVG frame generated at runtime, 16-segment loader, and ticker.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/hud-06/index.html">
+          <div class="nc-gallery-card__name">HUD-06 Vertical Sidebar</div>
+          <p class="nc-gallery-card__desc">JS-driven 400px sidebar with SVG frame, 9-segment loader, vertical video embed, and ticker.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/hud-07/index.html">
+          <div class="nc-gallery-card__name">HUD-07 Wide HTML</div>
+          <p class="nc-gallery-card__desc">CSS clip-path frame wide HTML panel with loader bar, ticker, and Commander Kellan content.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/hud-08/index.html">
+          <div class="nc-gallery-card__name">HUD-08 Expandable</div>
+          <p class="nc-gallery-card__desc">Inline expandable panel: mini card → horizontal or vertical expanded layout. Blogger-safe, no dependencies.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Panels -->
+    <section class="nc-gallery-section">
+      <div class="nc-gallery-section__title">Panels</div>
+      <div class="nc-gallery-grid">
+
+        <a class="nc-gallery-card" href="./panels/asymmetric-panel/index.html">
+          <div class="nc-gallery-card__name">Asymmetric Panel</div>
+          <p class="nc-gallery-card__desc">Clipped corner data panel with live telemetry readouts.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/targeting-reticle/index.html">
+          <div class="nc-gallery-card__name">Targeting Reticle</div>
+          <p class="nc-gallery-card__desc">Rotating circular targeting overlay with lock-on simulation.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+        <a class="nc-gallery-card" href="./panels/status-card/index.html">
+          <div class="nc-gallery-card__name">Status Card</div>
+          <p class="nc-gallery-card__desc">Entity status panel with animated resource bars and warning states.</p>
+          <span class="nc-gallery-card__arrow">VIEW &#8594;</span>
+        </a>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="nc-gallery-footer">
+    NEBULACAST.COM &mdash; HUD WIDGET SYSTEM &mdash; STATIC / NO FRAMEWORK
+  </footer>
+
+  <script src="./shared/js/hud-core.js"></script>
+</body>
+</html>

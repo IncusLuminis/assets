@@ -1,0 +1,129 @@
+<!--
+  NebulaCast HUD Panel — EXAMPLE: TikTok Vertical Video (HUD-04 style)
+  =====================================================================
+  Ready to paste into a Blogger post (HTML mode).
+  Global CSS and JS must already be in the Blogger template.
+
+  What this example shows:
+  - Vertical (portrait) TikTok embed, 9:16 ratio
+  - "RECONNECTING…" fallback shown while iframe loads
+  - Text below the video
+
+  To customise:
+  1. Replace system label, character name, thumbnail URL, ticker
+  2. Replace VIDEO_ID in the iframe src with your TikTok video ID
+     TikTok embed format: https://www.tiktok.com/embed/v2/VIDEO_ID
+     Find the video ID in the TikTok share URL: tiktok.com/@user/video/1234567890123456789
+  3. Replace the body <p> tags with your post text
+
+  NOTE: TikTok requires the embed URL format (not the share URL).
+  Example: https://www.tiktok.com/embed/v2/7123456789012345678
+-->
+<style>
+.nc-hp-mini-card {
+  left: 0;
+  transform: none;
+}
+
+
+
+.nc-hp-mini-thumb {
+  object-fit: contain;
+  max-width: none;
+}
+
+.nc-hp-mini-name {
+  font-size: 16px;
+  letter-spacing: .08em;
+  white-space: normal;
+  flex-shrink: 1;
+}
+</style>
+
+<div class="nc-hp-widget">
+
+  <!-- Mini card — visible when panel is collapsed -->
+  <div class="nc-hp-mini-card" aria-hidden="true">
+    <p class="nc-hp-mini-system">DEEP FIELD BASE</p>
+    <div class="nc-hp-mini-body">
+      <img class="nc-hp-mini-thumb"
+           src="https://example.com/blogger-hosted/lyra-thumb.jpg"
+           alt="">
+      <h2 class="nc-hp-mini-name">ЛИРА САНСЕТ</h2>
+    </div>
+  </div>
+
+  <!-- Main panel -->
+  <div class="nc-hp-panel">
+
+    <!-- Frame decorations (do not edit) -->
+    <div class="nc-hp-frame-shell"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-left"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-right"></div>
+    <div class="nc-hp-frame-topline">
+      <span class="nc-hp-topline-left"></span>
+      <span class="nc-hp-topline-slope"></span>
+      <span class="nc-hp-topline-right"></span>
+      <span class="nc-hp-topline-side"></span>
+    </div>
+    <div class="nc-hp-frame-inner"></div>
+    <div class="nc-hp-frame-loader">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="nc-hp-frame-ticker">
+      <span>DEEP FIELD BASE / SIGNAL LOCK ACQUIRED / FIELD REPORT INBOUND / TRANSMISSION OPEN /</span>
+    </div>
+    <div class="nc-hp-sweep nc-panel-sweep"></div>
+
+    <!-- Editable content -->
+    <div class="nc-hp-content">
+      <div class="nc-hp-system">DEEP FIELD BASE</div>
+      <h2 class="nc-hp-title">ЛИРА САНСЕТ</h2>
+
+      <div class="nc-hp-text">
+
+        <!--
+          Vertical video embed — TikTok portrait format (9:16)
+          Replace VIDEO_ID with your TikTok video ID (numeric string).
+          The video ID appears at the end of the share URL.
+        -->
+        <div class="nc-hud-media nc-hud-media-vertical">
+          <div class="nc-reconnect">RECONNECTING…</div>
+          <iframe
+            src="https://www.tiktok.com/embed/v2/VIDEO_ID"
+            frameborder="0"
+            allow="encrypted-media; fullscreen"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <p>Полевой агент сектора «Глубокое поле». Специализация — разведка в зонах с нарушенной связью. Передаёт оперативные данные в форматах, совместимых с базой «Нексус».</p>
+
+        <p>Текущий статус: канал открыт, трансляция активна. Уровень сигнала: 94%.</p>
+
+      </div>
+    </div>
+
+  </div><!-- .nc-hp-panel -->
+</div><!-- .nc-hp-widget -->
+
+<script>
+(function () {
+  /* Blogger inserts <br>/<div> between elements, so previousElementSibling
+     is unreliable. Find the last widget not yet initialised instead. */
+  var all    = document.querySelectorAll('.nc-hp-widget:not([data-hud-init])');
+  var widget = all[all.length - 1];
+  if (!widget) return;
+  widget.setAttribute('data-hud-init', '1');
+  var panel  = widget.querySelector('.nc-hp-panel');
+
+  NcHudMini.init({
+    widget      : widget,
+    panel       : panel,
+    miniH       : 148,
+    scale       : null,
+    expandedMaxH: 2000
+  });
+})();
+</script>

@@ -1,0 +1,45 @@
+/* tokens.css — design tokens (CSS custom properties) for HUD widgets */
+
+:root {
+  /* Backgrounds */
+  --hud-bg:         #020d14;
+  --hud-panel:      rgba(0, 20, 36, 0.85);
+
+  /* Lines & borders */
+  --hud-line:       #00ffe7;
+
+  /* Glow */
+  --hud-glow:       rgba(0, 255, 231, 0.55);
+
+  /* Typography */
+  --hud-text:       #c8f0ff;
+  --hud-text-dim:   rgba(200, 240, 255, 0.45);
+  --hud-text-accent:#00ffe7;
+
+  /* Shape */
+  --hud-radius:     4px;
+  --hud-radius-lg:  8px;
+
+  /* Motion */
+  --hud-transition: 0.25s ease;
+
+  /* Z-index layers */
+  --hud-z-base:     1;
+  --hud-z-panel:    10;
+  --hud-z-overlay:  100;
+
+  /* Spacing scale */
+  --hud-space-xs:   4px;
+  --hud-space-sm:   8px;
+  --hud-space-md:   16px;
+  --hud-space-lg:   24px;
+  --hud-space-xl:   40px;
+
+  /* Typography scale */
+  --hud-font-xs:    0.625rem;
+  --hud-font-sm:    0.75rem;
+  --hud-font-md:    0.875rem;
+  --hud-font-lg:    1rem;
+  --hud-font-xl:    1.25rem;
+  --hud-font-2xl:   1.5rem;
+}

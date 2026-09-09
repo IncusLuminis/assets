@@ -1,0 +1,560 @@
+/* hud-08.css — Expandable inline HUD panel (nc-hud-*)
+   Three states: .is-mini | .is-expanded.is-horizontal | .is-expanded.is-vertical
+   Blogger-safe: no build step, nc-hud- prefix, no globals.
+   Spec: widgets/specs/Animations.md
+*/
+
+/* ── Component-local tokens ──────────────────────────────────────── */
+
+.nc-hud-panel {
+  --_cyan:        rgba(80, 220, 255, .92);
+  --_cyan-dim:    rgba(80, 220, 255, .38);
+  --_cyan-glow:   rgba(80, 220, 255, .9);
+  --_cyan-soft:   rgba(80, 220, 255, .2);
+  --_bg:          rgba(0, 10, 22, .96);
+  --_text:        rgba(190, 250, 255, .84);
+  --_accent:      #8ff6ff;
+  --_font:        'Share Tech Mono', 'Courier New', monospace;
+  /* Mini card size — override per panel with style="--_mini-w:Xpx" */
+  --_mini-w:      480px;
+  --_mini-h:      130px;
+  /* Top bar height (diagonal stripes) */
+  --_bar-h:       22px;
+  /* Thumb width (fixed px keeps it from squeezing the title on narrow cards) */
+  --_thumb-w:     90px;
+}
+
+/* ── Universal reset inside the component ────────────────────────── */
+
+.nc-hud-panel,
+.nc-hud-panel * {
+  box-sizing: border-box;
+}
+
+/* ── Panel container ─────────────────────────────────────────────── */
+
+.nc-hud-panel {
+  display: block;
+  position: relative;
+  font-family: var(--_font);
+  /* Fill container but cap at mini-w so it stays compact in a wide column */
+  width: 100%;
+  max-width: var(--_mini-w);
+  background: transparent;
+  transition:
+    max-width 420ms cubic-bezier(.2, .9, .2, 1);
+}
+
+.nc-hud-panel.is-expanded {
+  max-width: 100%;
+}
+
+/* ── ─── MINI STATE ─── ──────────────────────────────────────────── */
+
+.nc-hud-mini {
+  /* Reset <button> */
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: var(--_font);
+  text-align: left;
+  padding: 0;
+  margin: 0;
+
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;  /* top bar + main row stacked */
+  align-items: stretch;
+  width: 100%;
+  height: var(--_mini-h);
+  position: relative;
+  overflow: hidden;
+
+  background: var(--_bg);
+  border: 2px solid var(--_cyan);
+  box-shadow:
+    0 0 12px var(--_cyan-soft),
+    0 0 28px rgba(80, 220, 255, .08),
+    inset 0 0 18px rgba(80, 220, 255, .04);
+
+  opacity: 1;
+  transition:
+    opacity      200ms ease,
+    height       350ms ease,
+    border-width 350ms ease;
+}
+
+/* Hover glow */
+.nc-hud-mini:hover {
+  box-shadow:
+    0 0 20px rgba(80, 220, 255, .4),
+    0 0 48px rgba(80, 220, 255, .12),
+    inset 0 0 24px rgba(80, 220, 255, .08);
+}
+
+/* Mini collapses when panel is expanded */
+.nc-hud-panel.is-expanded .nc-hud-mini {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  border-width: 0;
+  overflow: hidden;
+}
+
+/* ── Mini top bar — diagonal stripes + solid accent ──────────────── */
+
+.nc-hud-mini-topbar {
+  flex: 0 0 var(--_bar-h);
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* Diagonal hatching — matches HUD-01 loader aesthetic */
+.nc-hud-mini-stripes {
+  flex: 1 1 auto;
+  background: repeating-linear-gradient(
+    -55deg,
+    rgba(80, 220, 255, .85)  0px,
+    rgba(80, 220, 255, .85)  5px,
+    rgba(0, 8, 18, 1)        5px,
+    rgba(0, 8, 18, 1)        9px
+  );
+}
+
+/* Solid cyan accent block on the right */
+.nc-hud-mini-topbar-accent {
+  flex: 0 0 28%;
+  background: rgba(80, 220, 255, .9);
+  box-shadow:
+    0 0 14px rgba(80, 220, 255, .85),
+    inset 0 0 6px rgba(255, 255, 255, .2);
+}
+
+/* ── Mini main row (thumb + label/title) ─────────────────────────── */
+
+.nc-hud-mini-row {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* ── Mini thumbnail ──────────────────────────────────────────────── */
+
+.nc-hud-mini-thumb {
+  flex: 0 0 auto;
+  width: var(--_thumb-w);
+  overflow: hidden;
+  position: relative;
+  border-right: 1px solid var(--_cyan-dim);
+  background: rgba(0, 16, 36, .9);
+}
+
+.nc-hud-mini-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(.85) saturate(1.15);
+}
+
+/* Scanline overlay on thumb */
+.nc-hud-mini-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, .12) 3px,
+    rgba(0, 0, 0, .12) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Mini label + title ──────────────────────────────────────────── */
+
+.nc-hud-mini-main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.nc-hud-mini-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .5);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Big glowing HUD-01-style title */
+.nc-hud-mini-title {
+  display: block;
+  font-size: clamp(18px, 4.5vw, 42px);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 10px rgba(80, 245, 255, .95),
+    0 0 24px rgba(80, 245, 255, .7),
+    0 0 50px rgba(80, 245, 255, .4),
+    0 0 80px rgba(80, 220, 255, .2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+}
+
+/* ── Left side accent tabs (outside frame) ───────────────────────── */
+
+/* Two small vertical cyan bars at the left edge — HUD-01 style */
+.nc-hud-panel.is-mini::before,
+.nc-hud-panel.is-mini::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  width: 5px;
+  background: rgba(80, 220, 255, .88);
+  box-shadow: 0 0 8px rgba(80, 220, 255, .8);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.nc-hud-panel.is-mini::before {
+  top: calc(var(--_mini-h) * .25);
+  height: calc(var(--_mini-h) * .22);
+}
+
+.nc-hud-panel.is-mini::after {
+  top: calc(var(--_mini-h) * .58);
+  height: calc(var(--_mini-h) * .18);
+}
+
+/* ── ─── EXPANDED STATE ─── ──────────────────────────────────────── */
+
+.nc-hud-expanded {
+  position: relative;
+  width: 100%;
+
+  /* Hidden in mini state */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+
+  background: var(--_bg);
+  border: 2px solid var(--_cyan);
+  box-shadow:
+    0 0 18px var(--_cyan-soft),
+    inset 0 0 28px rgba(80, 220, 255, .05);
+
+  transition:
+    max-height 420ms cubic-bezier(.2, .9, .2, 1),
+    opacity    260ms ease;
+}
+
+.nc-hud-panel.is-expanded .nc-hud-expanded {
+  max-height: 720px;
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Corner accents on expanded */
+.nc-hud-expanded::before,
+.nc-hud-expanded::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: var(--_cyan);
+  border-style: solid;
+  box-shadow: 0 0 8px var(--_cyan-glow);
+  z-index: 5;
+  pointer-events: none;
+}
+.nc-hud-expanded::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; }
+.nc-hud-expanded::after  { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; }
+
+/* ── Collapse button ─────────────────────────────────────────────── */
+
+.nc-hud-collapse {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 20;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  font-family: var(--_font);
+  font-size: 9px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--_accent);
+  background: rgba(0, 8, 18, .9);
+  border: 1px solid var(--_cyan-dim);
+  padding: 3px 10px;
+  box-shadow: 0 0 8px var(--_cyan-soft);
+  transition: border-color .18s, box-shadow .18s, color .18s;
+}
+
+.nc-hud-collapse:hover {
+  border-color: var(--_cyan);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(80, 220, 255, .55);
+}
+
+/* ── Expanded top strip (ticker area) ────────────────────────────── */
+
+.nc-hud-top-strip {
+  height: 22px;
+  border-bottom: 1px solid var(--_cyan-dim);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nc-hud-ticker-text {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(120, 245, 255, .75);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .5);
+  animation: ncHudTickerScroll 28s linear infinite;
+}
+
+@keyframes ncHudTickerScroll {
+  0%  { transform: translateY(-50%) translateX(0);    opacity: 1; }
+  96% { transform: translateY(-50%) translateX(calc(-100% - 100vw)); opacity: 1; }
+  98% { opacity: 0; }
+  100%{ transform: translateY(-50%) translateX(0);    opacity: 0; }
+}
+
+/* ── Expanded body — flex container for visual + content ─────────── */
+
+.nc-hud-body {
+  display: flex;
+  flex-direction: row;
+  padding: 16px;
+  gap: 18px;
+  min-height: 220px;
+}
+
+/* Vertical layout: stack columns */
+.nc-hud-panel.is-vertical .nc-hud-body {
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Visual block ────────────────────────────────────────────────── */
+
+.nc-hud-visual {
+  flex: 0 0 38%;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--_cyan-dim);
+  box-shadow:
+    0 0 14px rgba(80, 220, 255, .12),
+    inset 0 0 18px rgba(80, 220, 255, .06);
+  background: radial-gradient(ellipse at center,
+    rgba(20, 60, 100, .9) 0%,
+    rgba(0, 8, 20, 1) 70%);
+}
+
+.nc-hud-panel.is-vertical .nc-hud-visual {
+  flex: 0 0 auto;
+  height: 220px;
+}
+
+.nc-hud-visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(.9) saturate(1.1);
+}
+
+/* ── Content block ───────────────────────────────────────────────── */
+
+.nc-hud-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  padding-top: 26px; /* clear collapse button */
+}
+
+/* In vertical: content below visual, less top padding */
+.nc-hud-panel.is-vertical .nc-hud-content {
+  padding-top: 32px;
+}
+
+/* Kicker */
+.nc-hud-kicker {
+  font-size: 9px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .6);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .35);
+  margin: 0;
+}
+
+/* Title */
+.nc-hud-title {
+  margin: 0;
+  font-family: var(--_font);
+  font-weight: normal;
+  font-size: clamp(16px, 2.4vw, 26px);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--_accent);
+  text-shadow:
+    0 0 8px rgba(80, 245, 255, .72),
+    0 0 20px rgba(80, 245, 255, .32);
+  line-height: 1.1;
+}
+
+/* Body text */
+.nc-hud-text {
+  font-size: 12px;
+  line-height: 1.72;
+  letter-spacing: .02em;
+  color: var(--_text);
+  text-shadow: 0 0 10px rgba(80, 220, 255, .14);
+  text-align: justify;
+  hyphens: auto;
+  margin: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+/* Metadata grid */
+.nc-hud-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 14px;
+  font-size: 11px;
+  letter-spacing: .06em;
+  border-top: 1px solid rgba(80, 220, 255, .18);
+  padding-top: 8px;
+  margin: 0;
+}
+
+.nc-hud-meta dt {
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .55);
+  white-space: nowrap;
+}
+
+.nc-hud-meta dd {
+  margin: 0;
+  color: var(--_text);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ── Bottom strip ────────────────────────────────────────────────── */
+
+.nc-hud-bottom-strip {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 12px;
+  gap: 5px;
+  border-top: 1px solid var(--_cyan-dim);
+  position: relative;
+}
+
+.nc-hud-outpost {
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .55);
+  text-shadow: 0 0 6px rgba(80, 220, 255, .3);
+  margin-right: auto;
+}
+
+/* Loader segments */
+.nc-hud-bottom-strip .nc-hud-seg {
+  display: block;
+  width: 16px;
+  height: 7px;
+  background: var(--_cyan);
+  flex-shrink: 0;
+}
+
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(2)  { opacity:.55; animation: ncHudSegFill 6s linear infinite 0.00s; }
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(3)  { opacity:.30; animation: ncHudSegFill 6s linear infinite 0.75s; }
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(4)  { opacity:.45; animation: ncHudSegFill 6s linear infinite 1.50s; }
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(5)  { opacity:.20; animation: ncHudSegFill 6s linear infinite 2.25s; }
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(6)  { opacity:.50; animation: ncHudSegFill 6s linear infinite 3.00s; }
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(7)  { opacity:.35; animation: ncHudSegFill 6s linear infinite 3.75s; }
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(8)  { opacity:.60; animation: ncHudSegFill 6s linear infinite 4.50s; }
+.nc-hud-bottom-strip .nc-hud-seg:nth-child(9)  { opacity:.25; animation: ncHudSegFill 6s linear infinite 5.25s; }
+
+@keyframes ncHudSegFill {
+  0%,49%  { filter: brightness(.35); }
+  50%,100%{ filter: brightness(1.4); }
+}
+
+/* ── Side accent tabs (horizontal only) ──────────────────────────── */
+
+.nc-hud-panel.is-horizontal .nc-hud-expanded::before {
+  /* Override generic corner — use a taller left-side accent */
+  width: 4px;
+  height: 60px;
+  border-width: 0 0 0 3px;
+  top: 50%;
+  left: -2px;
+  transform: translateY(-50%);
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .nc-hud-panel,
+  .nc-hud-mini,
+  .nc-hud-expanded {
+    transition: none;
+  }
+  .nc-hud-mini-ticks span,
+  .nc-hud-bottom-strip .nc-hud-seg,
+  .nc-hud-ticker-text {
+    animation: none;
+  }
+}
+
+/* ── Very narrow (≤ 360 px) ──────────────────────────────────────── */
+
+@media (max-width: 360px) {
+  .nc-hud-ticker-text,
+  .nc-hud-mini-ticks {
+    display: none;
+  }
+  .nc-hud-body {
+    padding: 10px;
+    gap: 10px;
+  }
+}

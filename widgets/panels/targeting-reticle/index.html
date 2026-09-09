@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Targeting Reticle — NebulaCast HUD</title>
+
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+  <link rel="stylesheet" href="./reticle.css">
+</head>
+<body>
+
+  <main class="nc-demo-stage">
+    <div class="nc-reticle" id="reticle" aria-label="Targeting Reticle">
+
+      <!-- Rotating outer ring -->
+      <div class="nc-reticle__ring nc-reticle__ring--outer nc-anim-rotate"></div>
+
+      <!-- Counter-rotating inner ring -->
+      <div class="nc-reticle__ring nc-reticle__ring--inner" style="animation: hudRotate 2s linear infinite reverse;"></div>
+
+      <!-- Crosshair lines -->
+      <div class="nc-reticle__cross">
+        <div class="nc-reticle__cross-h"></div>
+        <div class="nc-reticle__cross-v"></div>
+      </div>
+
+      <!-- Center dot -->
+      <div class="nc-reticle__dot nc-anim-pulse"></div>
+
+      <!-- Corner brackets -->
+      <div class="nc-reticle__bracket nc-reticle__bracket--tl"></div>
+      <div class="nc-reticle__bracket nc-reticle__bracket--tr"></div>
+      <div class="nc-reticle__bracket nc-reticle__bracket--bl"></div>
+      <div class="nc-reticle__bracket nc-reticle__bracket--br"></div>
+
+      <!-- Data readouts -->
+      <div class="nc-reticle__data nc-reticle__data--top">
+        <span class="nc-data" id="azimuthVal">AZ 247.8°</span>
+      </div>
+      <div class="nc-reticle__data nc-reticle__data--bottom">
+        <span class="nc-data" id="rangeVal">RNG 1,842 m</span>
+      </div>
+      <div class="nc-reticle__data nc-reticle__data--left">
+        <span class="nc-data" id="elevVal">EL +12°</span>
+      </div>
+      <div class="nc-reticle__data nc-reticle__data--right">
+        <span class="nc-data" id="lockVal">LOCK</span>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="../../shared/js/hud-core.js"></script>
+  <script src="./reticle.js"></script>
+</body>
+</html>

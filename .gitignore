@@ -31,3 +31,73 @@ dist/
 tmp/
 temp/
 .cache/
+
+# CDN deploy staging (scripts/deploy_gadgets_media.sh) -- transient, never committed
+.deploy/
+
+# --- Binary media -----------------------------------------------------------
+# widgets/ and gadgets/ are shared UI assets consumed by nebulacast.com,
+# stellar-attractor, and other products. Rendered/binary media lives on the
+# CDN, not in git. Vector/text formats (svg, and text-based data like csv/
+# json/yml) are NOT listed here — they're diffable and fine to keep in git.
+
+# Images (raster)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.webp
+*.heic
+*.heif
+*.ico
+*.psd
+*.xcf
+
+# Video
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.flv
+*.wmv
+*.m4v
+*.mpg
+*.mpeg
+
+# Audio
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+*.m4a
+*.aiff
+*.aif
+
+# Animation / design project files
+*.blend
+*.blend1
+*.aep
+*.prproj
+*.c4d
+
+# 3D models
+*.fbx
+*.obj
+*.glb
+*.gltf
+*.stl
+*.dae
+
+# Raw camera formats
+*.raw
+*.cr2
+*.cr3
+*.nef
+*.arw
+*.dng

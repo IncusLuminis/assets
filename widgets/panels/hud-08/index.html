@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUD-08 Expandable Panel — NebulaCast</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+
+  <!-- Shared layer -->
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+
+  <!-- Widget -->
+  <link rel="stylesheet" href="./hud-08.css">
+
+  <style>
+    /* ── Demo page layout ────────────────────────────────────────── */
+    body {
+      background: #020d14;
+      padding: 40px 32px;
+      min-height: 100vh;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .demo-stage {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .demo-header {
+      font-size: 11px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(80, 220, 255, .45);
+      margin-bottom: 48px;
+    }
+
+    .demo-section {
+      margin-bottom: 60px;
+    }
+
+    .demo-label {
+      font-size: 9px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(80, 220, 255, .35);
+      border-bottom: 1px solid rgba(80, 220, 255, .12);
+      padding-bottom: 6px;
+      margin-bottom: 24px;
+    }
+
+    /* Simulated article body */
+    .demo-article {
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(190, 250, 255, .7);
+      letter-spacing: .02em;
+    }
+
+    .demo-article p {
+      margin: 0 0 16px;
+    }
+
+    /* Container-width test wrappers */
+    .demo-narrow {
+      max-width: 380px;
+      border: 1px dashed rgba(80, 220, 255, .15);
+      padding: 16px;
+      margin-top: 24px;
+    }
+
+    .demo-narrow-label {
+      font-size: 9px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(80, 220, 255, .3);
+      margin-bottom: 12px;
+    }
+
+    /* Galaxy visual placeholder */
+    .thumb-galaxy {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(ellipse 60% 45% at 50% 50%,
+          rgba(180, 120, 60, .5) 0%,
+          rgba(60, 80, 160, .4) 40%,
+          rgba(0, 8, 20, 1) 80%),
+        radial-gradient(ellipse at 50% 50%,
+          rgba(80, 60, 20, .3) 0%,
+          transparent 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thumb-galaxy svg {
+      width: 60%;
+      height: 60%;
+      opacity: .7;
+    }
+
+    /* Character visual placeholder */
+    .thumb-char {
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(180deg,
+          rgba(0, 20, 40, .8) 0%,
+          rgba(0, 40, 80, .4) 50%,
+          rgba(0, 10, 30, .9) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thumb-char svg {
+      width: 55%;
+      height: 55%;
+      opacity: .6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="demo-stage">
+
+  <div class="demo-header">HUD-08 / Expandable Inline Panel / NebulaCast</div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       DEMO 1 — NGC 1300 Galaxy panel
+       Full-width context — expands horizontal
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <div class="demo-label">Panel A — NGC 1300 (click mini card to expand)</div>
+
+    <div class="demo-article">
+      <p>
+        Spiral structure of NGC 1300 was first catalogued in the Shapley-Ames survey.
+        Its prominent bar drives material from the outer arms directly into the nucleus.
+      </p>
+
+      <!-- ▼ PANEL A ▼ -->
+      <div class="nc-hud-panel" data-hud-panel>
+
+        <!-- Mini trigger -->
+        <button class="nc-hud-mini" type="button" aria-expanded="false">
+
+          <!-- Top bar: diagonal stripes + solid accent -->
+          <span class="nc-hud-mini-topbar" aria-hidden="true">
+            <span class="nc-hud-mini-stripes"></span>
+            <span class="nc-hud-mini-topbar-accent"></span>
+          </span>
+
+          <!-- Main row: thumb + label/title -->
+          <span class="nc-hud-mini-row">
+
+            <span class="nc-hud-mini-thumb">
+              <!-- Placeholder: replace with <img src="ngc1300.jpg" alt="NGC 1300"> -->
+              <div class="thumb-galaxy">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <circle cx="50" cy="50" r="40" stroke="rgba(80,220,255,.22)" stroke-width=".8" stroke-dasharray="4 5"/>
+                  <circle cx="50" cy="50" r="26" stroke="rgba(80,220,255,.45)" stroke-width="1" stroke-dasharray="3 4"/>
+                  <circle cx="50" cy="50" r="5"  fill="rgba(200,160,80,.65)"/>
+                  <line x1="8"  y1="50" x2="92" y2="50" stroke="rgba(80,220,255,.2)" stroke-width=".8"/>
+                  <line x1="50" y1="8"  x2="50" y2="92" stroke="rgba(80,220,255,.2)" stroke-width=".8"/>
+                  <polyline points="10,10 10,22 22,22" stroke="rgba(80,220,255,.7)" stroke-width="2" fill="none"/>
+                  <polyline points="90,10 90,22 78,22" stroke="rgba(80,220,255,.7)" stroke-width="2" fill="none"/>
+                  <polyline points="10,90 10,78 22,78" stroke="rgba(80,220,255,.7)" stroke-width="2" fill="none"/>
+                  <polyline points="90,90 90,78 78,78" stroke="rgba(80,220,255,.7)" stroke-width="2" fill="none"/>
+                  <text x="50" y="96" fill="rgba(80,220,255,.45)" font-size="7" text-anchor="middle"
+                        font-family="monospace" letter-spacing="1.5">TARGET LOCK</text>
+                </svg>
+              </div>
+            </span>
+
+            <span class="nc-hud-mini-main">
+              <span class="nc-hud-mini-label">OUTPOST 32 / TARGET</span>
+              <span class="nc-hud-mini-title">NGC 1300</span>
+            </span>
+
+          </span><!-- /.nc-hud-mini-row -->
+
+        </button><!-- /.nc-hud-mini -->
+
+        <!-- Expanded state -->
+        <section class="nc-hud-expanded" aria-hidden="true">
+
+          <button class="nc-hud-collapse" type="button" aria-label="Collapse HUD panel">MIN</button>
+
+          <!-- Ticker strip -->
+          <div class="nc-hud-top-strip">
+            <span class="nc-hud-ticker-text">
+              NGC 1300 / BARRED SPIRAL / ERIDANUS / DISTANCE: 61 MLY / CATALOG: PGC 12412 / SURVEY: DSS2 COLOR / STATUS: TRACKED
+            </span>
+          </div>
+
+          <!-- Body -->
+          <div class="nc-hud-body">
+
+            <div class="nc-hud-visual">
+              <!-- Placeholder: replace with <img src="ngc1300.jpg" alt="NGC 1300"> -->
+              <div class="thumb-galaxy" style="width:100%;height:100%;min-height:180px;">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <circle cx="50" cy="50" r="42" stroke="rgba(80,220,255,.18)" stroke-width=".5" stroke-dasharray="3 5"/>
+                  <circle cx="50" cy="50" r="30" stroke="rgba(80,220,255,.28)" stroke-width=".8" stroke-dasharray="2 6"/>
+                  <circle cx="50" cy="50" r="18" stroke="rgba(80,220,255,.45)" stroke-width="1"/>
+                  <circle cx="50" cy="50" r="6"  fill="rgba(200,150,70,.7)"/>
+                  <ellipse cx="50" cy="50" rx="44" ry="12" stroke="rgba(80,220,255,.15)" stroke-width=".5" transform="rotate(-15 50 50)"/>
+                  <line x1="6"  y1="50" x2="94" y2="50" stroke="rgba(80,220,255,.2)" stroke-width=".5"/>
+                  <line x1="50" y1="6"  x2="50" y2="94" stroke="rgba(80,220,255,.2)" stroke-width=".5"/>
+                  <polyline points="6,6 6,16 16,16"   stroke="rgba(80,220,255,.7)" stroke-width="1.5" fill="none"/>
+                  <polyline points="94,6 94,16 84,16" stroke="rgba(80,220,255,.7)" stroke-width="1.5" fill="none"/>
+                  <polyline points="6,94 6,84 16,84"  stroke="rgba(80,220,255,.7)" stroke-width="1.5" fill="none"/>
+                  <polyline points="94,94 94,84 84,84" stroke="rgba(80,220,255,.7)" stroke-width="1.5" fill="none"/>
+                  <text x="50" y="96" fill="rgba(80,220,255,.4)" font-size="5" text-anchor="middle" font-family="monospace" letter-spacing="1">TARGET LOCK</text>
+                </svg>
+              </div>
+            </div>
+
+            <div class="nc-hud-content">
+              <div class="nc-hud-kicker">OUTPOST 32 / DEEP SKY ARCHIVE</div>
+              <h3 class="nc-hud-title">NGC 1300</h3>
+              <p class="nc-hud-text">
+                NGC 1300 is a barred spiral galaxy in the constellation Eridanus, approximately 61 million
+                light-years from Earth. Its massive central bar — stretching over 100,000 light-years —
+                channels gas directly into the nucleus, sustaining star formation and feeding a compact
+                nuclear spiral invisible at optical wavelengths.
+              </p>
+              <dl class="nc-hud-meta">
+                <dt>TYPE</dt>      <dd>Barred Spiral (SB(rs)bc)</dd>
+                <dt>DISTANCE</dt>  <dd>61 million light-years</dd>
+                <dt>CONST.</dt>    <dd>Eridanus</dd>
+                <dt>MAG (V)</dt>   <dd>10.4</dd>
+                <dt>STATUS</dt>    <dd>TRACKED / VERIFIED</dd>
+              </dl>
+            </div>
+
+          </div><!-- /.nc-hud-body -->
+
+          <!-- Bottom strip -->
+          <div class="nc-hud-bottom-strip">
+            <span class="nc-hud-outpost">OUTPOST 32</span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+          </div>
+
+        </section><!-- /.nc-hud-expanded -->
+
+      </div><!-- /.nc-hud-panel -->
+      <!-- ▲ PANEL A ▲ -->
+
+      <p style="margin-top:20px;">
+        The bar structure is most prominent in near-infrared imagery, where older stellar populations
+        dominate and dust lanes trace the shock fronts at the leading edges.
+      </p>
+
+    </div><!-- /.demo-article -->
+  </div><!-- /.demo-section -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       DEMO 2 — Акеми Хана character panel
+       Full-width context — expands horizontal
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <div class="demo-label">Panel B — Акеми Хана (character)</div>
+
+    <div class="demo-article">
+      <p>
+        Field analyst Akemi Hana joined Outpost 32 during the third survey rotation.
+        Her spectroscopic work on protoplanetary disk winds was cited in the JWST mass-loss study.
+      </p>
+
+      <!-- ▼ PANEL B ▼ -->
+      <div class="nc-hud-panel" data-hud-panel>
+
+        <!-- Mini trigger -->
+        <button class="nc-hud-mini" type="button" aria-expanded="false">
+
+          <span class="nc-hud-mini-topbar" aria-hidden="true">
+            <span class="nc-hud-mini-stripes"></span>
+            <span class="nc-hud-mini-topbar-accent"></span>
+          </span>
+
+          <span class="nc-hud-mini-row">
+            <span class="nc-hud-mini-thumb">
+              <div class="thumb-char">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <ellipse cx="50" cy="34" rx="17" ry="19" fill="rgba(80,220,255,.14)" stroke="rgba(80,220,255,.5)" stroke-width="1"/>
+                  <path d="M 18 92 Q 18 60 50 60 Q 82 60 82 92" fill="rgba(80,220,255,.08)" stroke="rgba(80,220,255,.4)" stroke-width="1"/>
+                  <polyline points="8,8 8,20 20,20"   stroke="rgba(80,220,255,.65)" stroke-width="2" fill="none"/>
+                  <polyline points="92,8 92,20 80,20" stroke="rgba(80,220,255,.65)" stroke-width="2" fill="none"/>
+                  <polyline points="8,92 8,80 20,80"  stroke="rgba(80,220,255,.65)" stroke-width="2" fill="none"/>
+                  <polyline points="92,92 92,80 80,80" stroke="rgba(80,220,255,.65)" stroke-width="2" fill="none"/>
+                  <text x="50" y="97" fill="rgba(80,220,255,.4)" font-size="7" text-anchor="middle"
+                        font-family="monospace" letter-spacing="1.5">ID VERIFIED</text>
+                </svg>
+              </div>
+            </span>
+
+            <span class="nc-hud-mini-main">
+              <span class="nc-hud-mini-label">OUTPOST 32 / PERSONNEL</span>
+              <span class="nc-hud-mini-title">АКЕМИ ХАНА</span>
+            </span>
+          </span>
+
+        </button><!-- /.nc-hud-mini -->
+
+        <!-- Expanded state -->
+        <section class="nc-hud-expanded" aria-hidden="true">
+
+          <button class="nc-hud-collapse" type="button" aria-label="Collapse HUD panel">MIN</button>
+
+          <div class="nc-hud-top-strip">
+            <span class="nc-hud-ticker-text">
+              PROTOPLANETARY DISK SURVEY / MHD WINDS DETECTED / MASS LOSS RATE ANALYSIS / TARGET CLASSIFICATION UPDATED
+            </span>
+          </div>
+
+          <div class="nc-hud-body">
+
+            <div class="nc-hud-visual">
+              <div class="thumb-char" style="width:100%;height:100%;min-height:180px;">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <ellipse cx="50" cy="32" rx="18" ry="20" fill="rgba(80,220,255,.12)" stroke="rgba(80,220,255,.5)" stroke-width="1"/>
+                  <path d="M 16 92 Q 16 58 50 58 Q 84 58 84 92" fill="rgba(80,220,255,.08)" stroke="rgba(80,220,255,.4)" stroke-width="1"/>
+                  <polyline points="4,4 4,18 18,18"   stroke="rgba(80,220,255,.65)" stroke-width="1.5" fill="none"/>
+                  <polyline points="96,4 96,18 82,18" stroke="rgba(80,220,255,.65)" stroke-width="1.5" fill="none"/>
+                  <polyline points="4,96 4,82 18,82"  stroke="rgba(80,220,255,.65)" stroke-width="1.5" fill="none"/>
+                  <polyline points="96,96 96,82 82,82" stroke="rgba(80,220,255,.65)" stroke-width="1.5" fill="none"/>
+                  <circle cx="50" cy="32" r="4" fill="rgba(80,220,255,.3)"/>
+                  <text x="50" y="97" fill="rgba(80,220,255,.35)" font-size="5" text-anchor="middle" font-family="monospace" letter-spacing="1">ID VERIFIED</text>
+                </svg>
+              </div>
+            </div>
+
+            <div class="nc-hud-content">
+              <div class="nc-hud-kicker">OUTPOST 32 / PERSONNEL FILE</div>
+              <h3 class="nc-hud-title">АКЕМИ ХАНА</h3>
+              <p class="nc-hud-text">
+                Знаете, меня всегда забавляло, насколько романтично люди представляют рождение планет.
+                Все эти красивые картинки: сияющий диск, спирали пыли, юные миры, возникающие вокруг
+                молодой звезды… Очень поэтично. Но реальность, как обычно, куда менее сентиментальна.
+                Эта работа JWST показывает не процесс рождения, а процесс утраты.
+              </p>
+              <dl class="nc-hud-meta">
+                <dt>ДОЛЖНОСТЬ</dt>  <dd>Field Analyst, Astrophysicist</dd>
+                <dt>СТАНЦИЯ</dt>    <dd>Outpost 32</dd>
+                <dt>СТАТУС</dt>     <dd>ACTIVE / SURVEY UNIT</dd>
+                <dt>ДОПУСК</dt>     <dd>Level 4 — Research</dd>
+              </dl>
+            </div>
+
+          </div><!-- /.nc-hud-body -->
+
+          <div class="nc-hud-bottom-strip">
+            <span class="nc-hud-outpost">OUTPOST 32</span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+          </div>
+
+        </section><!-- /.nc-hud-expanded -->
+
+      </div><!-- /.nc-hud-panel -->
+      <!-- ▲ PANEL B ▲ -->
+
+      <p style="margin-top:20px;">
+        Самое важное здесь — даже не сами ветры. Мы подозревали их существование давно.
+        Важнее другое: впервые появляется статистика.
+      </p>
+
+    </div><!-- /.demo-article -->
+  </div><!-- /.demo-section -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       DEMO 3 — Narrow container (forces vertical layout)
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <div class="demo-label">Panel C — Narrow container (≤ 380px → vertical layout)</div>
+
+    <div class="demo-narrow">
+      <div class="demo-narrow-label">container width: 380px</div>
+
+      <!-- ▼ PANEL C ▼ -->
+      <div class="nc-hud-panel" data-hud-panel>
+
+        <button class="nc-hud-mini" type="button" aria-expanded="false">
+          <span class="nc-hud-mini-topbar" aria-hidden="true">
+            <span class="nc-hud-mini-stripes"></span>
+            <span class="nc-hud-mini-topbar-accent"></span>
+          </span>
+          <span class="nc-hud-mini-row">
+            <span class="nc-hud-mini-thumb">
+              <div class="thumb-galaxy" style="background: radial-gradient(ellipse at 50% 50%, rgba(40,80,160,.8) 0%, rgba(0,8,20,1) 75%);">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <circle cx="50" cy="50" r="30" stroke="rgba(80,220,255,.45)" stroke-width="1"/>
+                  <circle cx="50" cy="50" r="8"  fill="rgba(100,180,255,.5)"/>
+                  <polyline points="10,10 10,22 22,22" stroke="rgba(80,220,255,.6)" stroke-width="1.5" fill="none"/>
+                  <polyline points="90,90 90,78 78,78" stroke="rgba(80,220,255,.6)" stroke-width="1.5" fill="none"/>
+                  <text x="50" y="96" fill="rgba(80,220,255,.4)" font-size="7" text-anchor="middle"
+                        font-family="monospace" letter-spacing="1.5">TARGET LOCK</text>
+                </svg>
+              </div>
+            </span>
+            <span class="nc-hud-mini-main">
+              <span class="nc-hud-mini-label">SURVEY / DISK TARGET</span>
+              <span class="nc-hud-mini-title">TW HYA</span>
+            </span>
+          </span>
+        </button>
+
+        <section class="nc-hud-expanded" aria-hidden="true">
+
+          <button class="nc-hud-collapse" type="button" aria-label="Collapse HUD panel">MIN</button>
+
+          <div class="nc-hud-top-strip">
+            <span class="nc-hud-ticker-text">TW HYA / PROTOPLANETARY DISK / DISTANCE: 196 LY / MHD WINDS DETECTED</span>
+          </div>
+
+          <div class="nc-hud-body">
+
+            <div class="nc-hud-visual">
+              <div class="thumb-galaxy" style="width:100%;height:100%;min-height:160px;">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <circle cx="50" cy="50" r="38" stroke="rgba(80,220,255,.2)" stroke-width=".8" stroke-dasharray="3 5"/>
+                  <circle cx="50" cy="50" r="24" stroke="rgba(80,220,255,.4)" stroke-width="1"/>
+                  <circle cx="50" cy="50" r="10" fill="rgba(100,200,255,.25)" stroke="rgba(80,220,255,.6)" stroke-width="1"/>
+                  <circle cx="50" cy="50" r="3"  fill="rgba(255,240,180,.7)"/>
+                  <line x1="8" y1="50" x2="92" y2="50" stroke="rgba(80,220,255,.18)" stroke-width=".5"/>
+                  <line x1="50" y1="8" x2="50" y2="92" stroke="rgba(80,220,255,.18)" stroke-width=".5"/>
+                  <polyline points="6,6 6,16 16,16"   stroke="rgba(80,220,255,.65)" stroke-width="1.5" fill="none"/>
+                  <polyline points="94,94 94,84 84,84" stroke="rgba(80,220,255,.65)" stroke-width="1.5" fill="none"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="nc-hud-content">
+              <div class="nc-hud-kicker">OUTPOST 32 / DISK SURVEY</div>
+              <h3 class="nc-hud-title">TW HYA</h3>
+              <p class="nc-hud-text">
+                TW Hydrae hosts the nearest protoplanetary disk to Earth.
+                JWST molecular outflow observations confirm MHD wind activity
+                across multiple annular zones, with mass-loss rates consistent
+                with photoevaporative models.
+              </p>
+              <dl class="nc-hud-meta">
+                <dt>TYPE</dt>       <dd>T Tauri / Protoplanetary</dd>
+                <dt>DISTANCE</dt>   <dd>196 light-years</dd>
+                <dt>WINDS</dt>      <dd>MHD confirmed</dd>
+              </dl>
+            </div>
+
+          </div>
+
+          <div class="nc-hud-bottom-strip">
+            <span class="nc-hud-outpost">OUTPOST 32</span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+            <span class="nc-hud-seg"></span>
+          </div>
+
+        </section>
+
+      </div>
+      <!-- ▲ PANEL C ▲ -->
+
+    </div><!-- /.demo-narrow -->
+  </div><!-- /.demo-section -->
+
+</div><!-- /.demo-stage -->
+
+<!-- Widget JS -->
+<script src="./hud-08.js"></script>
+
+</body>
+</html>

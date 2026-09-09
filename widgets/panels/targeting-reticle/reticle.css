@@ -1,0 +1,106 @@
+/* targeting-reticle/reticle.css — namespace: .nc-reticle */
+
+.nc-demo-stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hud-bg);
+}
+
+.nc-reticle {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Rings */
+.nc-reticle__ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--hud-line);
+}
+
+.nc-reticle__ring--outer {
+  width: 220px;
+  height: 220px;
+  border-style: dashed;
+  opacity: 0.5;
+}
+
+.nc-reticle__ring--inner {
+  width: 160px;
+  height: 160px;
+  border-color: rgba(0, 255, 231, 0.7);
+  box-shadow: 0 0 8px var(--hud-glow), inset 0 0 8px var(--hud-glow);
+}
+
+/* Crosshair */
+.nc-reticle__cross {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nc-reticle__cross-h,
+.nc-reticle__cross-v {
+  position: absolute;
+  background: var(--hud-line);
+  box-shadow: 0 0 4px var(--hud-glow);
+}
+
+.nc-reticle__cross-h {
+  width: 100px;
+  height: 1px;
+}
+
+.nc-reticle__cross-v {
+  width: 1px;
+  height: 100px;
+}
+
+/* Center dot */
+.nc-reticle__dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hud-line);
+  box-shadow: 0 0 10px var(--hud-glow);
+  z-index: 2;
+}
+
+/* Corner brackets */
+.nc-reticle__bracket {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: var(--hud-text-accent);
+  border-style: solid;
+  opacity: 0.8;
+}
+
+.nc-reticle__bracket--tl { top: 16px;    left: 16px;   border-width: 2px 0 0 2px; }
+.nc-reticle__bracket--tr { top: 16px;    right: 16px;  border-width: 2px 2px 0 0; }
+.nc-reticle__bracket--bl { bottom: 16px; left: 16px;   border-width: 0 0 2px 2px; }
+.nc-reticle__bracket--br { bottom: 16px; right: 16px;  border-width: 0 2px 2px 0; }
+
+/* Data readouts */
+.nc-reticle__data {
+  position: absolute;
+  font-size: var(--hud-font-xs);
+  letter-spacing: 0.1em;
+}
+
+.nc-reticle__data--top    { top: 0;    left: 50%; transform: translateX(-50%); }
+.nc-reticle__data--bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
+.nc-reticle__data--left   { left: 0;  top: 50%;  transform: translateY(-50%); }
+.nc-reticle__data--right  { right: 0; top: 50%;  transform: translateY(-50%);
+                             color: var(--hud-text-accent);
+                             text-shadow: 0 0 6px var(--hud-glow); }

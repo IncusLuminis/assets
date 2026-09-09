@@ -1,0 +1,42 @@
+<div style="left: 11px; position: absolute; top: -7px;">
+  <a href="https://www.youtube.com/@Nebulacast">
+    <img alt="Наш старинный приятель, оригинальный канал в Ютьюбе." src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi_7ZzCwVk4_HbNFg0zpfXfGmFFobZY2w3MhElcdMY7hbjSLXPNfhWAxgSqKFT4ZnnBfLwF46c8KR2xdrNs7qNmtqr9-l2o6ZSqzFvASKfHEtOvxWGml4MzwF37G755oamiOIlwA_TbUykFKj8-YlY8bVmR-dW-B03eLjUV_pUmXMtivah2S9s2ClKSDGI/s1600/Crab_Button_32x32.png" />
+  </a>
+  <a href="https://www.youtube.com/@StellarAttractor">
+    <img alt="Новый англоязычный канал Stellar Attractor" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhRiZKM44ZiHALy_bRcSIpMbGsS7EQrS-jF5dhv4ICsOOarR3S__EuTFCIVXc8RlWbDCIA6y055mSWMSLpjZp1KEBwJ-_eRcE6QnVaQQgBZjKc5daOFTVJYOtdMWxSF2yJ5btfh7mxFxzaDfmXziOgDBPUsIW0grz-so3wn1MVpLHIpEb4nF8yqYVt6_M8/s1600/Halvorsen_Button_32x32_rounded.png" />
+  </a>
+<a href="https://dzen.ru/liveuniverse">
+    <img alt="Русский Дзен" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgeDVFdmMxdEPpbgBqhIE1vBjkPipedNA5oFjL_4_U6oUTHyXgtrMRyNgUvSZibB0OBuUDnO_y51KJIr8Yv_EiizE-65ad1TgtU8ruQF97NIuc9cRNaRVwO1pFYO71Q-j7YdNyucAMwP59LQuL1rN-QCpWy3aNIO5PBQXpaJ5-q05-fZ9k7B-qqFeanfRk/s1600/Dzen-Icon-Logo-Vector.svg--2.png" />
+  </a>
+<a href="https://rutube.ru/channel/3440803/">
+    <img alt="Рутьюб, тут все понятно" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjlNp0IRdc4aCx0m4Pspa07GPtYuJZxMwG8s0gz2hGHr0OAFSfFLiKW-TJzAOf0MGjY1hm0OI0ppQUdzEXBaAiIGEFLcxj9MsRcM1y4Agq1kSDQm4WFQ_zEQaec95jkYouwDWXJx4piC6MllPnkU99iF1AqyDach5lDLoQYdWqweaaQrb_Rg6nvo24Lwt0/s1600/rutube.png" />
+  </a>
+  <a href="https://vkvideo.ru/@live_universe">
+    <img alt="Видео ВКонтакте" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhH9iO9nrF9cffwKPQ_oc7afvJXoSGQw6rM5PrSj9O6volf8WmimdVBrn16NnL9n_WtzN56Iq5SWAMszOD202sIJj8sLMvDu64x2yVZkoiRyT3JxSWRSPMc-2WQXhPylfZ-EEHY16OGPasGalu-qUwgL_qye--opXQviztGIkKajdsbeVusCev-coXr_dw/s1600/VK_Video_32x32.png" />
+  </a>
+<a href="https://plvideo.ru/channel/h6evya83SpC8">
+<img alt="Платформа - новое решение" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhLJ595jTSOQwYiKrNXYASp3_YGtPdAa9TAfee0MkflgWsBJBd5GzsBFV4ZAsBYpYSQMJUzXWIqsZ_seTP2nCC0w4k0W_bbFvVurPHHiTQLUXHoA-BzSQ_8xrrLPZ1p9jDEwS3tET4R8iQ3BtRUefdOOJzHzp_t1EsdbzGDyKbN_MukMRrX_8OMKMole2I/s1600/plvideo-2.png" />&nbsp;
+  </a>
+  <a href="https://vk.com/live_universe">
+    <img alt="ВКонтакте" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjsY27IvujnEdv2Pb2cz6GDh-9OFbFizcOELJsRuyo5d4mhuq_ZiA31EqmMmqvsei3pXTnhiRAhhvxP56Anfp9_SN2norm3b3uEBi0QnEmQzqCqgoVEVkLD6WVKVD-12jKLlswL97anObihoevlAKCDDibBsM3jKT3S8lY8NJOprtr6l1xXcb55-MWN1As/s1600/vk.png" />
+  </a>
+  <a href="https://t.me/liveuniverse">
+    <img alt="Телеграмм" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEEH4j5T6eKvgmBpuGvOF-qUTCqQXy5UF2gDp79zY4bVDbl3nytiQcRTmp67E7dAAUeAx49a0nomJ5WYkm8GtfHvaBemH5xlkyeysnO9uPXIJJoot_JzkyaU_Rr3h7NExprjMRyf-IlrlqrBaInS1VsEGYwbnUoG4760YCA1jXD2NiymA_PmluZ3wS438/s1600/telegram.png" />
+  </a>
+  <a href="https://drmichaelvideos.livejournal.com">
+    <img alt="ЖЖ" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhoOxussRLKSVBZsdnRwAEMZK1VCqfXwE5sgW0I40KTX-DiEBXC3LV9Bwak1q7noWceZjbxtDD3rIm5z89-Aso7Px-kyEc5zqctKGKLAQ8JENpeQKa3DtxFgVNU6m1F6angF1pikd4tkD8-98rzKsghk3sa4w1gRxX5zmHW5FcsFSIt5MmEoIuaicMWlAU/s1600/livejournal.png" />
+  </a>
+  <a href="https://www.tiktok.com/@stellar.attractor.ru">
+    <img alt="Тикток" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj8C7pDkVZ8kdQ1Q9THEbFFM1tlCB33FWNU5Y8XeFRqCAfcRDeFytpZXKcz27pChepYPCEdlx0txXkrO8BtQLLkIknVrVeJKXtTJixXgSUq7Q3zdpSdn4hJ7kFhN3w9mpRdHobwzRt6yeA-7sZBfnIW3nUre5zZM7TRecVDPyOhJzocU-u0movS-oMnB_o/s1600/tiktok.png" />
+  </a>
+  <a href="https://www.instagram.com/stellar.attractor/">
+    <img alt="Англоязычный Инстаграмм для шортов и рилзов" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiUMI3rPgBVzC9JGGz9JHLCyWgx6etx_EPkR-14UAUbV6lSxeLVg_2KcMLFK56bpJ12eJZ1x-nrHmP01PY8U2lacDDe9gkhRXMgWl4b1rBqNfgs4BP4szbkon5eJ8YDUXLK84UUe8pdQCithxW-Bbi7znVz0Jp3LYZbc1jRIdgLScuPpRdgfNkQhDn3nPA/s1600/instagram.png" />
+  </a>
+<a href="https://x.com/DrMichaelVideos">
+<img alt="Двуязычный твиттер для поддержки выходящих роликов" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjW83mY874ByypA1qtCbz8JUyZnHMfGhNj04aKPf8Tk-x2pS5D2ACCsku9Xk_r9GTQIf6zRRiFDzL7UC-2vHbFFOg6Sm3RKPZopI5gXaCtxtR-zK28wef3EWCxIPCiqCj2efk2B6aNtS36ehyrkSXJwNpusWQD5wp5pPiRPvflDggkffphiWpJPOrcFJpo/s1600/X.png" />
+  </a>&nbsp;
+<a href="https://itunes.apple.com/pl/podcast/%D0%BF%D1%80%D0%BE-%D0%B2%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%BD%D1%83%D1%8E/id1451038281?mt=2&app=podcast" target="_blank"><img alt="Apple Podcast" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhrj_-1m1CotSTvpahh5flYoctHzNUClJxzQYw73m5WkImMhW3YyC7jZc2llX7L4MXLDTEOMnHDHce4pQaxgJBCKeXP7EKHR7GxunS_qLjLYeTDxGPFNGJQyTSxG_X24yKgZCslRmB3nnARV9lhFdH7De7S2xuKsZdrLoA3Rm2KADMI5q20n251x87-5oo/s1600/Apple.png" / /></a>
+<a href="http://live-universe.podomatic.com/" target="_blank"><img alt="Podomatic" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjDTjK4LTbvjEDmUwOHB4ETNXRkS19EGmqu4LDYMEzIcf0eMGU4zb-isNyykh92v4YYbQQ7_0ybM2yV1KVBLjlqJ1SbpUgVEaU8qT9R5URmJ0X61Z9azF4XvEtjZu62OINHUtTEd-9BMHBCIjLOcV0OhF28qJC2sAOrp58-0I179hxIhTRMOFzDU3cj0Q8/s1600/icon_blueBgd-2.png" / /></a>
+<a href="https://soundcloud.com/user-832590029" target="_blank"><img alt="SoundCloud" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiHHX8apcEAT3nykY6q_EyV6QLU4lBasSehh_hmnUArmgFfzchZoQBHY1K7b79b0HaJFI49L23lQEGv4KHcX9UIzKZb5wjDKWm6y-1NGI6azQNJP4qa3f5byrBEBxp5c0AaSQVOzSLUVq3eAOLIB7-wXG43qhHozkduV7CZNPnwpoxh2gG1yq3UKcUtbec/s1600/soundcloud.png" / /></a>&nbsp;
+<a href="http://feeds2.feedburner.com/nebulacast" target="_blank"><img alt="RSS Feed" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiaSIoGxy8YiGzHFpl7cVn7-vAK-6f_qH0erFTVAe322Tjcq91CLjnsWS2iKCqCP7N5aC7kZNjDKW6Srjq5RoGCD4uWBI5V0U0MdVEpSjt9noq5EO0a4EiZxj-any6gtBaCIhJcFJqYFfVpli9_yDW9_ISL49Gvoddo4OPQIhMPcbnExneXAVl5IC8EbYs/s1600/rss-2.jpg" / /></a>
+</div>

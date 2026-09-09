@@ -1,0 +1,121 @@
+/* animations.css — global HUD keyframe animations */
+
+/* Slow ambient pulse — glow breathing */
+@keyframes hudPulse {
+  0%   { opacity: 1;   box-shadow: 0 0 8px var(--hud-glow); }
+  50%  { opacity: 0.6; box-shadow: 0 0 20px var(--hud-glow); }
+  100% { opacity: 1;   box-shadow: 0 0 8px var(--hud-glow); }
+}
+
+/* Continuous rotation — targeting rings, radar sweeps */
+@keyframes hudRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Sharp blink — status indicators, alerts */
+@keyframes hudBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* Radar / arc sweep — single revolution with fade */
+@keyframes hudSweep {
+  0%   { transform: rotate(0deg);   opacity: 0.9; }
+  80%  { transform: rotate(288deg); opacity: 0.6; }
+  100% { transform: rotate(360deg); opacity: 0; }
+}
+
+/* Slide-in from left */
+@keyframes hudSlideIn {
+  from { transform: translateX(-12px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Boot-up flicker sequence */
+@keyframes hudFlicker {
+  0%  { opacity: 0; }
+  10% { opacity: 1; }
+  14% { opacity: 0; }
+  20% { opacity: 1; }
+  22% { opacity: 0; }
+  24% { opacity: 1; }
+  100%{ opacity: 1; }
+}
+
+/* Diagonal translating light beam — used by legacy panels (nc-ol, nc-or, nc-vv, nc-vs) */
+@keyframes hudPanelSweep {
+  0%   { transform: rotate(8deg) translateX(-320%); }
+  100% { transform: rotate(8deg) translateX(900%); }
+}
+
+/* Ambient glow breathing — panel box-shadow pulse */
+@keyframes hudBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0,220,255,.18),
+      0 0 42px rgba(0,140,255,.10),
+      inset 0 0 28px rgba(0,255,255,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0,240,255,.28),
+      0 0 64px rgba(0,180,255,.16),
+      inset 0 0 42px rgba(0,255,255,.12);
+  }
+}
+
+/* Reticle outer ring — scale + opacity pulse */
+@keyframes hudPulseOuter {
+  0%, 100% { transform: scale(.94); opacity: .35; }
+  50%      { transform: scale(1.02); opacity: 1; }
+}
+
+/* Reticle inner ring — scale + opacity pulse */
+@keyframes hudPulseInner {
+  0%, 100% { transform: scale(.92); opacity: .28; }
+  50%      { transform: scale(1.05); opacity: .78; }
+}
+
+/* Soft fade blink — target lock label (differs from sharp hudBlink) */
+@keyframes hudBlinkSoft {
+  0%, 100% { opacity: .32; }
+  50%      { opacity: 1; }
+}
+
+/* Lock box corner bracket pulse */
+@keyframes hudLockBoxPulse {
+  0%, 100% { transform: scale(.78); opacity: .25; }
+  50%      { transform: scale(1.12); opacity: .95; }
+}
+
+/* Horizontal text ticker — scrolls left then resets */
+@keyframes hudTickerScroll {
+  0%   { transform: translateX(0);                   opacity: 1; }
+  97%  { transform: translateX(calc(-100% - 100vw)); opacity: 1; }
+  98%  { opacity: 0; }
+  100% { transform: translateX(0);                   opacity: 0; }
+}
+
+/* Scanning beam — sweeps L→R across a clipping container.
+   Apply to a child element; parent must have overflow: hidden.
+   Used by HUD progress bars; reusable for any scan track. */
+@keyframes hudProgressScan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+
+/* Utility animation classes */
+.nc-anim-pulse          { animation: hudPulse         2s   ease-in-out infinite; }
+.nc-anim-rotate         { animation: hudRotate         4s   linear    infinite; }
+.nc-anim-blink          { animation: hudBlink          1s   step-end  infinite; }
+.nc-anim-blink-soft     { animation: hudBlinkSoft      1.4s ease-in-out infinite; }
+.nc-anim-sweep          { animation: hudSweep          3s   linear    infinite; }
+.nc-anim-slide-in       { animation: hudSlideIn        0.4s var(--hud-transition) both; }
+.nc-anim-flicker        { animation: hudFlicker        0.8s ease-in-out both; }
+.nc-anim-breath         { animation: hudBreath         5s   ease-in-out infinite; }
+.nc-anim-pulse-outer    { animation: hudPulseOuter     4s   ease-in-out infinite; }
+.nc-anim-pulse-inner    { animation: hudPulseInner     2.5s ease-in-out infinite; }
+.nc-anim-lockbox        { animation: hudLockBoxPulse   3.2s ease-in-out infinite; }
+.nc-anim-ticker         { animation: hudTickerScroll   30s  linear    infinite; }
+.nc-anim-progress-scan  { animation: hudProgressScan   3s   linear    infinite; }

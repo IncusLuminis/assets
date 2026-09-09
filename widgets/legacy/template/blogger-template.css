@@ -1,0 +1,2354 @@
+		@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+      /* ===================================================== */
+      /* SA ACCORDION CORE */
+      /* ===================================================== */
+
+      .sa-accordion,
+      .sa-accordion *,
+      .nc-hud-widget,
+      .nc-hud-widget * {
+        box-sizing: border-box;
+      }
+
+      .sa-accordion {
+        width: 100%;
+        max-width: 100%;
+        margin: 32px 0;
+        overflow: visible;
+        font-family: "Share Tech Mono", monospace;
+      }
+
+      .sa-toggle {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .sa-panel-stack {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        background: #000;
+        margin-top: -28px;
+
+        transition:
+          max-height 1.4s cubic-bezier(.22,.61,.36,1),
+          opacity .65s ease;
+      }
+
+      .sa-panel-stack-inner {
+        padding: 0;
+        margin-top: -28px;
+        transform: translateY(-90px);
+        opacity: 0;
+
+        transition:
+          transform 1.25s cubic-bezier(.22,.61,.36,1),
+          opacity .8s ease;
+      }
+
+      .sa-toggle:checked ~ .sa-panel-stack {
+        max-height: 7000px;
+        opacity: 1;
+      }
+
+      .sa-toggle:checked ~ .sa-panel-stack .sa-panel-stack-inner {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      /* ===================================================== */
+      /* SVG HUD BUTTON */
+      /* ===================================================== */
+
+      .sa-hud-btn {
+        display: block;
+        position: relative;
+        width: min(520px, 100%);
+        line-height: 0;
+        margin: 0;
+        cursor: pointer;
+        transition: filter .2s ease, transform .2s ease;
+      }
+
+      .sa-hud-btn:hover {
+        filter: brightness(1.25);
+      }
+
+      .sa-hud-btn:active {
+        filter: brightness(.85);
+        transform: translateY(1px);
+      }
+
+      .sa-hud-btn svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .sa-hud-btn-title {
+        position: absolute;
+        left: 46%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+
+        font-size: 18px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        text-transform: none;
+
+        color: #ffffff;
+        line-height: 1;
+
+        text-shadow:
+          0 0 2px rgba(255,255,255,.45),
+          0 0 6px rgba(80,220,255,.35),
+          0 0 12px rgba(80,220,255,.12);
+
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .sa-hud-btn-arrow {
+        position: absolute;
+        right: 16.7%;
+        top: 50%;
+        width: 25px;
+        height: 25px;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .sa-hud-btn-arrow::before,
+      .sa-hud-btn-arrow::after {
+        content: "";
+        position: absolute;
+        top: 10px;
+        width: 17px;
+        height: 4px;
+        background: #1ab8f0;
+        border-radius: 3px;
+        box-shadow:
+          0 0 6px rgba(26,184,240,.9),
+          0 0 14px rgba(26,184,240,.55);
+        transition: transform .25s ease;
+      }
+
+      .sa-hud-btn-arrow::before {
+        left: 0;
+        transform: rotate(45deg);
+      }
+
+      .sa-hud-btn-arrow::after {
+        right: 0;
+        transform: rotate(-45deg);
+      }
+
+      .sa-toggle:checked + .sa-hud-btn .sa-hud-btn-arrow::before {
+        transform: rotate(-45deg);
+      }
+
+      .sa-toggle:checked + .sa-hud-btn .sa-hud-btn-arrow::after {
+        transform: rotate(45deg);
+      }
+
+      /* ===================================================== */
+      /* HUD BUTTON ANIMATIONS */
+      /* ===================================================== */
+
+      @keyframes saBtnBar1 {
+        0% { opacity: 0; }
+        13% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes saBtnBar2 {
+        0%, 6.5% { opacity: 0; }
+        19.5% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes saBtnBar3 {
+        0%, 13% { opacity: 0; }
+        26% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes saBtnBar4 {
+        0%, 19.5% { opacity: 0; }
+        32.5% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes saBtnBar5 {
+        0%, 26% { opacity: 0; }
+        39% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      .sa-btn-bar {
+        animation-duration: 6.2s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+
+      .sa-btn-bar:nth-child(1) { animation-name: saBtnBar1; }
+      .sa-btn-bar:nth-child(2) { animation-name: saBtnBar2; }
+      .sa-btn-bar:nth-child(3) { animation-name: saBtnBar3; }
+      .sa-btn-bar:nth-child(4) { animation-name: saBtnBar4; }
+      .sa-btn-bar:nth-child(5) { animation-name: saBtnBar5; }
+
+      /* ===================================================== */
+      /* NC HUD PANEL */
+      /* ===================================================== */
+
+      .nc-hud-widget {
+        width: 100%;
+        margin: 0 auto;
+        background: #000;
+        overflow: clip;
+      }
+
+      .sa-panel-stack .nc-hud-widget {
+        margin-top: -20px !important;
+      }
+
+      .nc-hud-panel {
+        --loader-left: 28%;
+        --loader-width: 230px;
+        --frame-edge: 26px;
+        --top-line-y: 18px;
+        --top-line-drop: 26px;
+        --top-line-lower-y: calc(var(--top-line-y) + var(--top-line-drop));
+
+        position: relative;
+        width: min(1200px, 100%);
+        min-height: 520px;
+        margin: 0 auto;
+        padding: 86px 92px;
+        background: #000;
+        overflow: visible;
+        isolation: isolate;
+      }
+
+      .nc-frame-shell {
+        position: absolute;
+        inset: 26px;
+        z-index: 1;
+        pointer-events: none;
+        border: 3px solid rgba(80,220,255,.92);
+
+        clip-path: polygon(
+          0 22%,
+          0 100%,
+          96% 100%,
+          100% 72%,
+          100% 6%,
+          21% 6%,
+          18% 5%,
+          12% 5%
+        );
+
+        filter:
+          drop-shadow(0 0 6px rgba(80,220,255,.9))
+          drop-shadow(0 0 18px rgba(80,220,255,.5));
+      }
+
+      .nc-frame-mask {
+        position: absolute;
+        z-index: 3;
+        pointer-events: none;
+        background: #000;
+      }
+
+      .nc-frame-mask-left {
+        top: 24px;
+        left: 118px;
+        width: 170px;
+        height: 34px;
+        transform: skewX(-32deg);
+      }
+
+      .nc-frame-mask-right {
+        top: 24px;
+        right: 18px;
+        width: 46px;
+        height: 48px;
+      }
+
+      .nc-frame-inner {
+        position: absolute;
+        inset: 72px 48px 72px 48px;
+        z-index: 1;
+        pointer-events: none;
+        border: 1px solid rgba(145,245,255,.62);
+
+        clip-path: polygon(
+          0 0,
+          100% 0,
+          100% 72%,
+          96% 100%,
+          0 100%
+        );
+
+        filter: drop-shadow(0 0 4px rgba(80,220,255,.7));
+      }
+
+      .nc-frame-topline {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        overflow: visible;
+      }
+
+      .nc-frame-topline span {
+        position: absolute;
+        display: block;
+        background: rgba(80,220,255,.95);
+        box-shadow:
+          0 0 8px rgba(80,220,255,.95),
+          0 0 18px rgba(80,220,255,.45);
+      }
+
+      .nc-topline-left {
+        top: var(--top-line-y);
+        left: var(--frame-edge);
+        width: calc(var(--loader-left) + var(--loader-width) + 4px - var(--frame-edge));
+        height: 3px;
+      }
+
+      .nc-topline-slope {
+        top: var(--top-line-y);
+        left: calc(var(--loader-left) + var(--loader-width) + 4px);
+        width: 34px;
+        height: 3px;
+        transform-origin: left center;
+        transform: rotate(58deg);
+      }
+
+      .nc-topline-right {
+        top: var(--top-line-lower-y);
+        left: calc(var(--loader-left) + var(--loader-width) + 22px);
+        width: calc(100% - (var(--loader-left) + var(--loader-width) + 22px) - var(--frame-edge));
+        height: 3px;
+      }
+
+      .nc-topline-side {
+        top: var(--top-line-lower-y);
+        right: var(--frame-edge);
+        width: 3px;
+        height: 62px;
+      }
+
+      .nc-frame-loader {
+        position: absolute;
+        top: 42px;
+        left: var(--loader-left);
+        width: var(--loader-width);
+        height: 28px;
+        z-index: 5;
+        pointer-events: none;
+
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+
+        transform: skewX(32deg);
+
+        padding: 3px;
+        border: 1px solid rgba(80,220,255,.45);
+
+        background:
+          linear-gradient(
+            90deg,
+            rgba(80,220,255,.08),
+            rgba(80,220,255,.02)
+          );
+
+        filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+      }
+
+      .nc-frame-loader span {
+        flex: 1;
+        opacity: 0;
+        background: rgba(80,220,255,.95);
+        box-shadow: 0 0 12px rgba(80,220,255,.85);
+        animation-duration: 6.2s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+
+      .nc-frame-loader span:nth-child(1) { animation-name: ncLoaderSegment1; }
+      .nc-frame-loader span:nth-child(2) { animation-name: ncLoaderSegment2; }
+      .nc-frame-loader span:nth-child(3) { animation-name: ncLoaderSegment3; }
+      .nc-frame-loader span:nth-child(4) { animation-name: ncLoaderSegment4; }
+      .nc-frame-loader span:nth-child(5) { animation-name: ncLoaderSegment5; }
+      .nc-frame-loader span:nth-child(6) { animation-name: ncLoaderSegment6; }
+      .nc-frame-loader span:nth-child(7) { animation-name: ncLoaderSegment7; }
+      .nc-frame-loader span:nth-child(8) { animation-name: ncLoaderSegment8; }
+
+      .nc-panel-sweep {
+        position: absolute;
+        top: -38%;
+        left: -32%;
+        width: 58%;
+        height: 180%;
+        z-index: 2;
+        pointer-events: none;
+        opacity: .5;
+
+        background:
+          linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(80,220,255,0) 8%,
+            rgba(80,220,255,.06) 25%,
+            rgba(180,255,255,.22) 50%,
+            rgba(80,220,255,.08) 75%,
+            transparent 100%
+          );
+
+        transform: rotate(8deg) translateX(-320%);
+        mix-blend-mode: screen;
+        animation: ncPanelSweep 7s linear infinite;
+      }
+
+      .nc-hud-content {
+        position: relative;
+        z-index: 6;
+        color: #cfffff;
+      }
+
+      .nc-hud-system {
+        position: absolute;
+        top: -34px;
+        left: -42px;
+        margin: 0;
+
+        font-family: "Share Tech Mono", monospace;
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+
+        color: rgba(80,220,255,.72);
+        text-shadow: 0 0 8px rgba(80,220,255,.45);
+      }
+
+      .nc-hud-title {
+        margin: 0 0 34px auto;
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+
+        text-align: left;
+
+        font-family: "Share Tech Mono", monospace;
+        font-size: 30px;
+        line-height: 1;
+
+        letter-spacing: .18em;
+        text-transform: uppercase;
+
+        color: #8ff6ff;
+
+        text-shadow:
+          0 0 8px rgba(80,245,255,.95),
+          0 0 20px rgba(80,245,255,.45);
+      }
+
+      .nc-hud-text {
+        max-width: 100%;
+
+        font-family: "Share Tech Mono", monospace;
+        font-size: 12px;
+        line-height: 1.72;
+        letter-spacing: .02em;
+
+        color: rgba(190,250,255,.84);
+        text-shadow: 0 0 10px rgba(80,220,255,.18);
+
+        text-align: justify;
+        text-align-last: left;
+        hyphens: auto;
+        overflow-wrap: anywhere;
+        display: flow-root;
+      }
+      
+      .nc-hud-text::after {
+        content: "";
+        display: block;
+        clear: both;
+        }
+
+      .nc-hud-float-image {
+        float: left;
+        width: 28%;
+        min-width: 220px;
+        max-width: 360px;
+        height: auto;
+
+        margin: 0 34px 22px 0;
+        object-fit: contain;
+
+        filter: brightness(.76) contrast(1.14) saturate(.9);
+
+        border: 1px solid rgba(80,220,255,.36);
+
+        box-shadow:
+          0 0 16px rgba(80,220,255,.18),
+          inset 0 0 18px rgba(80,220,255,.08);
+      }
+        
+      .nc-hud-media {
+        float: left;
+        position: relative;
+        top: 0;
+        left: -14px;
+        overflow: hidden;
+        border: 1px solid rgba(80,220,255,.36);
+        background: rgba(0,20,34,.55);
+        box-shadow: 0 0 16px rgba(80,220,255,.18),
+        inset 0 0 18px rgba(80,220,255,.08);
+        }
+
+	 .nc-hud-media-vertical {
+        width: 28%;
+        min-width: 220px;
+        max-width: 360px;
+        aspect-ratio: 9 / 16;
+        }
+
+	  .nc-hud-media-horizontal {
+        width: 42%;
+        min-width: 320px;
+        max-width: 620px;
+        aspect-ratio: 16 / 9;
+        }
+
+	.nc-hud-media iframe,
+    .nc-hud-media video,
+    .nc-hud-media img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        object-fit: cover;
+        }
+
+      .nc-frame-ticker {
+        position: absolute;
+        top: 50px;
+        right: 54px;
+
+        width: calc(100% - (var(--loader-left) + var(--loader-width) + 74px));
+        height: 32px;
+
+        overflow: hidden;
+        z-index: 5;
+        pointer-events: none;
+      }
+
+      .nc-frame-ticker span {
+        position: absolute;
+        white-space: nowrap;
+        left: 100%;
+        top: 0;
+
+        font-family: "Share Tech Mono", monospace;
+        font-size: 14px;
+
+        letter-spacing: .18em;
+        text-transform: uppercase;
+
+        color: rgba(120,245,255,.82);
+        text-shadow: 0 0 8px rgba(80,220,255,.55);
+
+        animation: ncTickerMove 30s linear infinite;
+      }
+
+      /* ===================================================== */
+      /* PANEL ANIMATIONS */
+      /* ===================================================== */
+
+      @keyframes ncPanelSweep {
+        0% { transform: rotate(8deg) translateX(-320%); }
+        100% { transform: rotate(8deg) translateX(900%); }
+      }
+
+      @keyframes ncLoaderSegment1 {
+        0% { opacity: 0; }
+        13% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncLoaderSegment2 {
+        0%, 6.5% { opacity: 0; }
+        19.5% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncLoaderSegment3 {
+        0%, 13% { opacity: 0; }
+        26% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncLoaderSegment4 {
+        0%, 19.5% { opacity: 0; }
+        32.5% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncLoaderSegment5 {
+        0%, 26% { opacity: 0; }
+        39% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncLoaderSegment6 {
+        0%, 32.5% { opacity: 0; }
+        45.5% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncLoaderSegment7 {
+        0%, 39% { opacity: 0; }
+        52% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncLoaderSegment8 {
+        0%, 45.5% { opacity: 0; }
+        58.5% { opacity: 1; }
+        82% { opacity: 1; }
+        82.01% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      @keyframes ncTickerMove {
+        0% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+
+        97% {
+          transform: translateX(calc(-100% - 100vw));
+          opacity: 1;
+        }
+
+        98% {
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateX(0);
+          opacity: 0;
+        }
+      }
+
+      /* ===================================================== */
+      /* MOBILE */
+      /* ===================================================== */
+
+      @media (max-width: 900px) {
+        .nc-hud-panel {
+          min-height: 0;
+          padding: 48px 24px;
+        }
+
+        .nc-frame-shell,
+        .nc-frame-inner,
+        .nc-frame-loader,
+        .nc-frame-topline,
+        .nc-frame-mask,
+        .nc-panel-sweep {
+          display: none;
+        }
+
+        .nc-hud-title {
+          font-size: 30px;
+          margin-bottom: 24px;
+        }
+
+        .nc-hud-text {
+          font-size: 15px;
+          line-height: 1.72;
+          letter-spacing: .02em;
+        }
+
+        .nc-hud-float-image {
+          float: none;
+          display: block;
+          width: 100%;
+          min-width: 0;
+          max-width: none;
+          margin: 0 0 24px 0;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .sa-hud-btn {
+          width: 100%;
+        }
+
+        .sa-hud-btn-title {
+          font-size: 15px;
+          letter-spacing: 1.4px;
+        }
+      }
+
+      /* ===================================================== */
+      /* PANEL PRESET: OBJECT LOCK / FULLY ISOLATED */
+      /* ===================================================== */
+
+      .nc-ol-widget,
+      .nc-ol-widget * {
+        box-sizing: border-box;
+      }
+
+      .nc-ol-widget {
+        width: 100%;
+        margin: 24px auto;
+        padding: 0;
+        overflow: clip;
+        background: #000;
+        font-family: "Share Tech Mono", monospace;
+      }
+
+      .nc-ol-panel {
+        position: relative;
+        width: 120px;
+        max-width: 100%;
+        height: 420px;
+        margin: 0 auto;
+
+        display: grid;
+        grid-template-columns: 520px 1fr;
+
+        overflow: hidden;
+
+        background:
+          linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)),
+          rgba(0,8,16,.95);
+
+        opacity: .65;
+
+        animation:
+          ncOlOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+          ncOlPanelBreath 5s ease-in-out infinite;
+      }
+
+      /* FRAME */
+
+      .nc-ol-frame-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 30;
+        pointer-events: none;
+      }
+
+      .nc-ol-frame-line {
+        fill: none;
+        stroke: rgba(80,220,255,.88);
+        stroke-width: 2;
+        vector-effect: non-scaling-stroke;
+        filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+      }
+
+      .nc-ol-frame-inner {
+        stroke: rgba(150,245,255,.62);
+        stroke-width: 1.2;
+      }
+
+      .nc-ol-frame-photo-top,
+      .nc-ol-frame-photo-bottom {
+        stroke: rgba(100,235,255,.72);
+        stroke-width: 1.4;
+      }
+
+      .nc-ol-frame-stripes path {
+        fill: rgba(80,220,255,.88);
+        filter: drop-shadow(0 0 6px rgba(80,220,255,.8));
+      }
+
+      .nc-ol-frame-tab {
+        fill: rgba(70,200,255,.90);
+        filter: drop-shadow(0 0 10px rgba(80,220,255,.9));
+      }
+
+      .nc-ol-frame-tab-top {
+        animation: ncOlTopSvgSlider 5s ease-in-out infinite;
+      }
+
+      /* SWEEP */
+
+      .nc-ol-sweep {
+        position: absolute;
+        top: -38%;
+        left: -32%;
+        width: 58%;
+        height: 180%;
+        z-index: 3;
+        pointer-events: none;
+        opacity: .5;
+
+        background:
+          linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(80,220,255,0) 8%,
+            rgba(80,220,255,.04) 25%,
+            rgba(180,255,255,.18) 50%,
+            rgba(80,220,255,.06) 75%,
+            transparent 100%
+          );
+
+        transform: rotate(8deg) translateX(-320%);
+        mix-blend-mode: screen;
+        animation: ncOlPanelSweep 7s linear infinite;
+      }
+
+      /* LEFT IMAGE AREA */
+
+      .nc-ol-left {
+        position: relative;
+        min-width: 520px;
+        width: 520px;
+        height: 420px;
+        overflow: hidden;
+        background: #000;
+        z-index: 1;
+      }
+
+      .nc-ol-image {
+        position: absolute;
+        left: 42px;
+        top: 34px;
+        width: 445px;
+        height: 352px;
+        display: block;
+        object-fit: cover;
+
+        filter:
+          brightness(.72)
+          contrast(1.18)
+          saturate(.85);
+      }
+
+      /* RETICLE */
+
+      .nc-ol-reticle {
+        position: absolute;
+        left: 42px;
+        top: 34px;
+        width: 445px;
+        height: 352px;
+        z-index: 4;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        pointer-events: none;
+      }
+
+      .nc-ol-ring {
+        position: absolute;
+        border-radius: 50%;
+      }
+
+      .nc-ol-ring-1 {
+        width: 270px;
+        height: 270px;
+        border: 2px solid rgba(80,245,255,.75);
+        box-shadow: 0 0 18px rgba(80,245,255,.5);
+        animation: ncOlPulseOuter 4s ease-in-out infinite;
+      }
+
+      .nc-ol-ring-2 {
+        width: 210px;
+        height: 210px;
+        border: 2px dashed rgba(80,245,255,.82);
+        animation: ncOlRotateSlow 10s linear infinite;
+      }
+
+      .nc-ol-ring-3 {
+        width: 120px;
+        height: 120px;
+        border: 1px solid rgba(170,255,255,.88);
+        opacity: .65;
+        animation: ncOlPulseInner 2.5s ease-in-out infinite;
+      }
+
+      .nc-ol-cross {
+        position: absolute;
+        width: 220px;
+        height: 220px;
+      }
+
+      .nc-ol-cross::before,
+      .nc-ol-cross::after {
+        content: "";
+        position: absolute;
+        background: rgba(120,255,255,.85);
+        box-shadow: 0 0 10px rgba(80,245,255,.72);
+      }
+
+      .nc-ol-cross::before {
+        width: 100%;
+        height: 1px;
+        top: 50%;
+        left: 0;
+      }
+
+      .nc-ol-cross::after {
+        width: 1px;
+        height: 100%;
+        left: 50%;
+        top: 0;
+      }
+
+      .nc-ol-lock-box {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        animation: ncOlLockBoxPulse 3.2s ease-in-out infinite;
+      }
+
+      .nc-ol-lock-box span {
+        position: absolute;
+        display: block;
+        width: 34px;
+        height: 34px;
+        filter: drop-shadow(0 0 8px rgba(80,245,255,.9));
+      }
+
+      .nc-ol-lock-box span::before,
+      .nc-ol-lock-box span::after {
+        content: "";
+        position: absolute;
+        background: rgba(150,255,255,.95);
+        box-shadow: 0 0 10px rgba(80,245,255,.75);
+      }
+
+      .nc-ol-lock-box span::before {
+        width: 34px;
+        height: 3px;
+      }
+
+      .nc-ol-lock-box span::after {
+        width: 3px;
+        height: 34px;
+      }
+
+      .nc-ol-lock-box span:nth-child(1) { top: 0; left: 0; }
+      .nc-ol-lock-box span:nth-child(1)::before { top: 0; left: 0; }
+      .nc-ol-lock-box span:nth-child(1)::after { top: 0; left: 0; }
+
+      .nc-ol-lock-box span:nth-child(2) { top: 0; right: 0; }
+      .nc-ol-lock-box span:nth-child(2)::before { top: 0; right: 0; }
+      .nc-ol-lock-box span:nth-child(2)::after { top: 0; right: 0; }
+
+      .nc-ol-lock-box span:nth-child(3) { bottom: 0; left: 0; }
+      .nc-ol-lock-box span:nth-child(3)::before { bottom: 0; left: 0; }
+      .nc-ol-lock-box span:nth-child(3)::after { bottom: 0; left: 0; }
+
+      .nc-ol-lock-box span:nth-child(4) { bottom: 0; right: 0; }
+      .nc-ol-lock-box span:nth-child(4)::before { bottom: 0; right: 0; }
+      .nc-ol-lock-box span:nth-child(4)::after { bottom: 0; right: 0; }
+
+      .nc-ol-corner {
+        position: absolute;
+        width: 38px;
+        height: 38px;
+        border-color: rgba(210,255,255,.95);
+      }
+
+      .nc-ol-corner-tl {
+        top: 46px;
+        left: 46px;
+        border-top: 2px solid;
+        border-left: 2px solid;
+      }
+
+      .nc-ol-corner-tr {
+        top: 46px;
+        right: 46px;
+        border-top: 2px solid;
+        border-right: 2px solid;
+      }
+
+      .nc-ol-corner-bl {
+        bottom: 46px;
+        left: 46px;
+        border-bottom: 2px solid;
+        border-left: 2px solid;
+      }
+
+      .nc-ol-corner-br {
+        bottom: 46px;
+        right: 46px;
+        border-bottom: 2px solid;
+        border-right: 2px solid;
+      }
+
+      .nc-ol-center-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.92);
+        box-shadow: 0 0 18px rgba(80,245,255,.95);
+      }
+
+      .nc-ol-target-lock {
+        position: absolute;
+        bottom: 30px;
+
+        font-family: "Share Tech Mono", monospace;
+        font-size: 13px;
+        letter-spacing: .26em;
+
+        color: #d8ffff;
+        text-shadow: 0 0 12px rgba(80,245,255,.95);
+
+        animation: ncOlBlink 1.4s ease-in-out infinite;
+      }
+
+      /* RIGHT DATA AREA */
+
+      .nc-ol-right {
+        position: relative;
+        z-index: 2;
+        min-width: 0;
+        height: 420px;
+        padding: 52px 68px 30px 10px;
+
+        color: #cfffff;
+
+        background:
+          linear-gradient(
+            90deg,
+            rgba(0,18,32,.97),
+            rgba(0,12,26,.99)
+          );
+
+        text-shadow: 0 0 8px rgba(80,245,255,.55);
+        overflow: hidden;
+      }
+
+      .nc-ol-right > * {
+        position: relative;
+        z-index: 4;
+      }
+
+      .nc-ol-title {
+        position: relative;
+        margin: 0 auto 34px auto;
+        width: max-content;
+
+        font-family: "Share Tech Mono", monospace;
+        font-size: 30px;
+        line-height: 1;
+        font-weight: 400;
+
+        letter-spacing: .16em;
+        text-transform: uppercase;
+
+        color: #8ff6ff;
+
+        text-shadow:
+          0 0 6px rgba(80,245,255,.72),
+          0 0 14px rgba(80,245,255,.28);
+      }
+
+      .nc-ol-title::before,
+      .nc-ol-title::after {
+        content: "";
+        position: absolute;
+        top: -12px;
+        width: 18px;
+        height: 18px;
+        border-color: rgba(120,245,255,.85);
+      }
+
+      .nc-ol-title::before {
+        left: -40px;
+        border-top: 2px solid;
+        border-left: 2px solid;
+      }
+
+      .nc-ol-title::after {
+        right: -40px;
+        border-top: 2px solid;
+        border-right: 2px solid;
+      }
+
+      .nc-ol-title-brackets {
+        position: absolute;
+        top: 116px;
+        left: 50%;
+        width: 260px;
+        height: 1px;
+
+        transform: translateX(-50%);
+
+        background:
+          linear-gradient(
+            90deg,
+            transparent,
+            rgba(80,245,255,.75),
+            transparent
+          );
+
+        box-shadow: 0 0 10px rgba(80,245,255,.8);
+      }
+
+      .nc-ol-grid {
+        display: grid;
+        grid-template-columns: 165px minmax(0, 1fr);
+        row-gap: 8px;
+        column-gap: 18px;
+
+        font-family: "Share Tech Mono", monospace;
+        font-size: 12px;
+        line-height: 1.05;
+        letter-spacing: .05em;
+      }
+
+      .nc-ol-label,
+      .nc-ol-value {
+        padding-bottom: 4px;
+        border-bottom: 1px solid rgba(80,220,255,.26);
+      }
+
+      .nc-ol-label {
+        font-weight: 400;
+        color: #dfffff;
+        white-space: nowrap;
+      }
+
+      .nc-ol-value {
+        color: #9ffcff;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+        text-align: right;
+      }
+
+      /* ANIMATIONS */
+
+      @keyframes ncOlOpenHud {
+        from {
+          width: 120px;
+          opacity: .65;
+        }
+
+        to {
+          width: min(1200px, 100%);
+          opacity: 1;
+        }
+      }
+
+      @keyframes ncOlPanelSweep {
+        0% {
+          transform: rotate(8deg) translateX(-320%);
+        }
+
+        100% {
+          transform: rotate(8deg) translateX(900%);
+        }
+      }
+
+      @keyframes ncOlTopSvgSlider {
+        0%, 100% {
+          transform: translateX(-70px);
+          opacity: .65;
+        }
+
+        50% {
+          transform: translateX(70px);
+          opacity: 1;
+        }
+      }
+
+      @keyframes ncOlPanelBreath {
+        0%, 100% {
+          box-shadow:
+            0 0 18px rgba(0,220,255,.18),
+            0 0 42px rgba(0,140,255,.10),
+            inset 0 0 28px rgba(0,255,255,.08);
+        }
+
+        50% {
+          box-shadow:
+            0 0 28px rgba(0,240,255,.28),
+            0 0 64px rgba(0,180,255,.16),
+            inset 0 0 42px rgba(0,255,255,.12);
+        }
+      }
+
+      @keyframes ncOlRotateSlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes ncOlPulseOuter {
+        0%, 100% {
+          transform: scale(.94);
+          opacity: .35;
+        }
+
+        50% {
+          transform: scale(1.02);
+          opacity: 1;
+        }
+      }
+
+      @keyframes ncOlPulseInner {
+        0%, 100% {
+          transform: scale(.92);
+          opacity: .28;
+        }
+
+        50% {
+          transform: scale(1.05);
+          opacity: .78;
+        }
+      }
+
+      @keyframes ncOlBlink {
+        0%, 100% { opacity: .32; }
+        50% { opacity: 1; }
+      }
+
+      @keyframes ncOlLockBoxPulse {
+        0%, 100% {
+          transform: scale(.78);
+          opacity: .25;
+        }
+
+        50% {
+          transform: scale(1.12);
+          opacity: .95;
+        }
+      }
+
+      /* MOBILE */
+
+      @media (max-width: 900px) {
+        .nc-ol-widget {
+          padding: 12px;
+        }
+
+        .nc-ol-panel {
+          height: auto;
+          grid-template-columns: 1fr;
+        }
+
+        .nc-ol-sweep,
+        .nc-ol-frame-svg {
+          display: none;
+        }
+
+        .nc-ol-left {
+          min-width: 0;
+          width: 100%;
+          height: 320px;
+        }
+
+        .nc-ol-image {
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 320px;
+        }
+
+        .nc-ol-reticle {
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 320px;
+        }
+
+        .nc-ol-right {
+          min-width: 0;
+          height: auto;
+          padding: 28px 22px 30px;
+        }
+
+        .nc-ol-title {
+          font-size: 22px;
+          margin-bottom: 28px;
+        }
+
+        .nc-ol-grid {
+          grid-template-columns: 125px 1fr;
+          font-size: 12px;
+          row-gap: 12px;
+          column-gap: 12px;
+        }
+
+        .nc-ol-value {
+          white-space: normal;
+        }
+      }        
+        
+      /* ===================================================== */
+      /* PANEL PRESET: OBJECT REPORT / FULLY ISOLATED */
+      /* ===================================================== */
+
+      .nc-or-widget,
+      .nc-or-widget * {
+        box-sizing: border-box;
+      }
+
+      .nc-or-widget {
+        width: 100%;
+        margin: 24px auto;
+        padding: 0;
+        overflow: clip;
+        background: #000;
+        font-family: "Share Tech Mono", monospace;
+      }
+
+      .nc-or-panel {
+        position: relative;
+        width: min(1200px, 100%);
+        height: 420px;
+        margin: 0 auto;
+
+        display: grid;
+        grid-template-columns: 30% 70%;
+
+        overflow: clip;
+        background: transparent;
+
+        animation: ncOrPanelBreath 5s ease-in-out infinite;
+      }
+
+      /* layers */
+
+      .nc-or-frame-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .nc-or-sweep {
+        position: absolute;
+        top: -38%;
+        left: -32%;
+        width: 58%;
+        height: 180%;
+        z-index: 2;
+        pointer-events: none;
+        opacity: .65;
+
+        background:
+          linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(80,220,255,0) 8%,
+            rgba(80,220,255,.06) 25%,
+            rgba(180,255,255,.24) 50%,
+            rgba(80,220,255,.08) 75%,
+            transparent 100%
+          );
+
+        transform: rotate(8deg) translateX(-320%);
+        mix-blend-mode: screen;
+        animation: ncOrPanelSweep 7s linear infinite;
+      }
+
+      .nc-or-left {
+        position: relative;
+        z-index: 3;
+        min-width: 0;
+        width: 100%;
+        height: 420px;
+        overflow: hidden;
+      }
+
+      .nc-or-right {
+        position: relative;
+        z-index: 5;
+        height: 420px;
+        padding: 58px 72px 28px 46px;
+        color: #cfffff;
+        background: transparent;
+        overflow: hidden;
+      }
+
+      .nc-or-right > * {
+        position: relative;
+        z-index: 7;
+      }
+
+      /* frame */
+
+      .nc-or-frame-main {
+        fill: rgba(5,18,38,0);
+        stroke: rgba(80,220,255,.92);
+        stroke-width: 3;
+        vector-effect: non-scaling-stroke;
+        filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+      }
+
+      .nc-or-frame-inner,
+      .nc-or-frame-teeth-box {
+        fill: none;
+        stroke: rgba(145,245,255,.62);
+        stroke-width: 1.4;
+        vector-effect: non-scaling-stroke;
+        filter: drop-shadow(0 0 5px rgba(80,220,255,.65));
+      }
+
+      .nc-or-frame-stripes path,
+      .nc-or-frame-teeth rect {
+        fill: rgba(80,220,255,.92);
+        filter: drop-shadow(0 0 6px rgba(80,220,255,.8));
+      }
+
+      /* image */
+
+      .nc-or-image {
+        position: absolute;
+        left: 25%;
+        top: 18%;
+        width: 80%;
+        height: 66%;
+        object-fit: cover;
+
+        filter:
+          brightness(.72)
+          contrast(1.18)
+          saturate(.85);
+      }
+
+      /* reticle */
+
+      .nc-or-reticle {
+        position: absolute;
+        left: 25%;
+        top: 18%;
+        width: 80%;
+        height: 66%;
+        z-index: 6;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        pointer-events: none;
+      }
+
+      .nc-or-ring {
+        position: absolute;
+        border-radius: 50%;
+      }
+
+      .nc-or-ring-1 {
+        width: 210px;
+        height: 210px;
+        border: 2px solid rgba(80,245,255,.75);
+        box-shadow: 0 0 18px rgba(80,245,255,.5);
+        animation: ncOrPulseOuter 4s ease-in-out infinite;
+      }
+
+      .nc-or-ring-2 {
+        width: 166px;
+        height: 166px;
+        border: 2px dashed rgba(80,245,255,.82);
+        animation: ncOrRotateSlow 10s linear infinite;
+      }
+
+      .nc-or-ring-3 {
+        width: 94px;
+        height: 94px;
+        border: 1px solid rgba(170,255,255,.88);
+        opacity: .65;
+        animation: ncOrPulseInner 2.5s ease-in-out infinite;
+      }
+
+      .nc-or-cross {
+        position: absolute;
+        width: 180px;
+        height: 180px;
+      }
+
+      .nc-or-cross::before,
+      .nc-or-cross::after {
+        content: "";
+        position: absolute;
+        background: rgba(120,255,255,.85);
+        box-shadow: 0 0 10px rgba(80,245,255,.72);
+      }
+
+      .nc-or-cross::before {
+        width: 100%;
+        height: 1px;
+        top: 50%;
+        left: 0;
+      }
+
+      .nc-or-cross::after {
+        width: 1px;
+        height: 100%;
+        left: 50%;
+        top: 0;
+      }
+
+      .nc-or-lock-box {
+        position: absolute;
+        width: 122px;
+        height: 122px;
+        animation: ncOrLockBoxPulse 3.2s ease-in-out infinite;
+      }
+
+      .nc-or-lock-box span {
+        position: absolute;
+        display: block;
+        width: 30px;
+        height: 30px;
+      }
+
+      .nc-or-lock-box span::before,
+      .nc-or-lock-box span::after {
+        content: "";
+        position: absolute;
+        background: rgba(150,255,255,.95);
+        box-shadow: 0 0 10px rgba(80,245,255,.75);
+      }
+
+      .nc-or-lock-box span::before {
+        width: 30px;
+        height: 3px;
+      }
+
+      .nc-or-lock-box span::after {
+        width: 3px;
+        height: 30px;
+      }
+
+      .nc-or-lock-box span:nth-child(1) { top: 0; left: 0; }
+      .nc-or-lock-box span:nth-child(1)::before { top: 0; left: 0; }
+      .nc-or-lock-box span:nth-child(1)::after { top: 0; left: 0; }
+
+      .nc-or-lock-box span:nth-child(2) { top: 0; right: 0; }
+      .nc-or-lock-box span:nth-child(2)::before { top: 0; right: 0; }
+      .nc-or-lock-box span:nth-child(2)::after { top: 0; right: 0; }
+
+      .nc-or-lock-box span:nth-child(3) { bottom: 0; left: 0; }
+      .nc-or-lock-box span:nth-child(3)::before { bottom: 0; left: 0; }
+      .nc-or-lock-box span:nth-child(3)::after { bottom: 0; left: 0; }
+
+      .nc-or-lock-box span:nth-child(4) { bottom: 0; right: 0; }
+      .nc-or-lock-box span:nth-child(4)::before { bottom: 0; right: 0; }
+      .nc-or-lock-box span:nth-child(4)::after { bottom: 0; right: 0; }
+
+      .nc-or-corner {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        border-color: rgba(210,255,255,.95);
+      }
+
+      .nc-or-corner-tl {
+        top: 26px;
+        left: 26px;
+        border-top: 2px solid;
+        border-left: 2px solid;
+      }
+
+      .nc-or-corner-tr {
+        top: 26px;
+        right: 26px;
+        border-top: 2px solid;
+        border-right: 2px solid;
+      }
+
+      .nc-or-corner-bl {
+        bottom: 26px;
+        left: 26px;
+        border-bottom: 2px solid;
+        border-left: 2px solid;
+      }
+
+      .nc-or-corner-br {
+        bottom: 26px;
+        right: 26px;
+        border-bottom: 2px solid;
+        border-right: 2px solid;
+      }
+
+      .nc-or-center-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.92);
+        box-shadow: 0 0 18px rgba(80,245,255,.95);
+      }
+
+      .nc-or-target-lock {
+        position: absolute;
+        bottom: 16px;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 11px;
+        letter-spacing: .24em;
+        color: #d8ffff;
+        text-shadow: 0 0 12px rgba(80,245,255,.95);
+        animation: ncOrBlink 1.4s ease-in-out infinite;
+      }
+
+      /* right content */
+
+      .nc-or-system {
+        margin-bottom: 10px;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .22em;
+        color: rgba(80,220,255,.62);
+      }
+
+      .nc-or-title {
+        margin: 0 0 16px 0;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 34px;
+        line-height: 1;
+        letter-spacing: .18em;
+        color: #8ff6ff;
+        text-shadow:
+          0 0 6px rgba(80,245,255,.72),
+          0 0 14px rgba(80,245,255,.28);
+      }
+
+      .nc-or-desc {
+        max-width: 92%;
+        margin-bottom: 18px;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 13px;
+        line-height: 1.45;
+        letter-spacing: .08em;
+        color: rgba(170,245,255,.84);
+      }
+
+      .nc-or-textbox {
+        max-width: 82%;
+        margin-bottom: 16px;
+        padding: 12px;
+        border: 1px solid rgba(80,220,255,.28);
+        background: rgba(0,32,52,.16);
+      }
+
+      .nc-or-text-title {
+        margin-bottom: 7px;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .2em;
+        color: rgba(80,220,255,.82);
+      }
+
+      .nc-or-text {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        letter-spacing: .06em;
+        color: rgba(190,250,255,.78);
+      }
+
+      .nc-or-log {
+        max-width: 82%;
+        margin-top: 14px;
+        padding: 9px 11px;
+        border-left: 2px solid rgba(80,220,255,.6);
+        background: rgba(0,24,42,.16);
+        font-family: "Share Tech Mono", monospace;
+        font-size: 10px;
+        line-height: 1.55;
+        color: rgba(170,245,255,.72);
+      }
+
+      /* animations */
+
+      @keyframes ncOrPanelSweep {
+        0% { transform: rotate(8deg) translateX(-320%); }
+        100% { transform: rotate(8deg) translateX(900%); }
+      }
+
+      @keyframes ncOrPanelBreath {
+        0%,100% {
+          box-shadow:
+            0 0 18px rgba(0,220,255,.18),
+            inset 0 0 28px rgba(0,255,255,.08);
+        }
+
+        50% {
+          box-shadow:
+            0 0 28px rgba(0,240,255,.28),
+            inset 0 0 42px rgba(0,255,255,.12);
+        }
+      }
+
+      @keyframes ncOrRotateSlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes ncOrPulseOuter {
+        0%,100% {
+          transform: scale(.94);
+          opacity: .35;
+        }
+
+        50% {
+          transform: scale(1.02);
+          opacity: 1;
+        }
+      }
+
+      @keyframes ncOrPulseInner {
+        0%,100% {
+          transform: scale(.92);
+          opacity: .28;
+        }
+
+        50% {
+          transform: scale(1.05);
+          opacity: .78;
+        }
+      }
+
+      @keyframes ncOrBlink {
+        0%,100% { opacity: .32; }
+        50% { opacity: 1; }
+      }
+
+      @keyframes ncOrLockBoxPulse {
+        0%,100% {
+          transform: scale(.78);
+          opacity: .25;
+        }
+
+        50% {
+          transform: scale(1.12);
+          opacity: .95;
+        }
+      }
+
+      /* mobile */
+
+      @media (max-width: 900px) {
+        .nc-or-widget {
+          padding: 12px;
+        }
+
+        .nc-or-panel {
+          height: auto;
+          grid-template-columns: 1fr;
+        }
+
+        .nc-or-sweep,
+        .nc-or-frame-svg {
+          display: none;
+        }
+
+        .nc-or-left {
+          min-width: 0;
+          width: 100%;
+          height: 320px;
+        }
+
+        .nc-or-image {
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 320px;
+        }
+
+        .nc-or-reticle {
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 320px;
+        }
+
+        .nc-or-right {
+          min-width: 0;
+          height: auto;
+          padding: 28px 22px 30px;
+        }
+
+        .nc-or-title {
+          font-size: 22px;
+        }
+
+        .nc-or-desc,
+        .nc-or-textbox,
+        .nc-or-log {
+          max-width: 100%;
+        }
+      }
+        
+
+      /* ===================================================== */
+      /* HUD PANEL SYSTEM */
+      /* ===================================================== */
+
+      .nc-vv-widget,
+      .nc-vv-widget * {
+        box-sizing: border-box;
+      }
+
+      .nc-vv-widget {
+        width: 100%;
+        max-width: 1200px;
+        margin: 24px auto;
+        background: #000;
+        font-family: "Share Tech Mono", monospace;
+        overflow: clip;
+      }
+
+      .nc-vv-panel {
+        position: relative;
+        width: 100%;
+        background: #000;
+      }
+
+      .nc-vv-svg-frame {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .nc-vv-content {
+        position: relative;
+        z-index: 2;
+        display: block;
+        min-height: 264px;
+      }
+
+      .nc-vv-title {
+        margin: 0 0 16px;
+        font-family: "Share Tech Mono", monospace;
+        font-size: clamp(22px, 2.8vw, 40px);
+        line-height: 1;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #8ff6ff;
+        text-shadow:
+          0 0 6px rgba(80,245,255,.72),
+          0 0 14px rgba(80,245,255,.28);
+      }
+
+      .nc-vv-system {
+        position: absolute;
+        z-index: 4;
+        margin: 0;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 15px;
+        font-weight: bold;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        color: rgba(80,220,255,.65);
+        text-shadow: 0 0 8px rgba(80,220,255,.4);
+        white-space: nowrap;
+        line-height: 1;
+      }
+
+      .nc-vv-text {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 12px;
+        line-height: 1.72;
+        letter-spacing: .02em;
+        color: rgba(190,250,255,.84);
+        text-shadow: 0 0 10px rgba(80,220,255,.18);
+        text-align: justify;
+        hyphens: auto;
+        margin: 0;
+      }
+
+      .nc-vv-right {
+        position: absolute;
+        z-index: 3;
+
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+      }
+
+      .nc-vv-media {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        position: relative;
+        overflow: hidden;
+        background: rgba(0,20,34,.55);
+        border: 1px solid rgba(80,220,255,.36);
+
+        box-shadow:
+          0 0 16px rgba(80,220,255,.18),
+          inset 0 0 18px rgba(80,220,255,.08);
+      }
+
+
+      .nc-vv-media iframe,
+      .nc-vv-media video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        object-fit: cover;
+      }
+
+      .nc-vv-media img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 0;
+      }
+
+      .nc-vv-loader {
+        position: absolute;
+        z-index: 4;
+        pointer-events: none;
+        display: flex;
+        gap: 4px;
+        align-items: stretch;
+        padding: 2px;
+        border: 1px solid rgba(80,220,255,.35);
+        background: rgba(0,30,50,.4);
+      }
+
+      .nc-vv-loader span {
+        flex: 1;
+        opacity: 0;
+        background: rgba(80,220,255,.95);
+        box-shadow: 0 0 8px rgba(80,220,255,.8);
+        animation-duration: 6.2s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+
+      .nc-vv-loader span:nth-child(1) { animation-name: ncWvSeg1; }
+      .nc-vv-loader span:nth-child(2) { animation-name: ncWvSeg2; }
+      .nc-vv-loader span:nth-child(3) { animation-name: ncWvSeg3; }
+      .nc-vv-loader span:nth-child(4) { animation-name: ncWvSeg4; }
+      .nc-vv-loader span:nth-child(5) { animation-name: ncWvSeg5; }
+      .nc-vv-loader span:nth-child(6) { animation-name: ncWvSeg6; }
+      .nc-vv-loader span:nth-child(7) { animation-name: ncWvSeg7; }
+      .nc-vv-loader span:nth-child(8) { animation-name: ncWvSeg8; }
+      .nc-vv-loader span:nth-child(9) { animation-name: ncWvSeg9; }
+      .nc-vv-loader span:nth-child(10) { animation-name: ncWvSeg10; }
+      .nc-vv-loader span:nth-child(11) { animation-name: ncWvSeg11; }
+      .nc-vv-loader span:nth-child(12) { animation-name: ncWvSeg12; }
+      .nc-vv-loader span:nth-child(13) { animation-name: ncWvSeg13; }
+      .nc-vv-loader span:nth-child(14) { animation-name: ncWvSeg14; }
+      .nc-vv-loader span:nth-child(15) { animation-name: ncWvSeg15; }
+      .nc-vv-loader span:nth-child(16) { animation-name: ncWvSeg16; }
+
+      .nc-vv-ticker {
+        position: absolute;
+        z-index: 4;
+        pointer-events: none;
+        height: 18px;
+        overflow: hidden;
+      }
+
+      .nc-vv-ticker span {
+        position: absolute;
+        white-space: nowrap;
+        left: 100%;
+        top: 0;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 13px;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: rgba(120,245,255,.75);
+        text-shadow: 0 0 8px rgba(80,220,255,.55);
+        animation: ncWvTickerMove 30s linear infinite;
+      }
+
+      .nc-vv-sweep {
+        position: absolute;
+        top: -38%;
+        left: -32%;
+        width: 58%;
+        height: 180%;
+        z-index: 1;
+        pointer-events: none;
+        opacity: .35;
+        background:
+          linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(80,220,255,0) 8%,
+            rgba(80,220,255,.06) 25%,
+            rgba(180,255,255,.2) 50%,
+            rgba(80,220,255,.08) 75%,
+            transparent 100%
+          );
+        transform: rotate(8deg) translateX(-320%);
+        mix-blend-mode: screen;
+        animation: ncWvPanelSweep 7s linear infinite;
+      }
+
+      /* animations */
+
+      @keyframes ncWvPanelSweep {
+        0% { transform: rotate(8deg) translateX(-320%); }
+        100% { transform: rotate(8deg) translateX(900%); }
+      }
+
+      @keyframes ncWvTickerMove {
+        0% { transform: translateX(0); opacity: 1; }
+        97% { transform: translateX(calc(-100% - 100vw)); opacity: 1; }
+        98% { opacity: 0; }
+        100% { transform: translateX(0); opacity: 0; }
+      }
+
+      @keyframes ncWvSeg1 { 0%{opacity:0}8%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg2 { 0%,4%{opacity:0}12%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg3 { 0%,8%{opacity:0}16%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg4 { 0%,12%{opacity:0}20%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg5 { 0%,16%{opacity:0}24%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg6 { 0%,20%{opacity:0}28%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg7 { 0%,24%{opacity:0}32%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg8 { 0%,28%{opacity:0}36%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg9 { 0%,32%{opacity:0}40%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg10 { 0%,36%{opacity:0}44%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg11 { 0%,40%{opacity:0}48%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg12 { 0%,44%{opacity:0}52%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg13 { 0%,48%{opacity:0}56%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg14 { 0%,52%{opacity:0}60%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg15 { 0%,56%{opacity:0}64%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+      @keyframes ncWvSeg16 { 0%,60%{opacity:0}68%{opacity:1}92%{opacity:1}92.01%{opacity:0}100%{opacity:0} }
+
+      /* mobile fallback */
+
+      @media (max-width: 900px) {
+        .nc-vv-panel {
+          padding: 28px 22px 84px;
+          border: 2px solid rgba(80,220,255,.75);
+          box-shadow:
+            0 0 18px rgba(80,220,255,.22),
+            inset 0 0 24px rgba(80,220,255,.08);
+        }
+
+        .nc-vv-svg-frame,
+        .nc-vv-loader,
+        .nc-vv-system,
+        .nc-vv-ticker,
+        .nc-vv-sweep {
+          display: none;
+        }
+
+        .nc-vv-content {
+          min-height: 0;
+          padding: 0 !important;
+        }
+
+        .nc-vv-right {
+          position: relative;
+          right: auto !important;
+          top: auto !important;
+          width: min(360px, 100%) !important;
+          margin: 0 auto 24px;
+        }
+
+        .nc-vv-title {
+          font-size: 26px;
+        }
+      }
+
+
+      /* ===================================================== */
+      /* PANEL PRESET: VERTICAL SIDEBAR */
+      /* ===================================================== */
+
+      .nc-vs-widget,
+      .nc-vs-widget * {
+        box-sizing: border-box;
+      }
+
+      .nc-vs-widget {
+        background: #000;
+        font-family: "Share Tech Mono", monospace;
+        overflow: visible;
+      }
+
+      .nc-vs-sidebar {
+        width: 400px;
+      }
+
+      .nc-vs-left {
+        float: left;
+        width: 400px;
+        margin: 0 24px 24px 0;
+      }
+
+      .nc-vs-right {
+        float: right;
+        width: 400px;
+        margin: 0 0 24px 24px;
+      }
+
+      .nc-vs-panel {
+        position: relative;
+        width: 100%;
+        background: #000;
+      }
+
+      .nc-vs-svg-frame {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .nc-vs-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .nc-vs-title {
+        margin: 0;
+        font-family: "Share Tech Mono", monospace;
+        font-size: clamp(16px, 2vw, 22px);
+        line-height: 1.1;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        text-align: center;
+        color: #8ff6ff;
+        text-shadow:
+          0 0 6px rgba(80,245,255,.72),
+          0 0 14px rgba(80,245,255,.28);
+      }
+
+      .nc-vs-media {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        background: rgba(0,20,34,.55);
+        border: 1px solid rgba(80,220,255,.36);
+        box-shadow:
+          0 0 16px rgba(80,220,255,.18),
+          inset 0 0 18px rgba(80,220,255,.08);
+      }
+
+      .nc-vs-media:has(iframe),
+      .nc-vs-media:has(video) {
+        height: 400px;
+      }
+
+      .nc-vs-media iframe,
+      .nc-vs-media video {
+        display: block;
+        width: 100%;
+        height: 400px;
+        border: 0;
+        object-fit: cover;
+      }
+
+      .nc-vs-media img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 0;
+      }
+
+      .nc-vs-text {
+        margin: 0;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 13px;
+        line-height: 1.7;
+        letter-spacing: .02em;
+        color: rgba(190,250,255,.84);
+        text-shadow: 0 0 10px rgba(80,220,255,.18);
+        padding-left: 2px;
+        padding-right: 2px;
+      }
+
+      .nc-vs-loader {
+        position: absolute;
+        z-index: 4;
+        pointer-events: none;
+        display: flex;
+        gap: 3px;
+        align-items: stretch;
+        padding: 2px;
+        border: 1px solid rgba(80,220,255,.35);
+        background: rgba(0,30,50,.4);
+      }
+
+      .nc-vs-loader span {
+        flex: 1;
+        opacity: 0;
+        background: rgba(80,220,255,.95);
+        box-shadow: 0 0 8px rgba(80,220,255,.8);
+        animation-duration: 6.2s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+
+      .nc-vs-loader span:nth-child(1){animation-name:ncVsSeg1}
+      .nc-vs-loader span:nth-child(2){animation-name:ncVsSeg2}
+      .nc-vs-loader span:nth-child(3){animation-name:ncVsSeg3}
+      .nc-vs-loader span:nth-child(4){animation-name:ncVsSeg4}
+      .nc-vs-loader span:nth-child(5){animation-name:ncVsSeg5}
+      .nc-vs-loader span:nth-child(6){animation-name:ncVsSeg6}
+      .nc-vs-loader span:nth-child(7){animation-name:ncVsSeg7}
+      .nc-vs-loader span:nth-child(8){animation-name:ncVsSeg8}
+      .nc-vs-loader span:nth-child(9){animation-name:ncVsSeg9}
+
+      .nc-vs-ticker {
+        position: absolute;
+        z-index: 4;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .nc-vs-ticker span {
+        position: absolute;
+        white-space: nowrap;
+        left: 100%;
+        top: 0;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 11px;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: rgba(120,245,255,.75);
+        text-shadow: 0 0 8px rgba(80,220,255,.55);
+        animation: ncVsTickerMove 30s linear infinite;
+      }
+
+      .nc-vs-sweep {
+        position: absolute;
+        top: -38%;
+        left: -32%;
+        width: 58%;
+        height: 180%;
+        z-index: 1;
+        pointer-events: none;
+        opacity: .25;
+        background:
+          linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(80,220,255,0) 8%,
+            rgba(80,220,255,.06) 25%,
+            rgba(180,255,255,.2) 50%,
+            rgba(80,220,255,.08) 75%,
+            transparent 100%
+          );
+        transform: rotate(8deg) translateX(-320%);
+        mix-blend-mode: screen;
+        animation: ncVsPanelSweep 7s linear infinite;
+      }
+
+      @keyframes ncVsPanelSweep {
+        0% { transform: rotate(8deg) translateX(-320%); }
+        100% { transform: rotate(8deg) translateX(900%); }
+      }
+
+      @keyframes ncVsTickerMove {
+        0% { transform: translateX(0); opacity: 1; }
+        97% { transform: translateX(calc(-100% - 100vw)); opacity: 1; }
+        98% { opacity: 0; }
+        100% { transform: translateX(0); opacity: 0; }
+      }
+
+      @keyframes ncVsSeg1{0%{opacity:0}13%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg2{0%,6.5%{opacity:0}19.5%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg3{0%,13%{opacity:0}26%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg4{0%,19.5%{opacity:0}32.5%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg5{0%,26%{opacity:0}39%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg6{0%,32.5%{opacity:0}45.5%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg7{0%,39%{opacity:0}52%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg8{0%,45.5%{opacity:0}58.5%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+      @keyframes ncVsSeg9 {0%,52%{opacity:0}65%{opacity:1}82%{opacity:1}82.01%{opacity:0}100%{opacity:0}}
+
+      @media (max-width: 640px) {
+        .nc-vs-sidebar,
+        .nc-vs-left,
+        .nc-vs-right {
+          float: none;
+          width: 100%;
+          margin: 24px 0;
+        }
+      }
+
+      /* ========================================== */
+      /*                 COMPACT VIEW               */
+      /* ========================================== */
+        
+      .nc-compact .sa-hud-btn {
+        width: min(300px, 100%);
+      }
+
+      .nc-compact .sa-hud-btn-title {
+        font-size: 12px;
+        letter-spacing: .10em;
+      }
+
+      .nc-compact .nc-hud-panel {
+        padding: 72px 78px;
+        min-height: 460px;
+      }
+
+      .nc-compact .nc-hud-title {
+        font-size: 34px;
+      }
+
+      .nc-compact .nc-hud-system {
+        font-size: 10px;
+      }
+
+      .nc-compact .nc-hud-text {
+        font-size: 13px;
+        line-height: 1.65;
+      }
+        

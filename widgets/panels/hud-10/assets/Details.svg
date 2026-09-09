@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 992 1586" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <polyline class="nc-hud-shape-outer_frame_2_5" points="96,1079.999 96,1347.99" stroke="#5af0ff" stroke-width="6" fill="none"/>
+  <polyline class="nc-hud-shape-outer_frame_2_3" points="108,859.999 108,971.999" stroke="#5af0ff" stroke-width="4" fill="none"/>
+  <polygon class="nc-hud-shape-outer_frame_2_3_2" points="860,1195.999 892,1224 892,1380 860,1364" stroke="#5af0ff" stroke-width="2" fill="#5af0ff"/>
+  <polygon class="nc-hud-shape-outer_frame_2_2" points="156,40 344,40 380,72 844,72 912,136 920,280 892,308 888,480 916,524 920,1468 828,1564 604,1568 556,1524 376,1524 332,1564 152,1568 76,1504 80,1396 60,1368 60,1048 88,1012 92,784 68,752 68,124" stroke="#5af0ff" stroke-width="4" fill="none"/>
+  <polygon class="nc-hud-shape-outer_frame_2_2_2" points="320,92 356,124 444,128 464,108 828,112 876,156 876,252 828,316 828,1464 784,1512 608,1520 572,1492 384,1488 344,1512 188,1516 140,1480 136,768 112,736 108,148 168,88" stroke="#5af0ff" stroke-width="1" fill="none"/>
+</svg>

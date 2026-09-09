@@ -1,0 +1,136 @@
+/* base.css — dark HUD theme, body defaults, utility classes, panel helpers */
+
+/* Base dark theme */
+body {
+  background-color: var(--hud-bg);
+  color: var(--hud-text);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: var(--hud-font-md);
+  min-height: 100vh;
+}
+
+/* Panel container */
+.nc-panel {
+  background: var(--hud-panel);
+  border: 1px solid var(--hud-line);
+  border-radius: var(--hud-radius);
+  padding: var(--hud-space-md);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow:
+    0 0 8px var(--hud-glow),
+    inset 0 0 16px rgba(0, 255, 231, 0.04);
+}
+
+/* Corner accent — top-left clip */
+.nc-panel--clipped {
+  clip-path: polygon(12px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 12px);
+}
+
+/* Panel header */
+.nc-panel__header {
+  border-bottom: 1px solid rgba(0, 255, 231, 0.3);
+  padding-bottom: var(--hud-space-sm);
+  margin-bottom: var(--hud-space-md);
+  font-size: var(--hud-font-sm);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--hud-text-accent);
+}
+
+/* Panel body */
+.nc-panel__body {
+  position: relative;
+}
+
+/* Scanline overlay */
+.nc-panel__scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.08) 3px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Glow line decorations */
+.nc-line {
+  height: 1px;
+  background: var(--hud-line);
+  box-shadow: 0 0 6px var(--hud-glow);
+}
+
+/* Label */
+.nc-label {
+  font-size: var(--hud-font-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hud-text-dim);
+}
+
+/* Value display */
+.nc-value {
+  font-size: var(--hud-font-xl);
+  color: var(--hud-text-accent);
+  font-weight: bold;
+  text-shadow: 0 0 8px var(--hud-glow);
+}
+
+/* Utility: flex row */
+.nc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--hud-space-sm);
+}
+
+/* Utility: flex col */
+.nc-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hud-space-xs);
+}
+
+/* Utility: center */
+.nc-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Utility: sr-only */
+.nc-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Utility: text styles */
+.nc-text--accent  { color: var(--hud-text-accent); }
+.nc-text--dim     { color: var(--hud-text-dim); }
+.nc-text--upper   { text-transform: uppercase; letter-spacing: 0.1em; }
+.nc-text--mono    { font-family: 'Courier New', Courier, monospace; }
+
+/* Utility: glow effect */
+.nc-glow {
+  text-shadow: 0 0 8px var(--hud-glow);
+  box-shadow: 0 0 8px var(--hud-glow);
+}
+
+/* Spacers */
+.nc-mt-sm { margin-top: var(--hud-space-sm); }
+.nc-mt-md { margin-top: var(--hud-space-md); }
+.nc-mt-lg { margin-top: var(--hud-space-lg); }

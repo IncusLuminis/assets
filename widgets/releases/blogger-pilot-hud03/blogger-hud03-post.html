@@ -1,0 +1,109 @@
+<!--
+  NebulaCast HUD Panel — BASE POST TEMPLATE
+  ==========================================
+  Copy this block into a Blogger post (HTML mode).
+  The global CSS and JS must already be in the Blogger template.
+
+  CUSTOMISE:
+  1. Replace SYSTEM_LABEL  → e.g. "OUTPOST 32"
+  2. Replace CHARACTER_NAME → e.g. "АКЕМИ ХАНА"
+  3. Replace THUMB_URL      → direct Blogger image URL for mini-card thumbnail
+  4. Replace TICKER_TEXT    → scrolling line of uppercase mission data
+  5. Replace the nc-hud-* media block with one of:
+       a) <img class="nc-hud-float-image" src="..." alt="...">   (static image)
+       b) <div class="nc-hud-media nc-hud-media-vertical">…</div> (portrait video)
+       c) <div class="nc-hud-media nc-hud-media-horizontal">…</div> (landscape video)
+  6. Replace BODY_TEXT      → post body (standard HTML supported)
+
+  See examples/ folder for ready-to-paste variants.
+-->
+
+<div class="nc-hp-widget">
+
+  <!-- Mini card — visible when panel is collapsed -->
+  <div class="nc-hp-mini-card" aria-hidden="true">
+    <p class="nc-hp-mini-system">SYSTEM_LABEL</p>
+    <div class="nc-hp-mini-body">
+      <img class="nc-hp-mini-thumb"
+           src="THUMB_URL"
+           alt="">
+      <h2 class="nc-hp-mini-name">CHARACTER_NAME</h2>
+    </div>
+  </div>
+
+  <!-- Main panel -->
+  <div class="nc-hp-panel">
+
+    <!-- Frame decorations (visual, do not edit) -->
+    <div class="nc-hp-frame-shell"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-left"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-right"></div>
+    <div class="nc-hp-frame-topline">
+      <span class="nc-hp-topline-left"></span>
+      <span class="nc-hp-topline-slope"></span>
+      <span class="nc-hp-topline-right"></span>
+      <span class="nc-hp-topline-side"></span>
+    </div>
+    <div class="nc-hp-frame-inner"></div>
+    <div class="nc-hp-frame-loader">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="nc-hp-frame-ticker">
+      <span>TICKER_TEXT / MORE TEXT / EVEN MORE /</span>
+    </div>
+    <div class="nc-hp-sweep nc-panel-sweep"></div>
+
+    <!-- Editable content -->
+    <div class="nc-hp-content">
+      <div class="nc-hp-system">SYSTEM_LABEL</div>
+      <h2 class="nc-hp-title">CHARACTER_NAME</h2>
+
+      <div class="nc-hp-text">
+
+        <!--
+          MEDIA SLOT — choose ONE and delete the others:
+
+          A) Static image (HUD-03 style):
+          <img class="nc-hud-float-image" src="IMAGE_URL" alt="Description">
+
+          B) Vertical video (HeyGen / TikTok / YouTube Shorts):
+          <div class="nc-hud-media nc-hud-media-vertical">
+            <div class="nc-reconnect">RECONNECTING…</div>
+            <iframe src="EMBED_URL" frameborder="0" allow="encrypted-media; fullscreen" allowfullscreen></iframe>
+          </div>
+
+          C) Horizontal video (YouTube / Vimeo):
+          <div class="nc-hud-media nc-hud-media-horizontal">
+            <div class="nc-reconnect">RECONNECTING…</div>
+            <iframe src="EMBED_URL" frameborder="0" allow="encrypted-media; fullscreen" allowfullscreen></iframe>
+          </div>
+        -->
+
+        BODY_TEXT
+
+      </div>
+    </div>
+
+  </div><!-- .nc-hp-panel -->
+</div><!-- .nc-hp-widget -->
+
+<script>
+(function () {
+  /* Blogger inserts <br>/<div> between elements, so previousElementSibling
+     is unreliable. Find the last widget not yet initialised instead. */
+  var all    = document.querySelectorAll('.nc-hp-widget:not([data-hud-init])');
+  var widget = all[all.length - 1];
+  if (!widget) return;
+  widget.setAttribute('data-hud-init', '1');
+  var panel = widget.querySelector('.nc-hp-panel');
+
+  NcHudMini.init({
+    widget      : widget,
+    panel       : panel,
+    miniH       : 148,       /* height in px when collapsed */
+    scale       : null,      /* no panel scaling — mini card overlay is used */
+    expandedMaxH: 2000       /* generous max-height for tall posts */
+  });
+})();
+</script>

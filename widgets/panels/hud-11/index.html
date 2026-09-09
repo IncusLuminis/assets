@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fomalhaut Collision HUD</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: #02060a; overflow: hidden; }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 50%, rgba(20,40,60,.35), transparent 45%), #02060a;
+    }
+  </style>
+</head>
+<body>
+<canvas id="hud"></canvas>
+
+<script>
+const canvas = document.getElementById("hud");
+const ctx = canvas.getContext("2d");
+
+const ANIMATION_DURATION = 20; // секунд на полный цикл
+const IMPACT_AT = 0.9;         // столкновение на 90% цикла
+
+function resize() {
+  canvas.width = Math.floor(innerWidth * devicePixelRatio);
+  canvas.height = Math.floor(innerHeight * devicePixelRatio);
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+addEventListener("resize", resize);
+resize();
+
+const state = {
+  start: performance.now(),
+  impactHours: 41,
+  impactProbability: 97.4
+};
+
+function drawText(text, x, y, size = 16, color = "#78d7ff", align = "left") {
+  ctx.save();
+  ctx.font = `${size}px "Courier New", monospace`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 8;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawPanel(x, y, w, h, title) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(120,220,255,.45)";
+  ctx.fillStyle = "rgba(5,18,28,.55)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 8);
+  ctx.fill();
+  ctx.stroke();
+  drawText(title, x + 14, y + 24, 14, "#a6eaff");
+  ctx.restore();
+}
+
+function drawDustDisk(focus, orbit) {
+  ctx.save();
+
+  const a = orbit.a;
+  const e = orbit.e;
+  const b = a * Math.sqrt(1 - e * e);
+
+  const cr = Math.cos(orbit.rot);
+  const sr = Math.sin(orbit.rot);
+
+  const centerX = focus.x - a * e * cr;
+  const centerY = focus.y - a * e * sr;
+
+  ctx.translate(centerX, centerY);
+  ctx.rotate(orbit.rot);
+
+  for (let i = 0; i < 12; i++) {
+    const k = 0.58 + i * 0.055;
+
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(220,150,80,${0.08 + i * 0.018})`;
+    ctx.lineWidth = 1.2;
+    ctx.ellipse(0, 0, a * k, b * k, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawStar(x, y) {
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, 48);
+  grad.addColorStop(0, "rgba(255,255,255,1)");
+  grad.addColorStop(.35, "rgba(180,225,255,.85)");
+  grad.addColorStop(1, "rgba(180,225,255,0)");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, 48, 0, Math.PI * 2);
+  ctx.fill();
+  drawText("FOMALHAUT A", x, y + 64, 14, "#c7f5ff", "center");
+}
+
+function ellipsePointFromFocus(focus, orbit, theta) {
+  const a = orbit.a;
+  const e = orbit.e;
+  const b = a * Math.sqrt(1 - e * e);
+
+  const localX = a * Math.cos(theta) - a * e;
+  const localY = b * Math.sin(theta);
+
+  const cr = Math.cos(orbit.rot);
+  const sr = Math.sin(orbit.rot);
+
+  return {
+    x: focus.x + localX * cr - localY * sr,
+    y: focus.y + localX * sr + localY * cr
+  };
+}
+
+function thetaForPointApprox(focus, orbit, point) {
+  const dx = point.x - focus.x;
+  const dy = point.y - focus.y;
+
+  const cr = Math.cos(-orbit.rot);
+  const sr = Math.sin(-orbit.rot);
+
+  const lx = dx * cr - dy * sr;
+  const ly = dx * sr + dy * cr;
+
+  const a = orbit.a;
+  const b = a * Math.sqrt(1 - orbit.e * orbit.e);
+
+  return Math.atan2(ly / b, (lx + a * orbit.e) / a);
+}
+
+function normalizeAngle(a) {
+  while (a > Math.PI) a -= Math.PI * 2;
+  while (a < -Math.PI) a += Math.PI * 2;
+  return a;
+}
+
+function drawCountdown(w, cycle) {
+  const secondsToImpact = Math.max(0, ANIMATION_DURATION * (IMPACT_AT - cycle));
+
+  const totalCentiseconds = Math.ceil(secondsToImpact * 100);
+  const hours = Math.floor(totalCentiseconds / 360000);
+  const minutes = Math.floor((totalCentiseconds % 360000) / 6000);
+  const seconds = Math.floor((totalCentiseconds % 6000) / 100);
+  const centiseconds = totalCentiseconds % 100;
+
+  const txt =
+    `${String(hours).padStart(2, "0")}:` +
+    `${String(minutes).padStart(2, "0")}:` +
+    `${String(seconds).padStart(2, "0")}:` +
+    `${String(centiseconds).padStart(2, "0")}`;
+
+  ctx.save();
+  ctx.font = 'bold 34px "Courier New", monospace';
+  ctx.textAlign = "center";
+  ctx.fillStyle = secondsToImpact <= 3 ? "#ff4040" : "#8fe8ff";
+  ctx.shadowColor = ctx.fillStyle;
+  ctx.shadowBlur = 15;
+  ctx.fillText(`T-COLLISION ${txt}`, w / 2, 42);
+  ctx.restore();
+}
+
+function drawOrbit(focus, orbit) {
+  ctx.save();
+  ctx.strokeStyle = orbit.ghost || "rgba(120,220,255,.22)";
+  ctx.setLineDash([6, 9]);
+  ctx.lineWidth = 1.1;
+  ctx.beginPath();
+
+  for (let i = 0; i <= 360; i++) {
+    const th = i / 360 * Math.PI * 2;
+    const p = ellipsePointFromFocus(focus, orbit, th);
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  }
+
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPredictedArc(focus, orbit, fromTheta, toTheta, color) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([12, 7]);
+  ctx.beginPath();
+
+  const delta = normalizeAngle(toTheta - fromTheta);
+
+  for (let i = 0; i <= 100; i++) {
+    const th = fromTheta + delta * (i / 100);
+    const p = ellipsePointFromFocus(focus, orbit, th);
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  }
+
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawBody(x, y, radius, color, label) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  drawText(label, x + 15, y - 10, 12, color);
+  ctx.restore();
+}
+
+function drawImpactMarker(x, y, t) {
+  ctx.save();
+  ctx.fillStyle = "rgba(255,40,40,.95)";
+  ctx.shadowColor = "#ff3030";
+  ctx.shadowBlur = 18;
+  ctx.beginPath();
+  ctx.arc(x, y, 7 + Math.sin(t * 8) * 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(255,70,70,.7)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(x, y, 20 + Math.sin(t * 4) * 5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  drawText("PROJECTED IMPACT", x + 18, y - 12, 13, "#ff5a5a");
+  ctx.restore();
+}
+
+function drawFomalhautSystem(cx, cy, r, t, cycle) {
+  const star = { x: cx, y: cy };
+
+  const collisionOrbit = {
+    a: r * 0.82,
+    e: 0.42,
+    rot: 0.16,
+    ghost: "rgba(120,220,255,.22)"
+  };
+
+  drawDustDisk(star, collisionOrbit);
+  drawStar(star.x, star.y);
+
+  // Collision point подан на полрадиуса влево: было +8, потом +4, теперь 0.
+  const impact = { x: cx + r * 0.46+4, y: cy + r * 0.07 };
+
+  const zeyna = {
+    color: "#ff3b3b",
+    label: "ZEYNA ASTEROID",
+    size: 8
+  };
+
+  const planet = {
+    color: "#ff9b3b",
+    label: "OBJECT B-17",
+    size: 12
+  };
+
+  drawOrbit(star, collisionOrbit);
+
+  const approach = Math.min(cycle / IMPACT_AT, 1);
+  const impactTheta = thetaForPointApprox(star, collisionOrbit, impact);
+
+  const startThetaZeyna = impactTheta - 0.82;
+  const startThetaPlanet = impactTheta - 1.82;
+
+  const thetaZeyna =
+    startThetaZeyna +
+    normalizeAngle(impactTheta - startThetaZeyna) * approach;
+
+  const thetaPlanet =
+    startThetaPlanet +
+    normalizeAngle(impactTheta - startThetaPlanet) * approach;
+
+  const posZeyna = ellipsePointFromFocus(star, collisionOrbit, thetaZeyna);
+  const posPlanet = ellipsePointFromFocus(star, collisionOrbit, thetaPlanet);
+
+  drawPredictedArc(star, collisionOrbit, startThetaPlanet, impactTheta, planet.color);
+  drawPredictedArc(star, collisionOrbit, startThetaZeyna, impactTheta, zeyna.color);
+
+  drawBody(posZeyna.x, posZeyna.y, zeyna.size, zeyna.color, zeyna.label);
+  drawBody(posPlanet.x, posPlanet.y, planet.size, planet.color, planet.label);
+
+  drawImpactMarker(impact.x, impact.y, t);
+
+  if (cycle > IMPACT_AT) {
+    const k = (cycle - IMPACT_AT) / (1 - IMPACT_AT);
+
+    ctx.save();
+    ctx.globalAlpha = 1 - k;
+    ctx.strokeStyle = "rgba(255,80,60,.9)";
+    ctx.shadowColor = "#ff3030";
+    ctx.shadowBlur = 24;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(impact.x, impact.y, 18 + k * 80, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawWarning(t, w, h) {
+  const blink = Math.sin(t * 5) > 0;
+
+  drawPanel(40, 40, 420, 145, "BASE 32 // OUTPOST COMMAND SYSTEM");
+  drawText("COLLISION WARNING", 62, 94, 30, blink ? "#ff3b3b" : "#7a1b1b");
+  drawText(`IMPACT PROBABILITY: ${state.impactProbability.toFixed(1)}%`, 62, 132, 20, "#ff7b7b");
+  drawText(`ESTIMATED COLLISION: ${state.impactHours} HOURS`, 62, 162, 20, "#ff7b7b");
+
+  drawPanel(w - 360, 40, 320, 145, "TRACKING STATUS");
+  drawText("TARGET: ZEYNA ASTEROID", w - 336, 92, 16);
+  drawText("TRAJECTORY: CONVERGING", w - 336, 122, 16, "#ff6b6b");
+  drawText("LOCK: CONFIRMED", w - 336, 152, 16, "#9cffd8");
+}
+
+function drawTelemetry(w, h) {
+  drawPanel(40, h - 180, 360, 130, "VECTOR ANALYSIS");
+  drawText("RELATIVE VELOCITY: 3.91 km/s", 64, h - 126, 15);
+  drawText("LEAD OBJECT: ZEYNA ASTEROID", 64, h - 98, 15);
+  drawText("PURSUER: OBJECT B-17", 64, h - 70, 15);
+
+  drawPanel(w - 390, h - 180, 350, 130, "SYSTEM STATUS");
+  drawText("COMMUNICATIONS: ONLINE", w - 366, h - 126, 15, "#9cffd8");
+  drawText("OUTPOST SIGNAL: WEAK", w - 366, h - 98, 15, "#ffd27a");
+  drawText("IMPACT SIM: RUNNING", w - 366, h - 70, 15, "#ff7b7b");
+}
+
+function drawScanlines(w, h, t) {
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.strokeStyle = "#b8f3ff";
+  for (let y = (t * 40) % 6; y < h; y += 6) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawNoise(w, h) {
+  ctx.save();
+  ctx.globalAlpha = 0.03;
+  for (let i = 0; i < 260; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? "#ffffff" : "#4cc9ff";
+    ctx.fillRect(Math.random() * w, Math.random() * h, 1, 1);
+  }
+  ctx.restore();
+}
+
+function loop(now) {
+  const t = (now - state.start) / 1000;
+  const cycle = (t / ANIMATION_DURATION) % 1;
+
+  const w = canvas.width / devicePixelRatio;
+  const h = canvas.height / devicePixelRatio;
+
+  ctx.clearRect(0, 0, w, h);
+
+  drawCountdown(w, cycle);
+  drawWarning(t, w, h);
+  drawFomalhautSystem(w / 2, h / 2 + 20, Math.min(w, h) * 0.34, t, cycle);
+  drawTelemetry(w, h);
+  drawScanlines(w, h, t);
+  drawNoise(w, h);
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

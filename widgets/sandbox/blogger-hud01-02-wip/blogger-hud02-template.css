@@ -1460,7 +1460,12 @@
    their own --nc-text-mini-* / micro vars at a different panel scale, where
    this maxi-width-based formula wouldn't apply. */
 .nc-or-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
-  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
+  --nc-text-maxi-effective-left: max(
+    calc(var(--nc-inner-left, 52px) + 14px + var(--nc-text-left, 320px)),
+    var(--nc-image-text-clearance, 0px)
+  );
+  left: var(--nc-text-maxi-effective-left) !important;
+  max-width: calc(100% - var(--nc-inner-right, 52px) - 14px - var(--nc-text-maxi-effective-left)) !important;
 }
 
 /* Compatibility for snippets generated while `auto` was the maxi default. */
@@ -2193,4 +2198,11 @@
 @keyframes ncOrSweepBar {
   from { stroke-dashoffset: 0; }
   to   { stroke-dashoffset: calc(-1 * var(--nc-or-runner-p, 2871px)); }
+}
+
+/* Mini raw <video>: the slot itself is the HUD frame's inner opening. */
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) {
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
 }

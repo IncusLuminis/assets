@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SA Accordion Test</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #050b12;
+      color: #dff7ff;
+      font-family: Arial, sans-serif;
+    }
+
+    .sa-materials {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .sa-accordion {
+      position: relative;
+    }
+
+    .sa-toggle {
+      width: 100%;
+      min-height: 72px;
+      padding: 0 22px 0 18px;
+      display: grid;
+      grid-template-columns: 64px 1fr 32px;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      color: #dff7ff;
+      background: linear-gradient(90deg, rgba(20,45,65,.92), rgba(8,20,32,.96));
+      border: 1px solid rgba(108,207,255,.55);
+      clip-path: polygon(
+        20px 0,
+        calc(100% - 34px) 0,
+        100% 28px,
+        100% calc(100% - 18px),
+        calc(100% - 18px) 100%,
+        18px 100%,
+        0 calc(100% - 20px),
+        0 20px
+      );
+      box-shadow:
+        inset 0 0 0 1px rgba(140,220,255,.12),
+        0 0 18px rgba(67,176,255,.18);
+      text-align: left;
+      transition: .25s;
+    }
+
+    .sa-toggle:hover {
+      border-color: rgba(140,225,255,.9);
+      box-shadow:
+        inset 0 0 0 1px rgba(170,235,255,.18),
+        0 0 26px rgba(67,176,255,.32);
+    }
+
+    .sa-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(102,210,255,.7);
+      background: rgba(8,28,44,.82);
+      clip-path: polygon(25% 0,100% 0,100% 75%,75% 100%,0 100%,0 25%);
+    }
+
+    .sa-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: #7bddff;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sa-title {
+      font-size: 20px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .sa-arrow {
+      justify-self: end;
+      font-size: 32px;
+      line-height: 1;
+      color: #7bddff;
+      transition: transform .25s ease;
+    }
+
+    .sa-panel {
+      max-height: 0;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(8,20,32,.96), rgba(5,13,22,.98));
+      border-left: 1px solid rgba(108,207,255,.38);
+      border-right: 1px solid rgba(108,207,255,.38);
+      border-bottom: 1px solid rgba(108,207,255,.38);
+      clip-path: polygon(
+        0 0,
+        100% 0,
+        100% calc(100% - 18px),
+        calc(100% - 18px) 100%,
+        18px 100%,
+        0 calc(100% - 18px)
+      );
+      transition: max-height .35s ease;
+    }
+
+    .sa-panel-inner {
+      padding: 20px 28px 24px 88px;
+      color: #c8dce6;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .sa-panel-inner p {
+      margin: 0 0 12px;
+    }
+
+    .sa-panel-inner p:last-child {
+      margin-bottom: 0;
+    }
+
+    .sa-accordion.sa-open .sa-panel {
+      max-height: 800px;
+    }
+
+    .sa-accordion.sa-open .sa-arrow {
+      transform: rotate(180deg);
+    }
+
+    .sa-expert .sa-toggle {
+      border-color: rgba(255,180,80,.55);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,210,120,.12),
+        0 0 18px rgba(255,170,70,.14);
+    }
+
+    .sa-expert .sa-icon {
+      border-color: rgba(255,180,80,.7);
+    }
+
+    .sa-expert .sa-icon svg {
+      stroke: #ffbf66;
+    }
+
+    .sa-expert .sa-arrow {
+      color: #ffbf66;
+    }
+
+    .sa-materials,
+    .sa-accordion,
+    .sa-toggle {
+      position: relative;
+      z-index: 50;
+    }
+
+    .sa-toggle {
+      pointer-events: auto !important;
+    }
+
+    @media(max-width:640px) {
+      body {
+        padding: 20px;
+      }
+
+      .sa-toggle {
+        min-height: 64px;
+        grid-template-columns: 52px 1fr 28px;
+        gap: 12px;
+        padding: 0 16px 0 14px;
+      }
+
+      .sa-icon {
+        width: 40px;
+        height: 40px;
+      }
+
+      .sa-icon svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      .sa-title {
+        font-size: 15px;
+      }
+
+      .sa-panel-inner {
+        padding: 18px;
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sa-materials">
+
+    <section class="sa-accordion">
+      <button class="sa-toggle" type="button" aria-expanded="false">
+        <span class="sa-icon">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M7 6h12a4 4 0 0 1 4 4v16H11a4 4 0 0 0-4 4V6z"/>
+            <path d="M25 6h-6a4 4 0 0 0-4 4v16"/>
+            <path d="M11 12h8M11 17h8M11 22h5"/>
+          </svg>
+        </span>
+
+        <span class="sa-title">Пояснения к статье</span>
+        <span class="sa-arrow">⌄</span>
+      </button>
+
+      <div class="sa-panel">
+        <div class="sa-panel-inner">
+          <p>
+            <strong>Красное смещение</strong> — увеличение длины волны света
+            из-за расширения Вселенной.
+          </p>
+
+          <p>
+            Чем дальше галактика, тем сильнее её спектр смещается
+            в красную область.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sa-accordion sa-expert">
+      <button class="sa-toggle" type="button" aria-expanded="false">
+        <span class="sa-icon">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="16" cy="11" r="5"/>
+            <path d="M7 27c1.5-6 5-9 9-9s7.5 3 9 9"/>
+            <path d="M5 5h22v22H5z"/>
+          </svg>
+        </span>
+
+        <span class="sa-title">Мнение эксперта</span>
+        <span class="sa-arrow">⌄</span>
+      </button>
+
+      <div class="sa-panel">
+        <div class="sa-panel-inner">
+          <p>
+            «Подобные структуры особенно интересны тем, что позволяют увидеть
+            эволюцию галактик буквально в движении».
+          </p>
+
+          <p>
+            — д-р Макс, База32
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  
+  <button onclick="alert('JS работает')">TEST JS</button>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const accordions = document.querySelectorAll(".sa-accordion");
+
+      accordions.forEach(function (accordion) {
+        const button = accordion.querySelector(".sa-toggle");
+
+        button.addEventListener("click", function () {
+          const isOpen = accordion.classList.toggle("sa-open");
+          button.setAttribute("aria-expanded", String(isOpen));
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

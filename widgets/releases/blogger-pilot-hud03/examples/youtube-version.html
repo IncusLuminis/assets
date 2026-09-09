@@ -1,0 +1,127 @@
+<!--
+  NebulaCast HUD Panel — EXAMPLE: YouTube Horizontal Video (HUD-04 style)
+  ========================================================================
+  Ready to paste into a Blogger post (HTML mode).
+  Global CSS and JS must already be in the Blogger template.
+
+  What this example shows:
+  - Horizontal (landscape) YouTube embed, 16:9 ratio
+  - "RECONNECTING…" fallback shown while iframe loads
+  - Text below the video
+
+  To customise:
+  1. Replace system label, character name, thumbnail URL, ticker
+  2. Replace VIDEO_ID in the iframe src with your YouTube video ID
+     YouTube embed format: https://www.youtube.com/embed/VIDEO_ID
+     Optional params: ?rel=0&modestbranding=1&autoplay=0
+  3. Replace the body <p> tags with your post text
+-->
+
+<style>
+.nc-hp-mini-card {
+  left: 0;
+  transform: none;
+}
+
+
+
+.nc-hp-mini-thumb {
+  object-fit: contain;
+  max-width: none;
+}
+
+.nc-hp-mini-name {
+  font-size: 16px;
+  letter-spacing: .08em;
+  white-space: normal;
+  flex-shrink: 1;
+}
+</style>
+
+<div class="nc-hp-widget">
+
+  <!-- Mini card — visible when panel is collapsed -->
+  <div class="nc-hp-mini-card" aria-hidden="true">
+    <p class="nc-hp-mini-system">ORBITAL HUB DELTA</p>
+    <div class="nc-hp-mini-body">
+      <img class="nc-hp-mini-thumb"
+           src="https://example.com/blogger-hosted/orion-thumb.jpg"
+           alt="">
+      <h2 class="nc-hp-mini-name">ОРИОН КЕЙН</h2>
+    </div>
+  </div>
+
+  <!-- Main panel -->
+  <div class="nc-hp-panel">
+
+    <!-- Frame decorations (do not edit) -->
+    <div class="nc-hp-frame-shell"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-left"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-right"></div>
+    <div class="nc-hp-frame-topline">
+      <span class="nc-hp-topline-left"></span>
+      <span class="nc-hp-topline-slope"></span>
+      <span class="nc-hp-topline-right"></span>
+      <span class="nc-hp-topline-side"></span>
+    </div>
+    <div class="nc-hp-frame-inner"></div>
+    <div class="nc-hp-frame-loader">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="nc-hp-frame-ticker">
+      <span>ORBITAL HUB DELTA / FLIGHT OPS CHANNEL / MISSION LOG ACTIVE / RECORDING /</span>
+    </div>
+    <div class="nc-hp-sweep nc-panel-sweep"></div>
+
+    <!-- Editable content -->
+    <div class="nc-hp-content">
+      <div class="nc-hp-system">ORBITAL HUB DELTA</div>
+      <h2 class="nc-hp-title">ОРИОН КЕЙН</h2>
+
+      <div class="nc-hp-text">
+
+        <!--
+          Horizontal video embed — YouTube landscape format (16:9)
+          Replace VIDEO_ID with your YouTube video ID (11-character string).
+          Example full URL: https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0
+        -->
+        <div class="nc-hud-media nc-hud-media-horizontal">
+          <div class="nc-reconnect">RECONNECTING…</div>
+          <iframe
+            src="https://www.youtube.com/embed/VIDEO_ID?rel=0&modestbranding=1"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <p>Командир флагманского шаттла «Орбитальный Дельта-7». Ветеран трёх экспедиций в пояс Койпера. Курирует лётные операции внешнего хаба в условиях нарастающей ионной бури.</p>
+
+        <p>Допуск: «Омега». Текущая задача — координация эвакуационного коридора по маршруту Дельта-7 → Аванпост 42.</p>
+
+      </div>
+    </div>
+
+  </div><!-- .nc-hp-panel -->
+</div><!-- .nc-hp-widget -->
+
+<script>
+(function () {
+  /* Blogger inserts <br>/<div> between elements, so previousElementSibling
+     is unreliable. Find the last widget not yet initialised instead. */
+  var all    = document.querySelectorAll('.nc-hp-widget:not([data-hud-init])');
+  var widget = all[all.length - 1];
+  if (!widget) return;
+  widget.setAttribute('data-hud-init', '1');
+  var panel  = widget.querySelector('.nc-hp-panel');
+
+  NcHudMini.init({
+    widget      : widget,
+    panel       : panel,
+    miniH       : 148,
+    scale       : null,
+    expandedMaxH: 2000
+  });
+})();
+</script>

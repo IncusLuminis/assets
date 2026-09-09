@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUD-02 Object Report — NebulaCast</title>
+
+  <!--
+  ════════════════════════════════════════════════════════
+   HUD-02 CONFIG — edit this block to switch panel mode
+  ════════════════════════════════════════════════════════
+
+  objectMode:   true   → Object viewer (reticle / Aladin / DATA/PAPERS/CATALOG)
+  objectMode:   false  → Generic HTML frame (paste Blogger HTML into html-slot)
+  vizierLimit:  8      → Max VizieR catalog entries shown in CATALOGS tab (1–20)
+  -->
+  <script>
+    window.NC_HUD_02_CONFIG = {
+      objectMode:  true,
+      vizierLimit: 8
+    };
+  </script>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+
+  <!-- Shared layer -->
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+
+  <!-- Aladin Lite CSS + JS are injected dynamically by hud-02.js on first
+       ALADIN toggle — zero CDN dependency at page load. -->
+
+  <!-- Mini/expand toggle (shared) -->
+  <link rel="stylesheet" href="../../shared/css/mini-toggle.css?v=3">
+
+  <!-- Widget -->
+  <link rel="stylesheet" href="./hud-02.css?v=11">
+</head>
+<body>
+
+  <main class="nc-hud02-stage">
+
+    <!--
+      .nc-hud-02 — root class for mode-scoped CSS
+      .nc-or-widget — existing class, unchanged
+      data-mode — set by JS from NC_HUD_02_CONFIG: "object" | "html"
+    -->
+    <div class="nc-hud-02 nc-or-widget"
+         data-mode="object"
+         data-target-lock="on"
+         data-reticle="on"
+         data-aladdin="on"
+         data-info-mode="data">
+      <div class="nc-or-panel">
+
+        <!-- ═══ HUD-02 UNIQUE SVG FRAME (shape unchanged) ════════════ -->
+        <svg class="nc-or-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+          <path class="nc-or-frame-main"
+            d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+
+          <path class="nc-or-frame-inner"
+            d="M58 76 L1140 76 L1140 316 L1092 366 L58 366 Z" />
+
+<g class="nc-or-frame-teeth">
+            <rect x="118" y="382" width="16" height="28"/>
+            <rect x="148" y="382" width="16" height="28"/>
+            <rect x="178" y="382" width="16" height="28"/>
+            <rect x="208" y="382" width="16" height="28"/>
+            <rect x="238" y="382" width="16" height="28"/>
+            <rect x="268" y="382" width="16" height="28"/>
+          </g>
+
+          <path class="nc-or-frame-teeth-box"
+            d="M98 382 L304 382 L304 412 L98 412 Z" />
+        </svg>
+
+        <!-- nc-panel-sweep provides geometry + animation from effects.css -->
+        <!-- nc-or-sweep provides widget-specific z-index + opacity        -->
+        <div class="nc-or-sweep nc-panel-sweep"></div>
+
+        <!-- Contour sweep runner — separate SVG overlay above all content -->
+        <!-- Glow bar sweep — 4 layers: wide aura → mid-outer → mid-inner → sharp centre -->
+        <svg class="nc-or-runner-svg" viewBox="0 0 1200 420"
+             preserveAspectRatio="none" aria-hidden="true">
+          <path class="nc-or-runner-tail"
+            d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+          <path class="nc-or-runner-body"
+            d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+          <path class="nc-or-runner-head"
+            d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+          <path class="nc-or-runner-spark"
+            d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+        </svg>
+
+        <!-- Animated loader bar — 8 segments, sequential opacity, mirrored skew -->
+        <div class="nc-or-frame-loader" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+
+        <!-- ═══ OBJECT MODE content ═══════════════════════════════════════ -->
+
+        <div class="nc-or-left">
+          <img
+            class="nc-or-image"
+            src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEilNdt4L0wnH05Y5v0TwyiWC0ZqKD1JS9SPsvOxXRTzBXJ65LBRbnWVDVDSWfIPxH_mGUNEX1VwIIbi6VR6h78ZHKG3EPf8Egmle6-ks15O-yIPsNQSrBjWXxBbA3p2px6UM3EGGAktPhERrDIJ5NhJ3cZhsEjnjnMqmL35Q5kLRUZhheK3aQKCiZ7DnPY/s862/NGC1300_800px.png"
+            alt="NGC 1300 — Barred Spiral Galaxy"
+          />
+
+          <!-- Aladin Lite layer — lazy-initialised on first ALADIN toggle -->
+          <div class="nc-hud-02-aladdin">
+            <!-- Viewer container: Aladin renders into this div -->
+            <div id="nc-hud-02-aladin-viewer"></div>
+            <!-- Placeholder shown before init / on fallback -->
+            <div class="nc-hud-02-aladdin__placeholder" aria-hidden="true">
+              <span class="nc-hud-02-aladdin__label">ALADIN LAYER STANDBY</span>
+              <span class="nc-hud-02-aladdin__sub">INTEGRATION PENDING</span>
+            </div>
+          </div>
+
+          <div class="nc-or-reticle">
+            <div class="nc-or-ring nc-or-ring-1"></div>
+            <div class="nc-or-ring nc-or-ring-2"></div>
+            <div class="nc-or-ring nc-or-ring-3"></div>
+
+            <div class="nc-or-cross"></div>
+
+            <div class="nc-or-lock-box">
+              <span></span><span></span><span></span><span></span>
+            </div>
+
+            <div class="nc-or-corner nc-or-corner-tl"></div>
+            <div class="nc-or-corner nc-or-corner-tr"></div>
+            <div class="nc-or-corner nc-or-corner-bl"></div>
+            <div class="nc-or-corner nc-or-corner-br"></div>
+
+            <div class="nc-or-center-dot"></div>
+            <div class="nc-or-target-lock">TARGET LOCK</div>
+          </div>
+        </div>
+
+        <div class="nc-or-right">
+          <h2 class="nc-or-title">NGC 1300</h2>
+
+          <!-- DATA panel — dynamic SIMBAD rows injected by hud-02.js -->
+          <div class="nc-or-info-panel nc-or-info-panel--data nc-or-grid" id="nc-hud02-data-panel">
+            <div class="nc-or-data-status">
+              <span>QUERYING SIMBAD…</span>
+            </div>
+          </div>
+
+          <!-- CATALOG panel — VizieR catalog references (loaded on tab activation) -->
+          <div class="nc-or-info-panel nc-or-info-panel--catalog">
+            <span class="nc-or-info-placeholder">VIZIER CATALOG MODULE STANDBY</span>
+          </div>
+
+          <!-- PAPERS panel — ADS papers via SIMBAD TAP -->
+          <div class="nc-or-info-panel nc-or-info-panel--papers">
+            <span class="nc-or-info-placeholder">ADS PAPERS MODULE STANDBY</span>
+          </div>
+        </div>
+
+        <!-- Toolbar — Group A: visual overlays | Group B: info tabs -->
+        <div class="nc-or-toolbar" role="toolbar" aria-label="HUD-02 overlay controls">
+
+          <!-- Group A — visual overlay toggles (independent) -->
+          <div class="nc-or-tb-group" role="group" aria-label="View overlays">
+            <button class="nc-or-tb-btn"
+                    type="button"
+                    data-action="reticle"
+                    aria-pressed="true">⊕ RETICLE</button>
+          </div>
+
+          <div class="nc-or-tb-sep" aria-hidden="true"></div>
+
+          <!-- Group B — info mode tabs (mutually exclusive) -->
+          <div class="nc-or-tb-group" role="group" aria-label="Object information">
+            <button class="nc-or-tb-btn"
+                    type="button"
+                    data-action="data"
+                    aria-pressed="true">≡ DATA</button>
+            <button class="nc-or-tb-btn"
+                    type="button"
+                    data-action="papers"
+                    aria-pressed="false">◎ PAPERS</button>
+            <button class="nc-or-tb-btn"
+                    type="button"
+                    data-action="catalog"
+                    aria-pressed="false">▦ CATALOGS</button>
+          </div>
+
+        </div>
+
+        <!-- ═══ HTML MODE content slot ════════════════════════════════════
+             Visible only when data-mode="html" on the widget root.
+             Paste arbitrary Blogger-style HTML here.
+        ══════════════════════════════════════════════════════════════════ -->
+        <div class="nc-hud-02-html-slot" aria-hidden="true">
+          <!-- ▼ PASTE BLOGGER HTML HERE ▼ -->
+
+          <!-- ▲ END BLOGGER HTML ▲ -->
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script src="../../shared/js/hud-core.js"></script>
+  <script src="../../shared/js/hud_papers.js"></script>
+  <script src="../../shared/js/hud-mini.js?v=3"></script>
+  <script src="./hud-02.js?v=2"></script>
+</body>
+</html>

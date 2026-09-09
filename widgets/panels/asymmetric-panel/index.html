@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asymmetric Panel — NebulaCast HUD</title>
+
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+  <link rel="stylesheet" href="./panel.css">
+</head>
+<body>
+
+  <main class="nc-demo-stage">
+    <div class="nc-asym-panel" id="asymPanel">
+
+      <div class="nc-asym-panel__accent-bar"></div>
+
+      <header class="nc-asym-panel__header">
+        <span class="nc-tag">SYS-04</span>
+        <span class="nc-heading-3">Asymmetric Panel</span>
+        <span class="nc-asym-panel__status nc-anim-blink">&#9679; LIVE</span>
+      </header>
+
+      <div class="nc-asym-panel__body">
+        <div class="nc-col">
+          <span class="nc-label">Primary Vector</span>
+          <span class="nc-value" id="vectorVal">247.8°</span>
+        </div>
+
+        <div class="nc-line nc-mt-sm"></div>
+
+        <div class="nc-row nc-mt-sm">
+          <div class="nc-col">
+            <span class="nc-label">ALT</span>
+            <span class="nc-data" id="altVal">3,210 m</span>
+          </div>
+          <div class="nc-col">
+            <span class="nc-label">VEL</span>
+            <span class="nc-data" id="velVal">412 m/s</span>
+          </div>
+          <div class="nc-col">
+            <span class="nc-label">PWR</span>
+            <span class="nc-data" id="pwrVal">88%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nc-asym-panel__corner-deco"></div>
+    </div>
+  </main>
+
+  <script src="../../shared/js/hud-core.js"></script>
+  <script src="./panel.js"></script>
+</body>
+</html>

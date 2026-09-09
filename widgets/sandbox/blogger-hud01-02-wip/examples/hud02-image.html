@@ -1,0 +1,202 @@
+<!--
+  NebulaCast HUD-02 Object Report — EXAMPLE: HTML Mode, Static Image
+  ===================================================================
+  Ready to paste into a Blogger post (HTML mode).
+  Global CSS and JS must already be in the Blogger template.
+
+  This file contains TWO ready-to-copy variants:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  VARIANT 1 — MINI   (data-collapse="mini")                      │
+  │  317×148 thumbnail · scale 0.352 · title: nc-or-title-maxi      │
+  │                                                                  │
+  │  VARIANT 2 — MICRO  (data-collapse="micro")                      │
+  │  106×68 slot · no scale · image thumbnail · label above          │
+  │  title inside slot: nc-or-title-maxi                             │
+  │  label above slot:  nc-or-title-micro                            │
+  └─────────────────────────────────────────────────────────────────┘
+
+  To customise either variant:
+  1. Replace the portrait image URL with your Blogger-hosted image
+  2. Replace the <p> tags with your post text
+  3. Replace href="#" on the button with your target link
+-->
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     VARIANT 1 — MINI   (317×148 scaled thumbnail)
+     Copy this entire block and paste into a Blogger post.
+     ════════════════════════════════════════════════════════════════ -->
+
+<div class="nc-hud-02 nc-or-widget"
+     data-mode="html"
+     data-reticle="off"
+     data-aladdin="off"
+     data-collapse="mini">
+  <div class="nc-or-panel">
+
+    <svg class="nc-or-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-frame-main"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-frame-inner"
+        d="M58 76 L1140 76 L1140 316 L1092 366 L58 366 Z" />
+      <g class="nc-or-frame-teeth">
+        <rect x="118" y="382" width="16" height="28"/>
+        <rect x="148" y="382" width="16" height="28"/>
+        <rect x="178" y="382" width="16" height="28"/>
+        <rect x="208" y="382" width="16" height="28"/>
+        <rect x="238" y="382" width="16" height="28"/>
+        <rect x="268" y="382" width="16" height="28"/>
+      </g>
+      <path class="nc-or-frame-teeth-box"
+        d="M98 382 L304 382 L304 412 L98 412 Z" />
+    </svg>
+
+    <div class="nc-or-sweep nc-panel-sweep"></div>
+
+    <svg class="nc-or-runner-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-runner-tail"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-body"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-head"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-spark"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+    </svg>
+
+    <div class="nc-or-frame-loader" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- HTML content slot — full width in html mode -->
+    <div class="nc-hud-02-html-slot" aria-hidden="false">
+
+      <h2 class="nc-or-title-maxi">НАВИГАЦИОННЫЙ ОФИЦЕР</h2>
+
+      <!-- Static image floated right, text wraps left -->
+      <img class="nc-hud-float-image"
+           src="https://example.com/blogger-hosted/character-portrait.jpg"
+           alt="Character portrait">
+
+      <p>Навигационный офицер станции «Аванпост 42». Специалист по маршрутам сквозь нестабильные зоны Внешнего пояса. Зачислена в экспедиционный состав после успешного завершения операции «Пурпурный горизонт».</p>
+
+      <p>Ранг: старший лейтенант. Допуск: уровень «Альфа». Текущая задача — навигационная поддержка разведывательного зонда серии D в квадрате 7-G/12.</p>
+
+      <p>Особые навыки: интуитивное пространственное ориентирование, работа в условиях сенсорных помех, расчёт нестандартных траекторий выхода при гравитационных аномалиях.</p>
+
+      <a href="#" class="nc-or-btn-maxi">ДОСЬЕ ОБЪЕКТА</a>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var all    = document.querySelectorAll('.nc-hud-02:not([data-hud-init])');
+  var widget = all[all.length - 1];
+  if (!widget) return;
+  widget.setAttribute('data-hud-init', '1');
+  NcHud02.init(widget);
+})();
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     VARIANT 2 — MICRO  (106×68 slot: label above + portrait image)
+     Copy this entire block and paste into a Blogger post.
+
+     In collapsed state:
+       - nc-or-title-micro  →  label above the slot (truncated, 11px)
+       - nc-hud-float-image →  fills the 106×49px slot
+
+     In expanded state:
+       - nc-or-title-maxi   →  full-size title inside the panel
+       - full text and button visible
+     ════════════════════════════════════════════════════════════════ -->
+
+<div class="nc-hud-02 nc-or-widget"
+     data-mode="html"
+     data-reticle="off"
+     data-aladdin="off"
+     data-collapse="micro">
+
+  <!-- Outer label: visible ONLY in micro collapsed state (above the slot).
+       Hidden automatically in expanded state via CSS. -->
+  <h2 class="nc-or-title-micro">НАВИГАЦИОННЫЙ ОФИЦЕР</h2>
+
+  <div class="nc-or-panel">
+
+    <svg class="nc-or-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-frame-main"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-frame-inner"
+        d="M58 76 L1140 76 L1140 316 L1092 366 L58 366 Z" />
+      <g class="nc-or-frame-teeth">
+        <rect x="118" y="382" width="16" height="28"/>
+        <rect x="148" y="382" width="16" height="28"/>
+        <rect x="178" y="382" width="16" height="28"/>
+        <rect x="208" y="382" width="16" height="28"/>
+        <rect x="238" y="382" width="16" height="28"/>
+        <rect x="268" y="382" width="16" height="28"/>
+      </g>
+      <path class="nc-or-frame-teeth-box"
+        d="M98 382 L304 382 L304 412 L98 412 Z" />
+    </svg>
+
+    <div class="nc-or-sweep nc-panel-sweep"></div>
+
+    <svg class="nc-or-runner-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-runner-tail"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-body"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-head"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-spark"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+    </svg>
+
+    <div class="nc-or-frame-loader" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- HTML content slot -->
+    <div class="nc-hud-02-html-slot" aria-hidden="false">
+
+      <!-- Inner title: visible only in expanded state -->
+      <h2 class="nc-or-title-maxi">НАВИГАЦИОННЫЙ ОФИЦЕР</h2>
+
+      <!--
+        This image is used as the micro thumbnail when collapsed.
+        It fills the 106×49 slot automatically (object-fit: cover).
+        In expanded state it floats right with text wrapping left.
+      -->
+      <img class="nc-hud-float-image"
+           src="https://example.com/blogger-hosted/character-portrait.jpg"
+           alt="Character portrait">
+
+      <p>Навигационный офицер станции «Аванпост 42». Специалист по маршрутам сквозь нестабильные зоны Внешнего пояса. Зачислена в экспедиционный состав после успешного завершения операции «Пурпурный горизонт».</p>
+
+      <p>Ранг: старший лейтенант. Допуск: уровень «Альфа». Текущая задача — навигационная поддержка разведывательного зонда серии D в квадрате 7-G/12.</p>
+
+      <p>Особые навыки: интуитивное пространственное ориентирование, работа в условиях сенсорных помех, расчёт нестандартных траекторий выхода при гравитационных аномалиях.</p>
+
+      <a href="#" class="nc-or-btn-maxi">ДОСЬЕ ОБЪЕКТА</a>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var all    = document.querySelectorAll('.nc-hud-02:not([data-hud-init])');
+  var widget = all[all.length - 1];
+  if (!widget) return;
+  widget.setAttribute('data-hud-init', '1');
+  NcHud02.init(widget);
+})();
+</script>

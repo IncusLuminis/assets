@@ -1,0 +1,256 @@
+/* ================================================================
+   NebulaCast HUD-10 — Portrait Panel CSS
+   Version : 0.1  (2026-06-09)  — staging / test
+   Covers  : HUD-10 portrait SVG panel (nc-hud-10-*)
+   Canvas  : 992 × 1586 (portrait, unlike HUD-01/02 landscape)
+
+   REQUIRES: blogger-hud-shared.css loaded first.
+             (shared keyframes, .nc-panel-sweep, paper rows,
+              .nc-hud-row base definition)
+
+   NOTE: No ncFrameAdapt needed — panel uses aspect-ratio CSS;
+         SVG viewBox scales automatically.
+   ================================================================ */
+
+/* ── Box-sizing (scoped) ─────────────────────────────────────── */
+
+.nc-hud-10-widget,
+.nc-hud-10-widget * {
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+/* Portrait panel — does not stretch to full blog width by default;
+   displayed inline-block so it sits naturally in the flow.          */
+.nc-hud-10-widget {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  max-height: 2000px;
+  transition: max-height 1000ms cubic-bezier(.2, .9, .2, 1),
+              opacity    150ms ease;
+  animation: hudBreath 4s ease-in-out infinite;
+}
+
+/* ── Mini state (NcHudMini controls max-height and overflow via inline styles)
+   CSS provides cursor and animation suppression only.                        */
+
+.nc-hud-10-widget.is-mini {
+  cursor: pointer;
+  animation: none;
+}
+
+/* ================================================================
+   MAIN PANEL
+   ================================================================ */
+
+/* Aspect ratio locks the portrait proportions.
+   Width is set by panelW in NcHud10.init() (default 901px) via
+   NcHudMini — the CSS just constrains the natural size.            */
+.nc-hud-10-panel {
+  position: relative;
+  width: 901px;
+  max-width: 100%;
+  /* Aspect ratio: SVG canvas 992 × 1586 */
+  aspect-ratio: 992 / 1586;
+  /* overflow: visible — allows toggle button (position:absolute, top:-8px) to sit
+     above the panel edge, matching .nc-ol-panel pattern from HUD-01.
+     NcHudMini overrides this to hidden via inline style in mini state. */
+  overflow: visible;
+  background: transparent;
+}
+
+/* ── SVG frame ───────────────────────────────────────────────── */
+
+/* The SVG is inlined and absolutely fills the panel;
+   all strokes scale with the panel via viewBox.                    */
+.nc-hud-10-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+/* SVG glow is handled by the inline <filter id="nc-hud10-glow"> inside the SVG */
+
+/* ── Content area ────────────────────────────────────────────── */
+
+/* Positioned inside the inner polygon (nc-hud-shape-outer_frame_2_2_2).
+   Inner frame bounds (% of SVG canvas 992 × 1586):
+     left   ≈ 11%  (108 / 992)
+     right  ≈ 88%  (876 / 992)  → right-margin ≈ 12%
+     top    ≈  6%  ( 88 / 1586)
+     bottom ≈ 95%  (1512/ 1586) → bottom-margin ≈ 5%
+   Main content block starts below header section at ≈ 20%        */
+.nc-hud-10-content {
+  position: absolute;
+  top:    20%;
+  left:   12%;
+  right:  13%;
+  bottom:  6%;
+  z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  color: rgba(80, 220, 255, 0.88);
+  font-size: 13px;
+  line-height: 1.55;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80,220,255,.25) transparent;
+}
+
+/* ── Title area (upper section of the frame) ─────────────────── */
+
+.nc-hud-10-title-area {
+  position: absolute;
+  top:    6%;
+  left:   17%;
+  right:  13%;
+  height: 13%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.nc-hud-10-label {
+  font-size: 10px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.45);
+}
+
+.nc-hud-10-title {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: rgba(80, 240, 255, 0.92);
+  text-shadow: 0 0 12px rgba(80, 220, 255, .50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Sweep beam (shared class from blogger-hud-shared.css) ────── */
+
+/* Extend sweep height to cover the tall portrait panel */
+.nc-hud-10-panel .nc-panel-sweep {
+  height: 400%;
+  width: 30%;
+  top: -150%;
+}
+
+/* ── Data rows (reuses shared nc-hud-paper-* classes) ─────────── */
+
+/* No extra rules needed — nc-hud-paper-* rules from shared cover it */
+
+/* NcHudMini manages all mini/expanded inline styles (transform, overflow,
+   max-height, width). CSS only provides the toggle-button styling below. */
+
+/* ── Toggle button (created inside .nc-hud-10-panel by NcHudMini) ── */
+
+.nc-hud-10-panel .nc-ol-toggle-btn {
+  position: absolute;
+  top:  var(--nc-toggle-maxi-top,  var(--nc-toggle-top,  -8px));
+  left: var(--nc-toggle-maxi-left, var(--nc-toggle-left, -5px));
+  right: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  /* 38px matches HUD-01. At scale=0.352 → ~13px rendered — readable in mini thumbnail. */
+  font-size: 38px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+  clip-path: polygon(
+    5px 0%, calc(100% - 5px) 0%, 100% 5px,
+    100% calc(100% - 5px), calc(100% - 5px) 100%,
+    5px 100%, 0% calc(100% - 5px), 0% 5px
+  );
+  transition: border-color .18s ease, color .18s ease;
+}
+
+.nc-hud-10-panel .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  border-color: rgba(80, 220, 255, .75);
+  box-shadow: 0 0 8px rgba(80, 220, 255, .30);
+}
+
+/* Mini state: position identical — button is inside the scaled panel (scale=0.352).
+   top=-8px  → −2.8px from widget top (button starts slightly above)
+   left=-5px → −1.8px — mirrors HUD-01 positioning exactly. */
+.nc-hud-10-widget.is-mini .nc-hud-10-panel .nc-ol-toggle-btn {
+  top:  var(--nc-toggle-mini-top,  var(--nc-toggle-top,  -8px));
+  left: var(--nc-toggle-mini-left, var(--nc-toggle-left, -5px));
+  transform: scale(var(--nc-toggle-mini-scale, var(--nc-btn-scale, 1)));
+  transform-origin: top left;
+}
+
+/* ── Mini bottom-fade overlay ─────────────────────────────────────── */
+/* The widget is clipped at 148px (NcHudMini inline max-height + overflow:hidden).
+   This pseudo-element fades the last ~60px to black, masking the mid-frame SVG
+   cut. The frame's inner border runs a long unbroken vertical stroke through
+   this zone (no natural vertex nearby to crop on), so the fade needs to reach
+   fully opaque black — a near-opaque endpoint still lets the bright glowing
+   stroke show through as a hard edge. */
+
+.nc-hud-10-widget.is-mini::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left:   0;
+  right:  0;
+  height: 58px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .82) 55%, #000 100%);
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* ================================================================
+   ROW CONTAINER (.nc-hud-row overrides for HUD-10)
+   Base .nc-hud-row defined in blogger-hud-shared.css
+   ================================================================ */
+
+/* Mini: fixed 317px slot — matches HUD-01/02 sizing in blogger-hud-shared.css
+   (.nc-hud-row .nc-ol-widget.is-mini). Without an explicit width here the
+   widget falls back to its own max-width:100%, i.e. it fills the row
+   instead of shrink-wrapping to the scaled 317×148 thumbnail, leaving a
+   large empty gap next to the visible panel. */
+.nc-hud-row .nc-hud-10-widget.is-mini {
+  flex: 0 0 317px;
+  width: 317px;
+  max-width: 317px;
+}
+.nc-hud-row .nc-hud-10-widget[data-collapse="micro"].is-mini {
+  flex: 0 0 var(--nc-micro-w, 87px);
+  width: var(--nc-micro-w, 87px);
+  max-width: var(--nc-micro-w, 87px);
+}
+
+.nc-hud-row .nc-hud-10-widget:not(.is-mini) {
+  flex: 0 0 100%;
+  order: 99;
+}
+
+/* ================================================================
+   MOBILE
+   ================================================================ */
+
+@media (max-width: 600px) {
+  .nc-hud-10-panel {
+    width: 100%;
+  }
+}

@@ -1,0 +1,251 @@
+/* hud-05.js — Wide Video panel
+   Draws the SVG frame and positions the video/loader/ticker at runtime.
+   Must run after layout; listens for resize to re-draw.
+*/
+'use strict';
+
+(function () {
+  function drawWideVideoFrame(widget) {
+    const panel   = widget.querySelector('.nc-vv-panel');
+    const svg     = widget.querySelector('.nc-vv-svg-frame');
+    const g       = widget.querySelector('.nc-vv-frame-g');
+    const loader  = widget.querySelector('.nc-vv-loader');
+    const system  = widget.querySelector('.nc-vv-system');
+    const ticker  = widget.querySelector('.nc-vv-ticker');
+    const right   = widget.querySelector('.nc-vv-right');
+    const content = widget.querySelector('.nc-vv-content');
+
+    if (!panel || !svg || !g || !loader || !system || !ticker || !right || !content) return;
+
+    const W = panel.offsetWidth;
+    if (!W) return;
+
+    const pad  = W * 20 / 680;
+    const col  = W / 5;
+    const colR = col * 1.2;
+    const rx2  = W - pad;
+    const rx1  = rx2 - colR;
+
+    const bev  = W * 51 / 680;
+    const bxTop = rx1 - bev;
+    const bxBot = rx1 - bev;
+
+    const cPadL      = pad + 12;
+    const cPadR      = colR + pad + 16;
+    const cPadTInner = 18;
+
+    content.style.paddingLeft   = cPadL  + 'px';
+    content.style.paddingRight  = cPadR  + 'px';
+    content.style.paddingBottom = '80px';
+
+    const H = panel.offsetHeight;
+
+    const lhOrig = (211 - 49) / 260;
+    const lh     = lhOrig * 1.1;
+    const lyCen  = (49 + 211) / 2 / 260;
+    const ly1    = H * (lyCen - lh / 2);
+    const ly2    = H * (lyCen + lh / 2);
+
+    const ry1 = H * 4  / 260;
+    const ry2 = H * 224 / 260;
+
+    content.style.paddingTop = (ly1 + cPadTInner) + 'px';
+
+    const videoGap  = 18;
+    const videoMaxW = colR - videoGap * 2;
+    const videoMaxH = (ry2 - ry1) - videoGap * 2;
+
+    let videoW = videoMaxW;
+    let videoH = videoW * 16 / 9;
+
+    if (videoH > videoMaxH) {
+      videoH = videoMaxH;
+      videoW = videoH * 9 / 16;
+    }
+
+    right.style.width  = videoW + 'px';
+    right.style.height = videoH + 'px';
+    right.style.right  = (W - rx2 + videoGap) + 'px';
+    right.style.top    = (ry1 + videoGap) + 'px';
+
+    const ip    = 5;   /* inner frame inset — shared by SVG polygon and button alignment */
+
+    /* Position toggle button left of the video column;
+       top aligned with content-side inner frame line (ly1 + ip) */
+    var btn = widget.querySelector('.nc-ol-toggle-btn');
+    if (btn) {
+      btn.style.right = (W - rx1) + 'px';
+      btn.style.top   = (ly1 + ip) + 'px';
+    }
+
+    /* outer + inner frame polygons */
+    const pts = function (arr) {
+      return arr.map(function (p) {
+        return p.map(function (v) { return v.toFixed(1); }).join(',');
+      }).join(' ');
+    };
+
+    const outer = pts([
+      [pad,  ly1], [bxTop, ly1], [rx1, ry1],
+      [rx2,  ry1], [rx2,   ry2], [rx1, ry2],
+      [bxBot, ly2], [pad,   ly2]
+    ]);
+
+    const inner = pts([
+      [pad + ip,  ly1 + ip], [bxTop + ip, ly1 + ip], [rx1 + ip, ry1 + ip],
+      [rx2  - ip, ry1 + ip], [rx2  - ip,  ry2 - ip], [rx1 - ip, ry2 - ip],
+      [bxBot + ip, ly2 - ip], [pad + ip,   ly2 - ip]
+    ]);
+
+    /* loader bar */
+    const stripX0   = pad + W * 130 / 680;
+    const stripMaxX = bxBot - W * 20 / 680;
+    const totalSW   = stripMaxX - stripX0;
+    const stripH    = H * 10 / 260;
+    const stripTop  = ly2 + H * 3 / 260;
+
+    loader.style.left   = stripX0.toFixed(0)  + 'px';
+    loader.style.top    = stripTop.toFixed(0) + 'px';
+    loader.style.width  = totalSW.toFixed(0)  + 'px';
+    loader.style.height = stripH.toFixed(0)   + 'px';
+
+    /* system label */
+    system.style.left = (pad + 3).toFixed(0) + 'px';
+    system.style.top  = (stripTop + (stripH - 12) / 2).toFixed(0) + 'px';
+
+    /* strip-line connecting loader to frame */
+    const lineY    = stripTop + stripH + H * 2 / 260;
+    const lineEndX = stripMaxX;
+    const stripLine =
+      `M ${stripX0.toFixed(1)},${ly2.toFixed(1)} ` +
+      `L ${stripX0.toFixed(1)},${lineY.toFixed(1)} ` +
+      `L ${lineEndX.toFixed(1)},${lineY.toFixed(1)} ` +
+      `L ${bxBot.toFixed(1)},${ly2.toFixed(1)}`;
+
+    /* ticker */
+    ticker.style.left  = (pad + 60).toFixed(0) + 'px';
+    ticker.style.top   = (ly1 - 24).toFixed(0) + 'px';
+    ticker.style.width = (bxTop - pad - 70).toFixed(0) + 'px';
+
+    /* corner brackets */
+    const ltOff = W * 6 / 680;
+    const ltW   = W * 50 / 680;
+    const ltT   = H * 8  / 260;
+    const ltVH  = H * 80 / 260;
+    const ltBev = H * 14 / 260;
+    const ltLeft = pad - ltOff;
+    const ltTop  = ly1 - ltOff;
+
+    const cornerTL = pts([
+      [ltLeft,       ltTop],        [ltLeft + ltW,  ltTop],
+      [ltLeft + ltW, ltTop + ltT],  [ltLeft + ltT,  ltTop + ltT],
+      [ltLeft + ltT, ltTop + ltVH], [ltLeft, ltTop + ltVH + ltBev]
+    ]);
+
+    const rtOff  = W * 6 / 680;
+    const rtW    = W * 50 / 680;
+    const rtT    = H * 8  / 260;
+    const rtVH   = H * 40 / 260;
+    const rtRight = rx2 + rtOff;
+    const rtTop   = ry1 - rtOff;
+
+    const cornerTR = pts([
+      [rtRight - rtW, rtTop],        [rtRight,        rtTop],
+      [rtRight,        rtTop + rtVH], [rtRight - rtT,  rtTop + rtVH],
+      [rtRight - rtT,  rtTop + rtT],  [rtRight - rtW,  rtTop + rtT]
+    ]);
+
+    const rbOff    = W * 6   / 680;
+    const rbHW     = W * 108 / 680;
+    const rbT      = H * 8   / 260;
+    const rbVH     = H * 40  / 260;
+    const rbBev    = W * 14  / 680;
+    const rbRight  = rx2 + rbOff;
+    const rbBottom = ry2 + rbOff;
+
+    const cornerBR = pts([
+      [rbRight,              rbBottom - rbVH], [rbRight,         rbBottom],
+      [rbRight - rbHW,       rbBottom],        [rbRight - rbHW - rbBev, rbBottom - rbT],
+      [rbRight - rbT,        rbBottom - rbT],  [rbRight - rbT,  rbBottom - rbVH]
+    ]);
+
+    g.innerHTML =
+      `<polygon points="${outer}"    fill="#04111e" stroke="none"/>` +
+      `<polygon points="${outer}"    fill="none" stroke="#1ab8f0" stroke-width="2.5" filter="url(#ncVvGlow)"/>` +
+      `<polygon points="${inner}"    fill="none" stroke="#1ab8f0" stroke-width="1" opacity="0.75"/>` +
+      `<polygon points="${cornerTL}" fill="#1ab8f0" filter="url(#ncVvGlow)"/>` +
+      `<polygon points="${cornerTR}" fill="#1ab8f0" filter="url(#ncVvGlow)"/>` +
+      `<polygon points="${cornerBR}" fill="#1ab8f0" filter="url(#ncVvGlow)"/>` +
+      `<path d="${stripLine}" fill="none" stroke="#1ab8f0" stroke-width="1.5" filter="url(#ncVvGlowS)"/>`;
+
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+  }
+
+  function initWideVideoPanels() {
+    document.querySelectorAll('.nc-vv-widget').forEach(function (widget) {
+      drawWideVideoFrame(widget);
+      requestAnimationFrame(function () { drawWideVideoFrame(widget); });
+    });
+  }
+
+  function initMiniToggles() {
+    document.querySelectorAll('.nc-vv-widget').forEach(function (widget) {
+      if (widget.dataset.miniInit) return;
+      widget.dataset.miniInit = '1';
+      var panel      = widget.querySelector('.nc-vv-panel');
+      var miniCard   = widget.querySelector('.nc-hp-mini-card');
+      var mainIframe = panel && panel.querySelector('iframe');
+      var mainSrc    = mainIframe ? mainIframe.src : '';
+
+      /* Prevent mini card from animating during the initial snap to mini state */
+      if (miniCard) miniCard.style.transition = 'none';
+
+      if (panel) {
+        NcHudMini.init({
+          widget       : widget,
+          panel        : panel,
+          miniH        : 148,
+          scale        : null,   /* mini card overlay used instead of panel scaling */
+          expandedMaxH : 800,
+          onCollapse   : function () {
+            /* Stop YouTube while panel is hidden — saves bandwidth/resources */
+            if (mainIframe && mainSrc) mainIframe.src = 'about:blank';
+          },
+          onExpand     : function () { drawWideVideoFrame(widget); }
+        });
+      }
+
+      /* Restore iframe immediately at expand-start (is-mini removed) so the
+         video has time to load during the 700ms height transition */
+      if (mainIframe && mainSrc && typeof MutationObserver !== 'undefined') {
+        new MutationObserver(function (mutations) {
+          mutations.forEach(function (m) {
+            if (m.attributeName === 'class' && !widget.classList.contains('is-mini')) {
+              mainIframe.src = mainSrc;
+            }
+          });
+        }).observe(widget, { attributes: true, attributeFilter: ['class'] });
+      }
+
+      /* Commit instant state, then re-enable CSS transition for future toggles */
+      if (miniCard) {
+        miniCard.offsetHeight;           /* force reflow */
+        miniCard.style.transition = '';
+      }
+    });
+  }
+
+  window.addEventListener('resize', initWideVideoPanels);
+  window.addEventListener('load',   initWideVideoPanels);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      initWideVideoPanels();
+      initMiniToggles();
+    });
+  } else {
+    initWideVideoPanels();
+    initMiniToggles();
+  }
+})();

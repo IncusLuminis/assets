@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status Card — NebulaCast HUD</title>
+
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+  <link rel="stylesheet" href="./status-card.css">
+</head>
+<body>
+
+  <main class="nc-demo-stage">
+    <div class="nc-status-card nc-anim-flicker" id="statusCard">
+
+      <!-- Top bar -->
+      <div class="nc-status-card__topbar">
+        <span class="nc-tag">UNIT-07</span>
+        <span class="nc-status-card__indicator nc-anim-blink" id="statusDot">&#9679;</span>
+      </div>
+
+      <!-- Entity name -->
+      <div class="nc-status-card__name nc-heading-2">STELLAR ATTRACTOR</div>
+      <div class="nc-caption nc-mt-sm" id="statusLabel">SYSTEMS NOMINAL</div>
+
+      <div class="nc-line nc-mt-sm"></div>
+
+      <!-- Stat bars -->
+      <ul class="nc-status-card__bars nc-mt-sm">
+        <li class="nc-status-card__bar-row">
+          <span class="nc-label">SHIELDS</span>
+          <div class="nc-status-card__bar-track">
+            <div class="nc-status-card__bar-fill" id="shieldsBar" style="width:78%"></div>
+          </div>
+          <span class="nc-data" id="shieldsVal">78%</span>
+        </li>
+        <li class="nc-status-card__bar-row">
+          <span class="nc-label">HULL</span>
+          <div class="nc-status-card__bar-track">
+            <div class="nc-status-card__bar-fill" id="hullBar" style="width:94%"></div>
+          </div>
+          <span class="nc-data" id="hullVal">94%</span>
+        </li>
+        <li class="nc-status-card__bar-row">
+          <span class="nc-label">POWER</span>
+          <div class="nc-status-card__bar-track">
+            <div class="nc-status-card__bar-fill" id="powerBar" style="width:61%"></div>
+          </div>
+          <span class="nc-data" id="powerVal">61%</span>
+        </li>
+      </ul>
+
+    </div>
+  </main>
+
+  <script src="../../shared/js/hud-core.js"></script>
+  <script src="./status-card.js"></script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+/* hud-04.css — HUD Post with media embed (nc-hp-*)
+   Migration source: legacy/template/blogger-template.css § HUD PANEL
+   Shared animations: hudPanelSweep (via .nc-panel-sweep), hudTickerScroll
+   Shared effects:    .nc-panel-sweep
+   Local keyframes:   ncHpLoader1-8 (sequenced 8-segment progress bar)
+   Note: frame structure is structurally identical to hud-03; panels are
+         kept standalone. Extraction to a shared component is a cleanup candidate.
+*/
+
+/* ── Standalone page stage ───────────────────────────────────────── */
+
+.nc-hud04-stage {
+  padding: 32px 0;
+  background: #000;
+  min-height: 100vh;
+}
+
+/* ── Widget root ─────────────────────────────────────────────────── */
+
+.nc-hp-widget,
+.nc-hp-widget * {
+  box-sizing: border-box;
+}
+
+.nc-hp-widget {
+  width: 100%;
+  margin: 0 auto;
+  background: #000;
+  overflow: clip;
+  position: relative;   /* stacking context for .nc-hp-mini-card */
+}
+
+/* ── Main panel ──────────────────────────────────────────────────── */
+
+.nc-hp-panel {
+  --loader-left: 28%;
+  --loader-width: 230px;
+  --frame-edge: 26px;
+  --top-line-y: 18px;
+  --top-line-drop: 26px;
+  --top-line-lower-y: calc(var(--top-line-y) + var(--top-line-drop));
+
+  position: relative;
+  width: min(1200px, 100%);
+  min-height: 520px;
+  margin: 0 auto;
+  padding: 86px 92px;
+  background: #000;
+  overflow: visible;
+  isolation: isolate;
+
+  opacity: .65;
+  animation:
+    ncHpOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+}
+
+/* ── Frame shell ─────────────────────────────────────────────────── */
+
+.nc-hp-frame-shell {
+  position: absolute;
+  inset: 26px;
+  z-index: 1;
+  pointer-events: none;
+  border: 3px solid rgba(80,220,255,.92);
+
+  clip-path: polygon(
+    0 22%,
+    0 100%,
+    96% 100%,
+    100% 72%,
+    100% 6%,
+    21% 6%,
+    18% 5%,
+    12% 5%
+  );
+
+  filter:
+    drop-shadow(0 0 6px rgba(80,220,255,.9))
+    drop-shadow(0 0 18px rgba(80,220,255,.5));
+}
+
+/* ── Frame masks ─────────────────────────────────────────────────── */
+
+.nc-hp-frame-mask {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  background: #000;
+}
+
+.nc-hp-frame-mask-left {
+  top: 24px;
+  left: 118px;
+  width: 170px;
+  height: 34px;
+  transform: skewX(-32deg);
+}
+
+.nc-hp-frame-mask-right {
+  top: 24px;
+  right: 18px;
+  width: 46px;
+  height: 48px;
+}
+
+/* ── Frame inner ─────────────────────────────────────────────────── */
+
+.nc-hp-frame-inner {
+  position: absolute;
+  inset: 72px 48px 72px 48px;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(145,245,255,.62);
+
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 72%,
+    96% 100%,
+    0 100%
+  );
+
+  filter: drop-shadow(0 0 4px rgba(80,220,255,.7));
+}
+
+/* ── Frame topline ───────────────────────────────────────────────── */
+
+.nc-hp-frame-topline {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.nc-hp-frame-topline span {
+  position: absolute;
+  display: block;
+  background: rgba(80,220,255,.95);
+  box-shadow:
+    0 0 8px rgba(80,220,255,.95),
+    0 0 18px rgba(80,220,255,.45);
+}
+
+.nc-hp-topline-left {
+  top: var(--top-line-y);
+  left: var(--frame-edge);
+  width: calc(var(--loader-left) + var(--loader-width) + 4px - var(--frame-edge));
+  height: 3px;
+}
+
+.nc-hp-topline-slope {
+  top: var(--top-line-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 4px);
+  width: 34px;
+  height: 3px;
+  transform-origin: left center;
+  transform: rotate(58deg);
+}
+
+.nc-hp-topline-right {
+  top: var(--top-line-lower-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 22px);
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 22px) - var(--frame-edge));
+  height: 3px;
+}
+
+.nc-hp-topline-side {
+  top: var(--top-line-lower-y);
+  right: var(--frame-edge);
+  width: 3px;
+  height: 62px;
+}
+
+/* ── Frame loader ────────────────────────────────────────────────── */
+
+.nc-hp-frame-loader {
+  position: absolute;
+  top: 42px;
+  left: var(--loader-left);
+  width: var(--loader-width);
+  height: 28px;
+  z-index: 5;
+  pointer-events: none;
+
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+
+  transform: skewX(32deg);
+  padding: 3px;
+  border: 1px solid rgba(80,220,255,.45);
+
+  background: linear-gradient(
+    90deg,
+    rgba(80,220,255,.08),
+    rgba(80,220,255,.02)
+  );
+
+  filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+}
+
+.nc-hp-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 12px rgba(80,220,255,.85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.nc-hp-frame-loader span:nth-child(1) { animation-name: ncHpLoader1; }
+.nc-hp-frame-loader span:nth-child(2) { animation-name: ncHpLoader2; }
+.nc-hp-frame-loader span:nth-child(3) { animation-name: ncHpLoader3; }
+.nc-hp-frame-loader span:nth-child(4) { animation-name: ncHpLoader4; }
+.nc-hp-frame-loader span:nth-child(5) { animation-name: ncHpLoader5; }
+.nc-hp-frame-loader span:nth-child(6) { animation-name: ncHpLoader6; }
+.nc-hp-frame-loader span:nth-child(7) { animation-name: ncHpLoader7; }
+.nc-hp-frame-loader span:nth-child(8) { animation-name: ncHpLoader8; }
+
+/* ── Frame ticker ────────────────────────────────────────────────── */
+
+.nc-hp-frame-ticker {
+  position: absolute;
+  top: 50px;
+  right: 54px;
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 74px));
+  height: 32px;
+  overflow: hidden;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.nc-hp-frame-ticker span {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%;
+  top: 0;
+
+  font-family: "Share Tech Mono", monospace;
+  font-size: 14px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+
+  color: rgba(120,245,255,.82);
+  text-shadow: 0 0 8px rgba(80,220,255,.55);
+
+  animation: hudTickerScroll 30s linear infinite; /* → shared */
+}
+
+/* ── Sweep — geometry from .nc-panel-sweep (effects.css) ─────────── */
+
+.nc-hp-sweep {
+  z-index: 2;
+  opacity: .5;
+}
+
+/* ── Content ─────────────────────────────────────────────────────── */
+
+.nc-hp-content {
+  position: relative;
+  z-index: 6;
+  color: #cfffff;
+}
+
+.nc-hp-system {
+  position: absolute;
+  top: -44px;
+  left: -42px;
+  margin: 0;
+
+  font-family: "Share Tech Mono", monospace;
+  font-size: 28px;       /* matches .nc-hp-frame-loader height (28px) */
+  line-height: 1;
+  font-weight: bold;
+  letter-spacing: .12em; /* tightened from .22em to keep it compact at larger size */
+  text-transform: uppercase;
+
+  color: rgba(80,220,255,.72);
+  text-shadow: 0 0 8px rgba(80,220,255,.45);
+}
+
+.nc-hp-title {
+  margin: 5px 20px 34px auto;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  text-align: left;
+
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+
+  color: #8ff6ff;
+
+  text-shadow:
+    0 0 8px rgba(80,245,255,.95),
+    0 0 20px rgba(80,245,255,.45);
+}
+
+.nc-hp-text {
+  max-width: 100%;
+
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.72;
+  letter-spacing: .02em;
+
+  color: rgba(190,250,255,.84);
+  text-shadow: 0 0 10px rgba(80,220,255,.18);
+
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  display: flow-root;
+}
+
+.nc-hp-text::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* ── Media embed ─────────────────────────────────────────────────── */
+
+.nc-hp-media {
+  float: left;
+  position: relative;
+  top: 0;
+  left: -14px;
+  overflow: hidden;
+
+  border: 1px solid rgba(80,220,255,.36);
+  background: rgba(0,20,34,.55);
+
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+
+.nc-hp-media-vertical {
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  aspect-ratio: 9 / 16;
+}
+
+.nc-hp-media-horizontal {
+  width: 42%;
+  min-width: 320px;
+  max-width: 620px;
+  aspect-ratio: 16 / 9;
+}
+
+.nc-hp-media iframe,
+.nc-hp-media video,
+.nc-hp-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+/* ── Local keyframes — 8-segment sequential loader ───────────────── */
+
+/* Panel stretches from center outward — scaleX avoids content reflow at narrow width */
+@keyframes ncHpOpenHud {
+  from { transform: scaleX(.1); opacity: .65; }
+  to   { transform: scaleX(1);  opacity: 1;   }
+}
+
+@keyframes ncHpLoader1 {
+  0%           { opacity: 0; }
+  13%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader2 {
+  0%, 6.5%     { opacity: 0; }
+  19.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader3 {
+  0%, 13%      { opacity: 0; }
+  26%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader4 {
+  0%, 19.5%    { opacity: 0; }
+  32.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader5 {
+  0%, 26%      { opacity: 0; }
+  39%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader6 {
+  0%, 32.5%    { opacity: 0; }
+  45.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader7 {
+  0%, 39%      { opacity: 0; }
+  52%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader8 {
+  0%, 45.5%    { opacity: 0; }
+  58.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .nc-hp-panel {
+    min-height: 0;
+    padding: 48px 24px;
+  }
+
+  .nc-hp-frame-shell,
+  .nc-hp-frame-inner,
+  .nc-hp-frame-loader,
+  .nc-hp-frame-topline,
+  .nc-hp-frame-mask,
+  .nc-hp-sweep { display: none; }
+
+  .nc-hp-title {
+    font-size: 30px;
+    margin-bottom: 24px;
+  }
+
+  .nc-hp-text {
+    font-size: 15px;
+    line-height: 1.72;
+    letter-spacing: .02em;
+  }
+
+  .nc-hp-media {
+    float: none;
+    left: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 24px 0;
+  }
+}
+
+/* ── Mini card thumbnail (replaces scale-down in collapsed state) ──── */
+
+.nc-hp-mini-card {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  min-width: 240px;
+  max-width: min(420px, 90%);
+  height: 148px;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+/* HUD frame border — two diagonal cut corners; top edge is visible */
+.nc-hp-mini-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2.5px solid rgba(80,220,255,.92);
+  box-shadow:
+    0 0 8px  rgba(80,220,255,.9),
+    0 0 20px rgba(80,220,255,.4),
+    inset 0 0 12px rgba(80,220,255,.06);
+  pointer-events: none;
+  clip-path: polygon(
+    12% 0,
+    100% 0,
+    100% 74%,
+    96% 100%,
+    0   100%,
+    0   22%
+  );
+}
+
+/* Expand hint arrow */
+.nc-hp-mini-card::after {
+  content: '▼';
+  position: absolute;
+  top: 18px; right: 22px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(80,220,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.6);
+  z-index: 5;
+}
+
+/* Visible only when widget is collapsed */
+.nc-mini-widget.is-mini .nc-hp-mini-card {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Hide the full panel behind the mini card when collapsed */
+.nc-mini-widget.is-mini .nc-hp-panel {
+  visibility: hidden;
+}
+
+/* "OUTPOST 32" label */
+.nc-hp-mini-system {
+  position: absolute;
+  top: 18px; left: 24px;
+  margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.65);
+  text-shadow: 0 0 8px rgba(80,220,255,.4);
+  z-index: 4;
+}
+
+/* Row: optional thumbnail + character name */
+.nc-hp-mini-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 38px 50px 16px 20px;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.nc-hp-mini-thumb {
+  height: 80px; width: auto;
+  max-width: 68px; min-width: 48px;
+  object-fit: cover;
+  border: 1px solid rgba(80,220,255,.38);
+  flex-shrink: 0;
+  filter: brightness(.82) contrast(1.12) saturate(.9);
+}
+
+/* Live video thumbnail — scaled-down iframe (270×480 → 45×80) */
+.nc-hp-mini-video-wrap {
+  width: 45px;
+  height: 80px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(80,220,255,.38);
+  box-shadow: 0 0 8px rgba(80,220,255,.18);
+}
+
+.nc-hp-mini-video-wrap iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 270px;
+  height: 480px;
+  transform: scale(0.1667);
+  transform-origin: top left;
+  pointer-events: none;
+  border: 0;
+}
+
+.nc-hp-mini-name {
+  margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 22px rgba(80,245,255,.42);
+}
+
+/* ── Toggle button — inner frame top-right corner ────────────────── */
+/* Inner frame: inset:72px 48px → top:72px, right:48px border lines.
+   Button right+top edges align exactly with inner frame border. */
+.nc-ol-toggle-btn {
+  top:   72px;
+  right: 48px;
+}
+
+/* ── Reconnecting label — shown behind iframe while src="about:blank" */
+.nc-hp-media { position: relative; }
+
+.nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .45);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nc-hp-media iframe {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+
+.nc-hp-media iframe[src="about:blank"] {
+  opacity: 0;
+}

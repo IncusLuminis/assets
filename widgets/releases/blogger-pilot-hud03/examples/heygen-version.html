@@ -1,0 +1,126 @@
+<!--
+  NebulaCast HUD Panel — EXAMPLE: HeyGen Vertical Video (HUD-04 style)
+  =====================================================================
+  Ready to paste into a Blogger post (HTML mode).
+  Global CSS and JS must already be in the Blogger template.
+
+  What this example shows:
+  - Vertical (portrait) HeyGen embed, 9:16 ratio
+  - "RECONNECTING…" fallback shown while iframe loads
+  - Text below the video
+
+  To customise:
+  1. Replace system label, character name, thumbnail URL, ticker
+  2. Replace the iframe src with your HeyGen embed URL
+     HeyGen share URL format: https://app.heygen.com/embeds/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  3. Replace the body <p> tags with your post text
+-->
+
+<style>
+.nc-hp-mini-card {
+  left: 0;
+  transform: none;
+}
+
+
+
+.nc-hp-mini-thumb {
+  object-fit: contain;
+  max-width: none;
+}
+
+.nc-hp-mini-name {
+  font-size: 16px;
+  letter-spacing: .08em;
+  white-space: normal;
+  flex-shrink: 1;
+}
+</style>
+
+<div class="nc-hp-widget">
+
+  <!-- Mini card — visible when panel is collapsed -->
+  <div class="nc-hp-mini-card" aria-hidden="true">
+    <p class="nc-hp-mini-system">NEXUS STATION</p>
+    <div class="nc-hp-mini-body">
+      <img class="nc-hp-mini-thumb"
+           src="https://example.com/blogger-hosted/nova-thumb.jpg"
+           alt="">
+      <h2 class="nc-hp-mini-name">NOVA СТРЕЛЬЦОВА</h2>
+    </div>
+  </div>
+
+  <!-- Main panel -->
+  <div class="nc-hp-panel">
+
+    <!-- Frame decorations (do not edit) -->
+    <div class="nc-hp-frame-shell"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-left"></div>
+    <div class="nc-hp-frame-mask nc-hp-frame-mask-right"></div>
+    <div class="nc-hp-frame-topline">
+      <span class="nc-hp-topline-left"></span>
+      <span class="nc-hp-topline-slope"></span>
+      <span class="nc-hp-topline-right"></span>
+      <span class="nc-hp-topline-side"></span>
+    </div>
+    <div class="nc-hp-frame-inner"></div>
+    <div class="nc-hp-frame-loader">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="nc-hp-frame-ticker">
+      <span>NEXUS STATION / CLEARANCE LEVEL SIGMA / BRIEFING CHANNEL OPEN / UPLINK STABLE /</span>
+    </div>
+    <div class="nc-hp-sweep nc-panel-sweep"></div>
+
+    <!-- Editable content -->
+    <div class="nc-hp-content">
+      <div class="nc-hp-system">NEXUS STATION</div>
+      <h2 class="nc-hp-title">NOVA СТРЕЛЬЦОВА</h2>
+
+      <div class="nc-hp-text">
+
+        <!--
+          Vertical video embed — HeyGen portrait format (9:16)
+          Replace the src attribute with your actual HeyGen embed URL.
+          The nc-reconnect div shows "RECONNECTING…" while the iframe loads.
+        -->
+        <div class="nc-hud-media nc-hud-media-vertical">
+          <div class="nc-reconnect">RECONNECTING…</div>
+          <iframe
+            src="https://app.heygen.com/embeds/REPLACE_WITH_YOUR_HEYGEN_ID"
+            frameborder="0"
+            allow="encrypted-media; fullscreen"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <p>Координатор оперативных связей станции «Нексус». Специализация — управление разведывательными сетями и дешифровка перехваченных каналов Внешнего сектора.</p>
+
+        <p>Уровень допуска: «Сигма». Текущий статус: активный брифинг, канал открыт.</p>
+
+      </div>
+    </div>
+
+  </div><!-- .nc-hp-panel -->
+</div><!-- .nc-hp-widget -->
+
+<script>
+(function () {
+  /* Blogger inserts <br>/<div> between elements, so previousElementSibling
+     is unreliable. Find the last widget not yet initialised instead. */
+  var all    = document.querySelectorAll('.nc-hp-widget:not([data-hud-init])');
+  var widget = all[all.length - 1];
+  if (!widget) return;
+  widget.setAttribute('data-hud-init', '1');
+  var panel  = widget.querySelector('.nc-hp-panel');
+
+  NcHudMini.init({
+    widget      : widget,
+    panel       : panel,
+    miniH       : 148,
+    scale       : null,
+    expandedMaxH: 2000
+  });
+})();
+</script>

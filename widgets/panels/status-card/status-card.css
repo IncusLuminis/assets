@@ -1,0 +1,98 @@
+/* status-card/status-card.css — namespace: .nc-status-card */
+
+.nc-demo-stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hud-space-xl);
+}
+
+.nc-status-card {
+  width: 300px;
+  background: var(--hud-panel);
+  border: 1px solid var(--hud-line);
+  border-radius: var(--hud-radius);
+  padding: var(--hud-space-md);
+  backdrop-filter: blur(6px);
+  box-shadow:
+    0 0 10px var(--hud-glow),
+    inset 0 0 18px rgba(0, 255, 231, 0.03);
+}
+
+/* Top bar: tag + status dot */
+.nc-status-card__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--hud-space-sm);
+}
+
+/* Blinking status indicator */
+.nc-status-card__indicator {
+  font-size: 10px;
+  color: var(--hud-text-accent);
+  text-shadow: 0 0 6px var(--hud-glow);
+}
+
+.nc-status-card__indicator--warning {
+  color: #ffcc00;
+  text-shadow: 0 0 6px rgba(255, 204, 0, 0.6);
+}
+
+.nc-status-card__indicator--critical {
+  color: #ff4444;
+  text-shadow: 0 0 6px rgba(255, 68, 68, 0.6);
+}
+
+/* Entity name */
+.nc-status-card__name {
+  font-size: var(--hud-font-lg);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hud-text-accent);
+  text-shadow: 0 0 8px var(--hud-glow);
+}
+
+/* Stat bar list */
+.nc-status-card__bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hud-space-sm);
+}
+
+.nc-status-card__bar-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 36px;
+  align-items: center;
+  gap: var(--hud-space-xs);
+}
+
+/* Track */
+.nc-status-card__bar-track {
+  height: 4px;
+  background: rgba(0, 255, 231, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* Fill */
+.nc-status-card__bar-fill {
+  height: 100%;
+  background: var(--hud-line);
+  border-radius: 2px;
+  box-shadow: 0 0 6px var(--hud-glow);
+  transition: width 0.6s ease;
+}
+
+/* Warning fill colour */
+.nc-status-card__bar-fill--warning {
+  background: #ffcc00;
+  box-shadow: 0 0 6px rgba(255, 204, 0, 0.5);
+}
+
+/* Critical fill colour */
+.nc-status-card__bar-fill--critical {
+  background: #ff4444;
+  box-shadow: 0 0 6px rgba(255, 68, 68, 0.5);
+}

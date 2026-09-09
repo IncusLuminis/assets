@@ -75,6 +75,20 @@
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
   }
 
+  /* Real rendered image edge for responsive maxi image+text layout. */
+  function setImageTextClearance(panel) {
+    var widget = panel.parentElement;
+    if (!widget || widget.getAttribute('data-content') !== 'image') return;
+    var image = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (!image) return;
+    var panelRect = panel.getBoundingClientRect();
+    var imageRect = image.getBoundingClientRect();
+    var clearance = imageRect.right - panelRect.left + 14;
+    if (clearance > 14) {
+      widget.style.setProperty('--nc-image-text-clearance', clearance.toFixed(1) + 'px');
+    }
+  }
+
   /* Image content type: .nc-hud-text is position:absolute (the only way to
      place text at an exact px offset from the portrait image), so it's out
      of normal flow and panel height:auto has no idea how tall it really is
@@ -105,6 +119,7 @@
 
   function adapt(panel, overrideH) {
     setInnerInsetVars(panel);
+    setImageTextClearance(panel);
 
     /* Try both SVG elements used in HUD-02 (frame + runner) */
     var svgs = panel.querySelectorAll('.nc-or-frame-svg, .nc-or-runner-svg');
@@ -245,6 +260,14 @@
       growPanelForAbsoluteText(panel);
       if (typeof ResizeObserver !== 'undefined') {
         new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
+      }
+    }
+
+    var imageEl = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (imageEl) {
+      imageEl.addEventListener('load', function () { setImageTextClearance(panel); });
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { setImageTextClearance(panel); }).observe(imageEl);
       }
     }
   }

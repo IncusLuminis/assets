@@ -1,0 +1,410 @@
+/* hud-05.css — Wide Video panel (nc-vv-*)
+   Migration source: legacy/template/blogger-template.css § WIDE VIDEO
+   Shared animations: hudPanelSweep (via .nc-panel-sweep), hudTickerScroll
+   Shared effects:    .nc-panel-sweep
+   Local keyframes:   ncVvSeg1-16 (16-segment sequential loader)
+   Note: SVG frame geometry, video positioning, loader/ticker placement
+         are all computed at runtime by hud-05.js.
+*/
+
+/* ── Standalone page stage ───────────────────────────────────────── */
+
+.nc-hud05-stage {
+  padding: 32px 0;
+  background: var(--hud-bg);
+  min-height: 100vh;
+}
+
+/* ── Widget root ─────────────────────────────────────────────────── */
+
+.nc-vv-widget,
+.nc-vv-widget * {
+  box-sizing: border-box;
+}
+
+.nc-vv-widget {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  overflow: clip;
+  position: relative;   /* anchor for mini card overlay */
+}
+
+/* ── Main panel ──────────────────────────────────────────────────── */
+
+.nc-vv-panel {
+  position: relative;
+  width: 100%;
+  background: #000;
+
+  opacity: .65;
+  animation:
+    ncVvOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+}
+
+/* ── SVG frame — geometry injected by JS ─────────────────────────── */
+
+.nc-vv-svg-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Content ─────────────────────────────────────────────────────── */
+
+.nc-vv-content {
+  position: relative;
+  z-index: 2;
+  display: block;
+  min-height: 264px;
+}
+
+.nc-vv-title {
+  margin: 0 0 16px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: clamp(22px, 2.8vw, 40px);
+  line-height: 1;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-vv-system {
+  position: absolute;
+  z-index: 4;
+  margin: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.65);
+  text-shadow: 0 0 8px rgba(80,220,255,.4);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.nc-vv-text {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.72;
+  letter-spacing: .02em;
+  color: rgba(190,250,255,.84);
+  text-shadow: 0 0 10px rgba(80,220,255,.18);
+  text-align: justify;
+  hyphens: auto;
+  margin: 0;
+}
+
+/* ── Right column — positioned by JS ─────────────────────────────── */
+
+.nc-vv-right {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.nc-vv-media {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: rgba(0,20,34,.55);
+  border: 1px solid rgba(80,220,255,.36);
+
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+
+.nc-vv-media iframe,
+.nc-vv-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.nc-vv-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 0;
+}
+
+/* ── Loader — position set by JS ─────────────────────────────────── */
+
+.nc-vv-loader {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+  padding: 2px;
+  border: 1px solid rgba(80,220,255,.35);
+  background: rgba(0,30,50,.4);
+}
+
+.nc-vv-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 8px rgba(80,220,255,.8);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.nc-vv-loader span:nth-child(1)  { animation-name: ncVvSeg1;  }
+.nc-vv-loader span:nth-child(2)  { animation-name: ncVvSeg2;  }
+.nc-vv-loader span:nth-child(3)  { animation-name: ncVvSeg3;  }
+.nc-vv-loader span:nth-child(4)  { animation-name: ncVvSeg4;  }
+.nc-vv-loader span:nth-child(5)  { animation-name: ncVvSeg5;  }
+.nc-vv-loader span:nth-child(6)  { animation-name: ncVvSeg6;  }
+.nc-vv-loader span:nth-child(7)  { animation-name: ncVvSeg7;  }
+.nc-vv-loader span:nth-child(8)  { animation-name: ncVvSeg8;  }
+.nc-vv-loader span:nth-child(9)  { animation-name: ncVvSeg9;  }
+.nc-vv-loader span:nth-child(10) { animation-name: ncVvSeg10; }
+.nc-vv-loader span:nth-child(11) { animation-name: ncVvSeg11; }
+.nc-vv-loader span:nth-child(12) { animation-name: ncVvSeg12; }
+.nc-vv-loader span:nth-child(13) { animation-name: ncVvSeg13; }
+.nc-vv-loader span:nth-child(14) { animation-name: ncVvSeg14; }
+.nc-vv-loader span:nth-child(15) { animation-name: ncVvSeg15; }
+.nc-vv-loader span:nth-child(16) { animation-name: ncVvSeg16; }
+
+/* ── Ticker — position set by JS ─────────────────────────────────── */
+
+.nc-vv-ticker {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  height: 18px;
+  overflow: hidden;
+}
+
+.nc-vv-ticker span {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%;
+  top: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(120,245,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.55);
+  animation: hudTickerScroll 30s linear infinite; /* → shared */
+}
+
+/* ── Sweep — geometry from .nc-panel-sweep (effects.css) ─────────── */
+
+.nc-vv-sweep {
+  z-index: 1;
+  opacity: .35;
+}
+
+/* ── Local keyframes — 16-segment sequential loader ──────────────── */
+
+@keyframes ncVvSeg1  { 0%      {opacity:0}  8%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg2  { 0%,4%  {opacity:0} 12%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg3  { 0%,8%  {opacity:0} 16%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg4  { 0%,12% {opacity:0} 20%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg5  { 0%,16% {opacity:0} 24%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg6  { 0%,20% {opacity:0} 28%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg7  { 0%,24% {opacity:0} 32%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg8  { 0%,28% {opacity:0} 36%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg9  { 0%,32% {opacity:0} 40%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg10 { 0%,36% {opacity:0} 44%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg11 { 0%,40% {opacity:0} 48%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg12 { 0%,44% {opacity:0} 52%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg13 { 0%,48% {opacity:0} 56%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg14 { 0%,52% {opacity:0} 60%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg15 { 0%,56% {opacity:0} 64%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVvSeg16 { 0%,60% {opacity:0} 68%{opacity:1} 92%{opacity:1} 92.01%{opacity:0} 100%{opacity:0} }
+
+/* ── Open animation ──────────────────────────────────────────────── */
+
+/* Panel stretches from center outward — same easing/approach as HUD-03/04 */
+@keyframes ncVvOpenHud {
+  from { transform: scaleX(.1); opacity: .65; }
+  to   { transform: scaleX(1);  opacity: 1;   }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .nc-vv-panel {
+    padding: 28px 22px 84px;
+    border: 2px solid rgba(80,220,255,.75);
+    box-shadow:
+      0 0 18px rgba(80,220,255,.22),
+      inset 0 0 24px rgba(80,220,255,.08);
+  }
+
+  .nc-vv-svg-frame,
+  .nc-vv-loader,
+  .nc-vv-system,
+  .nc-vv-ticker,
+  .nc-vv-sweep { display: none; }
+
+  .nc-vv-content {
+    min-height: 0;
+    padding: 0 !important;
+  }
+
+  .nc-vv-right {
+    position: relative;
+    right: auto !important;
+    top: auto !important;
+    width: min(360px, 100%) !important;
+    margin: 0 auto 24px;
+  }
+
+  .nc-vv-title { font-size: 26px; }
+}
+
+/* ── Mini card overlay ───────────────────────────────────────────── */
+/* Shown when .nc-mini-widget.is-mini; panel gets visibility:hidden  */
+
+.nc-hp-mini-card {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  min-width: 240px;
+  max-width: min(420px, 90%);
+  height: 148px;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+/* Angled frame border */
+.nc-hp-mini-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2.5px solid rgba(80,220,255,.92);
+  box-shadow:
+    0 0 8px  rgba(80,220,255,.9),
+    0 0 20px rgba(80,220,255,.4),
+    inset 0 0 12px rgba(80,220,255,.06);
+  pointer-events: none;
+  clip-path: polygon(12% 0, 100% 0, 100% 74%, 96% 100%, 0 100%, 0 22%);
+}
+
+/* Expand arrow */
+.nc-hp-mini-card::after {
+  content: '▼';
+  position: absolute;
+  top: 18px; right: 22px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(80,220,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.6);
+  z-index: 5;
+}
+
+.nc-mini-widget.is-mini .nc-hp-mini-card {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Hide the wide panel behind the mini card */
+.nc-mini-widget.is-mini .nc-vv-panel {
+  visibility: hidden;
+}
+
+.nc-hp-mini-system {
+  position: absolute;
+  top: 18px; left: 24px;
+  margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.65);
+  text-shadow: 0 0 8px rgba(80,220,255,.4);
+  z-index: 4;
+}
+
+.nc-hp-mini-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 38px 50px 16px 20px;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.nc-hp-mini-thumb {
+  height: 80px; width: auto;
+  max-width: 68px; min-width: 48px;
+  object-fit: cover;
+  border: 1px solid rgba(80,220,255,.38);
+  flex-shrink: 0;
+  filter: brightness(.82) contrast(1.12) saturate(.9);
+}
+
+.nc-hp-mini-name {
+  margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 22px rgba(80,245,255,.42);
+}
+
+/* ── Reconnecting label — shown behind iframe while src="about:blank" */
+.nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .45);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nc-vv-media iframe {
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+
+.nc-vv-media iframe[src="about:blank"] {
+  opacity: 0;
+}

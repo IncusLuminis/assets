@@ -1,0 +1,381 @@
+/* hud-06.css — Vertical Sidebar panel (nc-vs-*)
+   Migration source: legacy/template/blogger-template.css § VERTICAL SIDEBAR
+   Shared animations: hudPanelSweep (via .nc-panel-sweep), hudTickerScroll
+   Shared effects:    .nc-panel-sweep
+   Local keyframes:   ncVsSeg1-9 (9-segment sequential loader)
+   Note: SVG frame geometry, loader/ticker placement computed at runtime by hud-06.js.
+*/
+
+/* ── Standalone page stage ───────────────────────────────────────── */
+
+.nc-hud06-stage {
+  padding: 32px 0;
+  background: var(--hud-bg);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Widget root ─────────────────────────────────────────────────── */
+
+.nc-vs-widget,
+.nc-vs-widget * {
+  box-sizing: border-box;
+}
+
+.nc-vs-widget {
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  overflow: visible;
+  position: relative;   /* anchor for mini card overlay */
+}
+
+/* Mini-toggle needs overflow:hidden for max-height to clip the panel.
+   Specificity 0,2,0 beats both .nc-vs-widget and .nc-mini-widget (0,1,0 each). */
+.nc-mini-widget.nc-vs-widget {
+  overflow: hidden;
+}
+
+.nc-vs-sidebar {
+  width: 400px;
+}
+
+/* ── Main panel ──────────────────────────────────────────────────── */
+
+.nc-vs-panel {
+  position: relative;
+  width: 100%;
+  background: #000;
+
+  opacity: .65;
+  animation:
+    ncVsOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+}
+
+/* ── SVG frame — geometry injected by JS ─────────────────────────── */
+
+.nc-vs-svg-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Content ─────────────────────────────────────────────────────── */
+
+.nc-vs-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nc-vs-title {
+  margin: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: clamp(16px, 2vw, 22px);
+  line-height: 1.1;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+/* ── Media ───────────────────────────────────────────────────────── */
+
+.nc-vs-media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: rgba(0,20,34,.55);
+  border: 1px solid rgba(80,220,255,.36);
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+
+.nc-vs-media:has(iframe),
+.nc-vs-media:has(video) {
+  height: 380px;
+}
+
+.nc-vs-media iframe,
+.nc-vs-media video {
+  display: block;
+  width: 100%;
+  height: 380px;
+  border: 0;
+  object-fit: cover;
+}
+
+.nc-vs-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 0;
+}
+
+/* ── Text ────────────────────────────────────────────────────────── */
+
+.nc-vs-text {
+  margin: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  letter-spacing: .02em;
+  color: rgba(190,250,255,.84);
+  text-shadow: 0 0 10px rgba(80,220,255,.18);
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+/* ── Loader — position set by JS ─────────────────────────────────── */
+
+.nc-vs-loader {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  gap: 3px;
+  align-items: stretch;
+  padding: 2px;
+  border: 1px solid rgba(80,220,255,.35);
+  background: rgba(0,30,50,.4);
+}
+
+.nc-vs-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 8px rgba(80,220,255,.8);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.nc-vs-loader span:nth-child(1) { animation-name: ncVsSeg1; }
+.nc-vs-loader span:nth-child(2) { animation-name: ncVsSeg2; }
+.nc-vs-loader span:nth-child(3) { animation-name: ncVsSeg3; }
+.nc-vs-loader span:nth-child(4) { animation-name: ncVsSeg4; }
+.nc-vs-loader span:nth-child(5) { animation-name: ncVsSeg5; }
+.nc-vs-loader span:nth-child(6) { animation-name: ncVsSeg6; }
+.nc-vs-loader span:nth-child(7) { animation-name: ncVsSeg7; }
+.nc-vs-loader span:nth-child(8) { animation-name: ncVsSeg8; }
+.nc-vs-loader span:nth-child(9) { animation-name: ncVsSeg9; }
+
+/* ── Ticker — position set by JS ─────────────────────────────────── */
+
+.nc-vs-ticker {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.nc-vs-ticker span {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%;
+  top: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(120,245,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.55);
+  animation: hudTickerScroll 30s linear infinite; /* → shared */
+}
+
+/* ── Sweep — geometry from .nc-panel-sweep (effects.css) ─────────── */
+
+.nc-vs-sweep {
+  z-index: 1;
+  opacity: .25;
+}
+
+/* ── Local keyframes — 9-segment sequential loader ───────────────── */
+
+@keyframes ncVsSeg1 { 0%       {opacity:0} 13%  {opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg2 { 0%,6.5%  {opacity:0} 19.5%{opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg3 { 0%,13%   {opacity:0} 26%  {opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg4 { 0%,19.5% {opacity:0} 32.5%{opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg5 { 0%,26%   {opacity:0} 39%  {opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg6 { 0%,32.5% {opacity:0} 45.5%{opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg7 { 0%,39%   {opacity:0} 52%  {opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg8 { 0%,45.5% {opacity:0} 58.5%{opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+@keyframes ncVsSeg9 { 0%,52%   {opacity:0} 65%  {opacity:1} 82%{opacity:1} 82.01%{opacity:0} 100%{opacity:0} }
+
+/* ── Open animation ──────────────────────────────────────────────── */
+
+@keyframes ncVsOpenHud {
+  from { transform: scaleY(.05); opacity: .65; }
+  to   { transform: scaleY(1);   opacity: 1;   }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .nc-vs-sidebar {
+    width: 100%;
+  }
+}
+
+/* ── Mini card overlay ───────────────────────────────────────────── */
+/* Shown when .nc-mini-widget.is-mini; panel gets visibility:hidden  */
+
+.nc-hp-mini-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;          /* widget is already 400px — fill it */
+  height: 148px;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+/* Angled frame border */
+.nc-hp-mini-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2.5px solid rgba(80,220,255,.92);
+  box-shadow:
+    0 0 8px  rgba(80,220,255,.9),
+    0 0 20px rgba(80,220,255,.4),
+    inset 0 0 12px rgba(80,220,255,.06);
+  pointer-events: none;
+  clip-path: polygon(12% 0, 100% 0, 100% 74%, 96% 100%, 0 100%, 0 22%);
+}
+
+/* Expand arrow */
+.nc-hp-mini-card::after {
+  content: '▼';
+  position: absolute;
+  top: 18px; right: 22px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(80,220,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.6);
+  z-index: 5;
+}
+
+.nc-mini-widget.is-mini .nc-hp-mini-card {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Hide the panel behind the mini card */
+.nc-mini-widget.is-mini .nc-vs-panel {
+  visibility: hidden;
+}
+
+.nc-hp-mini-system {
+  position: absolute;
+  top: 18px; left: 24px;
+  margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.65);
+  text-shadow: 0 0 8px rgba(80,220,255,.4);
+  z-index: 4;
+}
+
+.nc-hp-mini-body {
+  position: absolute;
+  top: 38px; left: 20px; right: 54px; bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 3;
+}
+
+/* Scaled-down live HeyGen preview */
+.nc-hp-mini-video-wrap {
+  width: 45px;
+  height: 80px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(80,220,255,.38);
+  box-shadow: 0 0 8px rgba(80,220,255,.18);
+}
+
+.nc-hp-mini-video-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 270px;
+  height: 480px;
+  transform: scale(0.1667);
+  transform-origin: top left;
+  pointer-events: none;
+  border: 0;
+}
+
+.nc-hp-mini-name {
+  margin: 0;
+  flex: 1;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 22px rgba(80,245,255,.42);
+}
+
+/* ── Toggle button — inner frame top-right corner ────────────────── */
+/* Inner frame: iy0 = pad+ip ≈ 29px; ix1 right ≈ 29px → nudge both.
+   Button scaled to 70% of global size (38→27px, padding 12/22→8/15). */
+.nc-ol-toggle-btn {
+  top:   28px;
+  right: 28px;
+}
+
+.nc-vs-sidebar .nc-ol-toggle-btn {
+  font-size: 27px;
+  padding:   8px 15px;
+}
+
+/* ── Reconnecting label — shown behind iframe while src="about:blank" */
+.nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .45);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nc-vs-media iframe {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+
+.nc-vs-media iframe[src="about:blank"] {
+  opacity: 0;
+}

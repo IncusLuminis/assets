@@ -1,0 +1,1165 @@
+<!--
+  NebulaCast HUD Panel — Blogger Template Snippet
+  ================================================
+  Paste this entire block into your Blogger theme's HTML,
+  just before the closing </head> tag.
+
+  Blogger → Theme → Edit HTML → find </head> → paste above it → Save.
+
+  This only needs to be done ONCE per blog.
+  After this, paste individual post HTML blocks into Blogger posts.
+-->
+
+<!-- NebulaCast HUD: Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;display=swap" rel="stylesheet"/>
+
+<!-- NebulaCast HUD: Panel CSS (HUD-03 / HUD-04) -->
+<style>
+/*<![CDATA[*/
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+/* ── Box-sizing (scoped — does not touch Blogger theme) ────────── */
+
+.nc-hp-widget,
+.nc-hp-widget * {
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   KEYFRAMES
+   ================================================================ */
+
+/* Panel open: stretches from center on load */
+@keyframes ncHpOpenHud {
+  from { transform: scaleX(.1); opacity: .65; }
+  to   { transform: scaleX(1);  opacity: 1;   }
+}
+
+/* Ambient glow breathing */
+@keyframes hudBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0,220,255,.18),
+      0 0 42px rgba(0,140,255,.10),
+      inset 0 0 28px rgba(0,255,255,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0,240,255,.28),
+      0 0 64px rgba(0,180,255,.16),
+      inset 0 0 42px rgba(0,255,255,.12);
+  }
+}
+
+/* Diagonal light-beam sweep */
+@keyframes hudPanelSweep {
+  0%   { transform: rotate(8deg) translateX(-320%); }
+  100% { transform: rotate(8deg) translateX(900%); }
+}
+
+/* Scrolling ticker: travels left, snaps back */
+@keyframes hudTickerScroll {
+  0%   { transform: translateX(0);                   opacity: 1; }
+  97%  { transform: translateX(calc(-100% - 100vw)); opacity: 1; }
+  98%  { opacity: 0; }
+  100% { transform: translateX(0);                   opacity: 0; }
+}
+
+/* 8-segment sequential loader */
+@keyframes ncHpLoader1 {
+  0%           { opacity: 0; } 13%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader2 {
+  0%, 6.5%     { opacity: 0; } 19.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader3 {
+  0%, 13%      { opacity: 0; } 26%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader4 {
+  0%, 19.5%    { opacity: 0; } 32.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader5 {
+  0%, 26%      { opacity: 0; } 39%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader6 {
+  0%, 32.5%    { opacity: 0; } 45.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader7 {
+  0%, 39%      { opacity: 0; } 52%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader8 {
+  0%, 45.5%    { opacity: 0; } 58.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+
+/* ================================================================
+   SWEEP BEAM (base — shared by all HUD panels)
+   Future: replace with SVG contour runner per HUD03 spec §10
+   ================================================================ */
+
+.nc-panel-sweep {
+  position: absolute;
+  top: -38%;
+  left: -32%;
+  width: 58%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(80,220,255,0) 8%,
+    rgba(80,220,255,.06) 25%,
+    rgba(180,255,255,.22) 50%,
+    rgba(80,220,255,.08) 75%,
+    transparent 100%
+  );
+  transform: rotate(8deg) translateX(-320%);
+  mix-blend-mode: screen;
+  animation: hudPanelSweep 7s linear infinite;
+}
+
+/* ================================================================
+   MINI / EXPAND TOGGLE
+   NcHudMini.init() (blogger-hud03-template.js) adds
+   .nc-mini-widget and .nc-mini-panel to the DOM.
+   ================================================================ */
+
+.nc-mini-widget {
+  overflow: hidden;
+  transition: max-height 700ms cubic-bezier(.2, .9, .2, 1);
+}
+.nc-mini-widget.is-mini { cursor: pointer; }
+
+.nc-mini-panel {
+  transform-origin: top center;
+  transition: transform 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* Toggle button — anchored to top-left of .nc-hp-panel */
+.nc-hp-widget .nc-ol-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  position: absolute;    /* fixed to panel regardless of content height */
+  top:    43px;
+  left:   40px;
+  right:  auto;
+  bottom: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 24px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 2px 10px 2px 10px;
+  cursor: pointer;
+  clip-path: none;
+  box-shadow: none;
+  transition: border-color .18s ease, color .18s ease;
+  pointer-events: all;
+}
+.nc-hp-widget .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  border-color: rgba(80, 220, 255, .75);
+}
+/* HUD tooltip on hover */
+.nc-hp-widget .nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+.nc-hp-widget .nc-ol-toggle-btn:hover::after { display: block; }
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+.nc-hp-widget {
+  width: 100%;
+  margin: 0 auto;
+  background: #000;
+  overflow: clip;
+  position: relative;
+}
+
+/* ================================================================
+   MAIN PANEL
+   ================================================================ */
+
+.nc-hp-panel {
+  /* Geometry tokens — adjust here to tune proportions */
+  --loader-left:        28%;
+  --loader-width:       230px;
+  --frame-edge:         26px;
+  --top-line-y:         18px;
+  --top-line-drop:      26px;
+  --top-line-lower-y:   calc(var(--top-line-y) + var(--top-line-drop));
+
+  position: relative;
+  width: min(1200px, 100%);
+  min-height: 520px;
+  margin: 0 auto;
+  padding: 86px 92px;
+  background: #000;
+  overflow: visible;
+  isolation: isolate;
+
+  opacity: .65;
+  animation:
+    ncHpOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+}
+
+/* ================================================================
+   FRAME DECORATIONS
+   Hide on mobile — content remains readable (see @media below)
+   ================================================================ */
+
+/* Outer border with angled clip */
+.nc-hp-frame-shell {
+  position: absolute;
+  inset: 26px;
+  z-index: 1;
+  pointer-events: none;
+  border: 3px solid rgba(80,220,255,.92);
+  clip-path: polygon(
+    0 22%, 0 100%, 96% 100%,
+    100% 72%, 100% 6%,
+    21% 6%, 18% 5%, 12% 5%
+  );
+  filter:
+    drop-shadow(0 0 6px rgba(80,220,255,.9))
+    drop-shadow(0 0 18px rgba(80,220,255,.5));
+}
+
+/* Black masks that cover the frame corners to create the notch effect */
+.nc-hp-frame-mask {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  background: #000;
+}
+.nc-hp-frame-mask-left {
+  top: 24px; left: 118px;
+  width: 170px; height: 34px;
+  transform: skewX(-32deg);
+}
+.nc-hp-frame-mask-right {
+  top: 24px; right: 18px;
+  width: 46px; height: 48px;
+}
+
+/* Inner inset border */
+.nc-hp-frame-inner {
+  position: absolute;
+  inset: 72px 48px 72px 48px;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(145,245,255,.62);
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 96% 100%, 0 100%);
+  filter: drop-shadow(0 0 4px rgba(80,220,255,.7));
+}
+
+/* Top decorative line + angled slope + right drop */
+.nc-hp-frame-topline {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+.nc-hp-frame-topline span {
+  position: absolute;
+  display: block;
+  background: rgba(80,220,255,.95);
+  box-shadow:
+    0 0 8px rgba(80,220,255,.95),
+    0 0 18px rgba(80,220,255,.45);
+}
+.nc-hp-topline-left {
+  top: var(--top-line-y);
+  left: var(--frame-edge);
+  width: calc(var(--loader-left) + var(--loader-width) + 4px - var(--frame-edge));
+  height: 3px;
+}
+.nc-hp-topline-slope {
+  top: var(--top-line-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 4px);
+  width: 34px; height: 3px;
+  transform-origin: left center;
+  transform: rotate(58deg);
+}
+.nc-hp-topline-right {
+  top: var(--top-line-lower-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 22px);
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 22px) - var(--frame-edge));
+  height: 3px;
+}
+.nc-hp-topline-side {
+  top: var(--top-line-lower-y);
+  right: var(--frame-edge);
+  width: 3px; height: 62px;
+}
+
+/* 8-segment skewed loader bar */
+.nc-hp-frame-loader {
+  position: absolute;
+  top: 42px;
+  left: var(--loader-left);
+  width: var(--loader-width);
+  height: 28px;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  transform: skewX(32deg);
+  padding: 3px;
+  border: 1px solid rgba(80,220,255,.45);
+  background: linear-gradient(90deg, rgba(80,220,255,.08), rgba(80,220,255,.02));
+  filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+}
+.nc-hp-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 12px rgba(80,220,255,.85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.nc-hp-frame-loader span:nth-child(1) { animation-name: ncHpLoader1; }
+.nc-hp-frame-loader span:nth-child(2) { animation-name: ncHpLoader2; }
+.nc-hp-frame-loader span:nth-child(3) { animation-name: ncHpLoader3; }
+.nc-hp-frame-loader span:nth-child(4) { animation-name: ncHpLoader4; }
+.nc-hp-frame-loader span:nth-child(5) { animation-name: ncHpLoader5; }
+.nc-hp-frame-loader span:nth-child(6) { animation-name: ncHpLoader6; }
+.nc-hp-frame-loader span:nth-child(7) { animation-name: ncHpLoader7; }
+.nc-hp-frame-loader span:nth-child(8) { animation-name: ncHpLoader8; }
+
+/* Scrolling ticker strip */
+.nc-hp-frame-ticker {
+  position: absolute;
+  top: 50px;
+  right: 54px;
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 74px));
+  height: 32px;
+  overflow: hidden;
+  z-index: 5;
+  pointer-events: none;
+}
+.nc-hp-frame-ticker span {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%; top: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 14px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(120,245,255,.82);
+  text-shadow: 0 0 8px rgba(80,220,255,.55);
+  animation: hudTickerScroll 30s linear infinite;
+}
+
+/* Sweep overlay — ties into .nc-panel-sweep base */
+.nc-hp-sweep {
+  z-index: 2;
+  opacity: .5;
+}
+
+/* ================================================================
+   CONTENT
+   ================================================================ */
+
+.nc-hp-content {
+  position: relative;
+  z-index: 6;
+  color: #cfffff;
+}
+
+/* Row wrapper: button + system label, floats above the inner frame line */
+.nc-hp-system-row {
+  position: absolute;
+  top: -36px; left: -44px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* System label — inline inside .nc-hp-system-row */
+.nc-hp-system {
+  display: inline;
+  vertical-align: middle;
+  position: relative;
+  top: -43px;
+  left: -21px;
+  margin: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: bold;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.72);
+  text-shadow: 0 0 8px rgba(80,220,255,.45);
+}
+
+/* Character / post title */
+.nc-hp-title {
+  margin: 10px 0 34px 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 20px rgba(80,245,255,.45);
+}
+
+/* Body text — supports standard HTML inside */
+.nc-hp-text {
+  max-width: 100%;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.72;
+  letter-spacing: .02em;
+  color: rgba(190,250,255,.84);
+  text-shadow: 0 0 10px rgba(80,220,255,.18);
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  display: flow-root;      /* clears floated media children */
+}
+.nc-hp-text::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* ================================================================
+   MEDIA SLOTS  (public API — use these class names in your posts)
+
+   nc-hud-float-image        → static image, floated left
+   nc-hud-media              → wrapper for any embedded media
+     + nc-hud-media-vertical   → portrait aspect (HeyGen / TikTok / Shorts)
+     + nc-hud-media-horizontal → landscape aspect (YouTube / Vimeo)
+   ================================================================ */
+
+/* --- Static image -------------------------------------------- */
+.nc-hud-float-image {
+  float: left;
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  height: auto;
+  margin: 0 34px 22px 0;
+  object-fit: contain;
+  filter: brightness(.76) contrast(1.14) saturate(.9);
+  border: 1px solid rgba(80,220,255,.36);
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+
+/* --- Embedded media container ------------------------------- */
+.nc-hud-media {
+  float: left;
+  position: relative;
+  top: 0;
+  left: -14px;
+  overflow: hidden;
+  border: 1px solid rgba(80,220,255,.36);
+  background: rgba(0,20,34,.55);
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+.nc-hud-media-vertical {
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  aspect-ratio: 9 / 16;
+}
+.nc-hud-media-horizontal {
+  width: 42%;
+  min-width: 320px;
+  max-width: 620px;
+  aspect-ratio: 16 / 9;
+}
+.nc-hud-media iframe,
+.nc-hud-media video,
+.nc-hud-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+/* Smooth reveal after src swap */
+.nc-hud-media iframe {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+.nc-hud-media iframe[src="about:blank"] { opacity: 0; }
+
+/* "RECONNECTING…" placeholder — shown while iframe loads */
+.nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.45);
+  text-shadow: 0 0 8px rgba(80,220,255,.3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ================================================================
+   MINI CARD  (shown in collapsed state)
+   ================================================================ */
+
+.nc-hp-mini-card {
+  position: absolute;
+  top: 0; left: 0;
+  transform: none;
+  width: fit-content;
+  min-width: 240px;
+  max-width: min(420px, 90%);
+  height: 148px;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+/* HUD frame border on mini card */
+.nc-hp-mini-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2.5px solid rgba(80,220,255,.92);
+  box-shadow:
+    0 0 8px  rgba(80,220,255,.9),
+    0 0 20px rgba(80,220,255,.4),
+    inset 0 0 12px rgba(80,220,255,.06);
+  pointer-events: none;
+  clip-path: polygon(
+    12% 0, 100% 0, 100% 74%, 96% 100%, 0 100%, 0 22%
+  );
+}
+/* Expand arrow hint */
+.nc-hp-mini-card::after {
+  content: '▼';
+  position: absolute;
+  top: 17px; left: 12px; right: auto;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(80,220,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.6);
+  z-index: 5;
+}
+.nc-mini-widget.is-mini .nc-hp-mini-card {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.nc-mini-widget.is-mini .nc-hp-panel { visibility: hidden; }
+
+/* System label inside mini card */
+.nc-hp-mini-system {
+  position: absolute;
+  top: 18px; left: 24px;
+  margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.65);
+  text-shadow: 0 0 8px rgba(80,220,255,.4);
+  z-index: 4;
+}
+/* Row: thumbnail + name */
+.nc-hp-mini-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 38px 50px 16px 20px;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 3;
+}
+/* Static image thumbnail */
+.nc-hp-mini-thumb {
+  height: 80px; width: auto;
+  max-width: none; min-width: 48px;
+  object-fit: contain;
+  border: 1px solid rgba(80,220,255,.38);
+  flex-shrink: 0;
+  filter: brightness(.82) contrast(1.12) saturate(.9);
+}
+/* Live video thumbnail (scaled-down iframe) */
+.nc-hp-mini-video-wrap {
+  width: 45px;
+  height: 80px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(80,220,255,.38);
+  box-shadow: 0 0 8px rgba(80,220,255,.18);
+}
+.nc-hp-mini-video-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 270px; height: 480px;
+  transform: scale(0.1667);
+  transform-origin: top left;
+  pointer-events: none;
+  border: 0;
+}
+/* Character name in mini card */
+.nc-hp-mini-name {
+  margin: 0;
+  white-space: normal;
+  flex-shrink: 1;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 22px rgba(80,245,255,.42);
+}
+
+/* ================================================================
+   MOBILE  (≤ 900px)
+   Frame decorations hidden; content stays readable; media goes full-width
+   ================================================================ */
+
+@media (max-width: 900px) {
+  .nc-hp-panel {
+    min-height: 0;
+    padding: 48px 24px;
+  }
+
+  /* Hide all decorative frame elements */
+  .nc-hp-frame-shell,
+  .nc-hp-frame-inner,
+  .nc-hp-frame-loader,
+  .nc-hp-frame-topline,
+  .nc-hp-frame-mask,
+  .nc-hp-sweep { display: none; }
+
+  .nc-hp-title {
+    font-size: 30px;
+    margin-bottom: 24px;
+  }
+  .nc-hp-text {
+    font-size: 15px;
+    line-height: 1.72;
+    letter-spacing: .02em;
+  }
+
+  /* Float → block, full width */
+  .nc-hud-float-image {
+    float: none;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 24px 0;
+  }
+  .nc-hud-media {
+    float: none;
+    left: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 24px 0;
+  }
+}
+
+/* ================================================================
+   ROW CONTAINER — HUD-03 / HUD-04 mini-card row
+   ================================================================ */
+
+/* Collapsed slot: fixed width so mini-cards sit side by side */
+.nc-hud-row .nc-hp-widget.is-mini {
+  flex: 0 0 auto;
+  width: 280px;
+}
+
+/* Expanded panel: full width, pushed below the mini-card row */
+.nc-hud-row .nc-hp-widget:not(.is-mini) {
+  flex: 0 0 100%;
+  order: 99;
+}
+/*]]>*/
+</style>
+
+<!-- NebulaCast HUD: Shared JS — NcHudMini (mini/expand toggle) -->
+<script>
+/*<![CDATA[*/
+/* hud-mini.js — generic mini/expand toggle for HUD panels
+   Provides: window.NcHudMini.init(options)
+
+   options = {
+     widget       : HTMLElement   required  widget root
+     panel        : HTMLElement   required  main panel inside widget
+     miniH        : Number        optional  mini height px (default 148)
+     panelW       : Number        optional  panel width in mini state (default 901)
+     panelH       : Number        optional  panel height in mini state; set when panel base
+                                            CSS does not fix height (e.g. html-mode HUD-01)
+     scale        : Number|null   optional  scale factor; null = crop (no transform)
+     expandedMaxH : Number        optional  max-height in expanded state (default 2000)
+     onCollapse   : Function      optional  called immediately on collapse
+     onExpand     : Function      optional  called after expand transition completes
+   }
+
+   Mini-panel constraints (width, height, transformOrigin, margin, overflow) are ALL
+   applied as inline styles by this module — no per-panel CSS rules needed.
+   Button transform in mini state is left entirely to per-panel CSS.
+*/
+'use strict';
+
+(function (global) {
+
+  function init(opts) {
+    var widget       = opts.widget;
+    var panel        = opts.panel;
+    var miniH        = opts.miniH        || 148;
+    var panelW       = opts.panelW       || 901;
+    var panelH       = opts.panelH       || null;
+    var scale        = opts.scale        || null;
+    var expandedMaxH = opts.expandedMaxH || 2000;
+    var collapseMode = widget && widget.getAttribute ? widget.getAttribute('data-collapse') : null;
+
+    if (!widget || !panel) {
+      console.warn('[NcHudMini] widget or panel not found');
+      return;
+    }
+
+    /* Release templates may always pass mini opts; force correct micro geometry by attribute. */
+    if (collapseMode === 'micro') {
+      var cs = (typeof getComputedStyle === 'function') ? getComputedStyle(widget) : null;
+      var cssMicroW = cs ? parseFloat(cs.getPropertyValue('--nc-micro-w')) : NaN;
+      var cssMicroH = cs ? parseFloat(cs.getPropertyValue('--nc-micro-h')) : NaN;
+      panelW = Number.isFinite(cssMicroW) ? cssMicroW : 87;
+      panelH = Number.isFinite(cssMicroH) ? cssMicroH : 130;
+      miniH  = panelH + 19;
+      scale  = null;
+    }
+
+    /* Add transition base classes */
+    widget.classList.add('nc-mini-widget');
+    panel.classList.add('nc-mini-panel');
+
+    /* ── Toggle button ───────────────────────────────────────────── */
+    var btn = document.createElement('button');
+    btn.className = 'nc-ol-toggle-btn';
+    btn.type      = 'button';
+    /* HUD-03 compatibility: wrap button + system label in nc-hp-system-row.
+       For all other panels (no .nc-hp-system) falls back to panel.appendChild. */
+    var sysEl = panel.querySelector('.nc-hp-system');
+    if (sysEl && sysEl.parentNode) {
+      var sysRow = document.createElement('div');
+      sysRow.className = 'nc-hp-system-row';
+      sysEl.parentNode.insertBefore(sysRow, sysEl);
+      sysRow.appendChild(btn);
+      sysRow.appendChild(sysEl);
+    } else {
+      panel.appendChild(btn);
+    }
+
+    function updateBtn() {
+      var mini = widget.classList.contains('is-mini');
+      btn.textContent = mini ? '▼' : '▲';
+      btn.setAttribute('aria-label',    mini ? 'Expand HUD panel'   : 'Collapse HUD panel');
+      btn.setAttribute('aria-expanded', mini ? 'false'              : 'true');
+      btn.setAttribute('data-tooltip',  mini ? 'Развернуть панель'  : 'Свернуть панель');
+    }
+
+    /* ── Mini-panel constraints ──────────────────────────────────── */
+    /* Applied as inline styles — works for any panel type without
+       per-type CSS rules.  Button transform is left to CSS.
+       IMPORTANT: width/maxWidth/height use setProperty('…','important')
+       because CSS animations (e.g. the HUD-02 ncOrOpenHud width animation)
+       have higher cascade priority than normal inline styles but are
+       overridden by !important inline styles. */
+    function applyMiniConstraints() {
+      if (scale) panel.style.transform = 'scale(' + scale + ')';
+      panel.style.transformOrigin = 'top left';
+      panel.style.setProperty('width',     panelW + 'px', 'important');
+      panel.style.setProperty('max-width', 'none',        'important');
+      if (panelH) panel.style.setProperty('height', panelH + 'px', 'important');
+      panel.style.margin   = '0';
+      panel.style.overflow = 'hidden';
+    }
+
+    function clearMiniConstraints() {
+      panel.style.transform       = '';
+      panel.style.transformOrigin = '';
+      panel.style.removeProperty('width');
+      panel.style.removeProperty('max-width');
+      if (panelH) panel.style.removeProperty('height');
+      panel.style.margin   = '';
+      panel.style.overflow = '';
+    }
+
+    /* ── Expand (FLIP) ───────────────────────────────────────────── */
+    /* No opacity trick — the panel stays visible throughout.
+
+       mini (scale≠null) — translate + scale FLIP:
+         FIRST  = mini thumbnail rect.
+         Switch to expanded layout (keep width constraint so LAST has same
+         width as FIRST — only the position delta matters).
+         LAST   = expanded position with same width.
+         INVERT = translate(dx,dy) scale(miniScale) → panel appears at mini spot.
+         PLAY   = animate transform → '' (natural expanded state).
+
+       micro (scale=null) — scale-spread FLIP:
+         FIRST  = micro thumbnail rect.
+         Clear constraints BEFORE measuring LAST so the panel can reach its
+         full natural size.  Scale factor = micro / expanded.
+         INVERT = translate(dx,dy) scale(scaleX,scaleY) with origin top-left
+                  → panel appears shrunken at micro position.
+         PLAY   = animate transform → '' → panel "spreads" outward, no slide. */
+    function expand() {
+      /* FIRST — current mini/micro visual bounding box */
+      var first = panel.getBoundingClientRect();
+
+      /* Allow panel to extend outside widget slot during animation */
+      widget.style.overflow = 'visible';
+
+      /* Switch to expanded layout */
+      widget.classList.remove('is-mini');
+      widget.style.maxHeight = expandedMaxH + 'px';
+      widget.style.cursor    = '';
+      btn.style.transform       = '';
+      btn.style.transformOrigin = '';
+      updateBtn();
+
+      panel.style.transition = 'none';
+
+      if (scale) {
+        /* ── mini: translate + scale FLIP ───────────────────────── */
+        panel.style.setProperty('width', panelW + 'px', 'important');
+        panel.style.margin          = '0';
+        panel.style.transformOrigin = 'top left';
+
+        var last = panel.getBoundingClientRect();
+        var dx   = first.left - last.left;
+        var dy   = first.top  - last.top;
+
+        panel.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + scale + ')';
+        panel.offsetHeight;   /* force reflow — commits inverted state */
+
+        requestAnimationFrame(function () {
+          panel.style.transition = 'transform 600ms cubic-bezier(.2,.9,.2,1)';
+          panel.style.transform  = '';   /* animate to natural expanded state */
+
+          var fired = false;
+          function onExpanded() {
+            if (fired) return;
+            if (widget.classList.contains('is-mini')) return;
+            fired = true;
+            panel.style.transition = '';
+            clearMiniConstraints();
+            widget.style.overflow  = '';
+            if (typeof opts.onExpand === 'function') opts.onExpand();
+          }
+
+          var handled = false;
+          function onTransitionEnd(e) {
+            if (e.propertyName !== 'transform') return;
+            panel.removeEventListener('transitionend', onTransitionEnd);
+            handled = true;
+            onExpanded();
+          }
+          panel.addEventListener('transitionend', onTransitionEnd);
+          setTimeout(function () {
+            if (!handled) {
+              panel.removeEventListener('transitionend', onTransitionEnd);
+              onExpanded();
+            }
+          }, 800);
+        });
+
+      } else {
+        /* ── micro: scale-spread FLIP ───────────────────────────── */
+        /* Clear constraints first so LAST reflects the full expanded size */
+        clearMiniConstraints();
+
+        var last = panel.getBoundingClientRect();
+        var dx   = first.left - last.left;
+        var dy   = first.top  - last.top;
+
+        var scaleX = first.width  / Math.max(last.width,  1);
+        var scaleY = first.height / Math.max(last.height, 1);
+
+        /* Origin top-left → panel spreads rightward + downward from the
+           micro thumbnail's corner instead of sliding in from off-screen */
+        panel.style.transformOrigin = 'top left';
+        panel.style.transform =
+          'translate(' + dx + 'px,' + dy + 'px) scale(' + scaleX + ',' + scaleY + ')';
+        panel.offsetHeight;   /* force reflow */
+
+        requestAnimationFrame(function () {
+          panel.style.transition = 'transform 600ms cubic-bezier(.2,.9,.2,1)';
+          panel.style.transform  = '';   /* animate: spread to natural expanded state */
+
+          var fired = false;
+          function onExpanded() {
+            if (fired) return;
+            if (widget.classList.contains('is-mini')) return;
+            fired = true;
+            panel.style.transition      = '';
+            panel.style.transformOrigin = '';
+            widget.style.overflow       = '';
+            if (typeof opts.onExpand === 'function') opts.onExpand();
+          }
+
+          var handled = false;
+          function onTransitionEnd(e) {
+            if (e.propertyName !== 'transform') return;
+            panel.removeEventListener('transitionend', onTransitionEnd);
+            handled = true;
+            onExpanded();
+          }
+          panel.addEventListener('transitionend', onTransitionEnd);
+          setTimeout(function () {
+            if (!handled) {
+              panel.removeEventListener('transitionend', onTransitionEnd);
+              onExpanded();
+            }
+          }, 800);
+        });
+      }
+    }
+
+    /* ── Collapse (forward-collapse) ────────────────────────────── */
+    /* _instant = true  → sync, no animation (used at init time).
+       _instant = false → forward-collapse:
+         1. Estimate the mini/micro slot position from row siblings.
+         2. Apply panel size constraints (mini only) hidden by opacity:0 — so
+            the scale factor produces the correct thumbnail size throughout.
+         3. Animate the panel from its current expanded position TOWARD the
+            mini/micro slot (translate + scale) while staying in the expanded
+            flex slot.  No layout change during animation, no floating panel,
+            no Blogger-container clipping.
+         4. At transitionend: brief opacity:0 hides the layout snap
+            (widget.classList.add('is-mini') + applyMiniConstraints).
+            Then restore opacity — panel is now in the correct mini/micro state. */
+    function collapse(_instant) {
+      if (!_instant && typeof opts.onCollapse === 'function') opts.onCollapse();
+
+      if (_instant) {
+        widget.classList.add('is-mini');
+        widget.style.maxHeight = miniH + 'px';
+        widget.style.overflow  = 'hidden';
+        widget.style.cursor    = 'pointer';
+        applyMiniConstraints();
+        updateBtn();
+        return;
+      }
+
+      /* ── 1. Estimate mini slot position from flex-row siblings ──── */
+      /* Widget is currently order:99 at the bottom.  Mini position =
+         sum of widths of all is-mini siblings that come before it in
+         DOM order (the row has gap:0 so there is no inter-item gap). */
+      var par     = widget.parentElement;
+      var parRect = par ? par.getBoundingClientRect() : { left: 0, top: 0 };
+      var slotLeft = parRect.left;
+      var slotTop  = parRect.top;
+
+      if (par) {
+        var ch = par.children;
+        /* slotTop: use the first mini sibling's top for pixel accuracy */
+        var firstMini = null;
+        var miniBefore = 0;
+        for (var i = 0; i < ch.length; i++) {
+          if (ch[i] !== widget && ch[i].classList.contains('is-mini')) {
+            if (!firstMini) firstMini = ch[i];
+            if (ch[i] === widget) break;
+          }
+          if (ch[i] === widget) break;
+          if (ch[i].classList.contains('is-mini')) {
+            miniBefore++;
+            slotLeft += ch[i].getBoundingClientRect().width;
+          }
+        }
+        if (firstMini) slotTop = firstMini.getBoundingClientRect().top;
+        /* If no mini siblings exist yet, collapse in place instead of flying to row's left edge. */
+        if (miniBefore === 0) {
+          var targetMiniW = scale ? (panelW * scale) : panelW;
+          var centeredLeft = parRect.left + Math.max((parRect.width - targetMiniW) / 2, 0);
+          slotLeft = centeredLeft;
+          slotTop  = parRect.top;
+        }
+      }
+
+      /* ── 2. Capture unconstrained expanded rect ────────────────── */
+      var firstRaw = panel.getBoundingClientRect();
+
+      /* ── 3. Apply size constraints (mini mode only) ────────────── */
+      /* For mini: constrain panel to panelW so scale(miniScale) produces
+         the exact thumbnail size.  Hidden by brief opacity:0. */
+      widget.style.transition = 'none';
+      panel.style.transition  = 'none';
+      widget.style.opacity    = '0';
+      widget.offsetHeight;                   /* reflow — commits opacity:0 */
+
+      if (scale) {
+        panel.style.setProperty('width',     panelW + 'px', 'important');
+        panel.style.setProperty('max-width', 'none',        'important');
+        if (panelH) panel.style.setProperty('height', panelH + 'px', 'important');
+        panel.style.margin = '0';
+      }
+      panel.style.transformOrigin = 'top left';
+      panel.style.overflow        = 'visible';  /* prevent clip during animation */
+      panel.offsetHeight;                    /* reflow — commits constraints */
+
+      var first = panel.getBoundingClientRect();  /* post-constraint expanded position */
+      var dx    = slotLeft - first.left;
+      var dy    = slotTop  - first.top;
+
+      /* Hide expanded-slot background so panel animation is clean */
+      widget.style.background = 'transparent';
+      /* Raise widget above sibling row panels so the shrinking panel
+         is never occluded by the mini-row background during animation */
+      widget.style.zIndex     = '9999';
+
+      /* ── 4. Restore opacity — user sees animation start ─────────── */
+      widget.style.opacity    = '';
+      widget.style.transition = '';
+      /* Allow panel to leave widget's bounds as it flies to the mini slot.
+         Without this the widget's CSS overflow:hidden clips the panel the
+         moment it crosses the widget edge. */
+      widget.style.overflow   = 'visible';
+      panel.style.transition  = 'transform 600ms cubic-bezier(.42,0,.58,1)';
+
+      requestAnimationFrame(function () {
+        if (scale) {
+          /* mini: translate to slot + scale to mini thumbnail */
+          panel.style.transform =
+            'translate(' + dx + 'px,' + dy + 'px) scale(' + scale + ')';
+        } else {
+          /* micro: translate to slot + scale from expanded size to micro crop */
+          var targetW = panelW || firstRaw.width;
+          var targetH = panelH || firstRaw.height;
+          var sX = targetW / Math.max(firstRaw.width,  1);
+          var sY = targetH / Math.max(firstRaw.height, 1);
+          panel.style.transform =
+            'translate(' + dx + 'px,' + dy + 'px) scale(' + sX + ',' + sY + ')';
+        }
+
+        var colHandled = false;
+
+        function doSnap() {
+          /* Brief opacity:0 hides the layout snap at animation end */
+          widget.style.opacity    = '0';
+          widget.style.transition = 'none';
+          panel.style.transition  = 'none';
+          widget.offsetHeight;
+
+          widget.classList.add('is-mini');
+          widget.style.maxHeight  = miniH + 'px';
+          widget.style.cursor     = 'pointer';
+          widget.style.overflow   = 'hidden';
+          widget.style.background = '';         /* restore widget background */
+          widget.style.zIndex     = '';         /* restore stacking order */
+          applyMiniConstraints();               /* sets correct mini transform */
+          updateBtn();
+          if (!scale) panel.style.transform = '';  /* micro: clear anim transform */
+          panel.offsetHeight;
+
+          widget.style.opacity    = '';
+          widget.style.transition = '';
+          panel.style.transition  = '';
+        }
+
+        function onColEnd(e) {
+          if (e.propertyName !== 'transform') return;
+          panel.removeEventListener('transitionend', onColEnd);
+          colHandled = true;
+          doSnap();
+        }
+        panel.addEventListener('transitionend', onColEnd);
+        setTimeout(function () {
+          if (!colHandled) {
+            panel.removeEventListener('transitionend', onColEnd);
+            doSnap();
+          }
+        }, 800);
+      });
+    }
+
+    /* ── Event listeners ─────────────────────────────────────────── */
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (widget.classList.contains('is-mini')) expand(); else collapse();
+    });
+
+    widget.addEventListener('click', function () {
+      if (widget.classList.contains('is-mini')) expand();
+    });
+
+    /* Start in mini state — instant, no transition.
+       Panels like hud-03/05/06/07 have a scaleX/scaleY opening animation
+       running at DOMContentLoaded time. If we let the CSS transition fire
+       on the initial collapse(), it interpolates from the animation's
+       mid-run scaleX value → produces a visible squish glitch.
+       Disabling transitions for the initial snap fixes that. */
+    widget.style.transition = 'none';
+    panel.style.transition  = 'none';
+    collapse(true);                /* instant — no opacity trick, no rAF */
+    panel.offsetHeight;            /* force reflow — commits the instant mini state */
+    widget.style.transition = '';
+    panel.style.transition  = '';
+  }
+
+  global.NcHudMini = { init: init };
+
+})(window);
+/*]]>*/
+</script>

@@ -1,0 +1,1267 @@
+/* hud-01.css — Object Lock panel (nc-ol-*)
+   Migration source: legacy/template/blogger-template.css § OBJECT LOCK
+   Enhancement: HUD01-1 — progress bar, toolbar toggles, target-lock mode, Aladin layer
+                HUD01-2 — Aladin Lite v3 CDN integration, lazy init, fallback
+   Shared animations used: hudRotate, hudPanelSweep, hudBreath, hudProgressScan
+   Shared effects used:    .nc-panel-sweep
+*/
+
+/* ── Standalone page stage ───────────────────────────────────────── */
+
+.nc-hud01-stage {
+  padding: 32px 0;
+  background: var(--hud-bg);
+  min-height: 100vh;
+}
+
+/* ── Widget root ─────────────────────────────────────────────────── */
+
+.nc-ol-widget,
+.nc-ol-widget * {
+  box-sizing: border-box;
+}
+
+.nc-ol-widget {
+  position: relative;                                   /* anchor for .nc-ol-toggle-btn absolute positioning */
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;                                     /* was: clip — hidden needed for max-height transition */
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  max-height: 600px;                                    /* generous cap for expanded; overridden in .is-mini */
+  transition: max-height 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── Main panel ──────────────────────────────────────────────────── */
+
+.nc-ol-panel {
+  position: relative;
+  width: 120px; /* animates to min(1200px, 100%) via ncOlOpenHud */
+  max-width: 100%;
+  height: 420px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 520px 1fr;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)),
+    rgba(0,8,16,.95);
+
+  opacity: .65;
+
+  animation:
+    ncOlOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite; /* replaces ncOlPanelBreath → shared */
+
+  /* transform transition powers the mini ↔ expanded scale animation.
+     transform-origin must stay top center in BOTH states — if it were
+     only set in .is-mini it would snap to center center the instant
+     the class is removed, causing the panel to visually jump before
+     the scale transition even starts. */
+  transform-origin: top center;
+  transition: transform 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── SVG frame ───────────────────────────────────────────────────── */
+
+.nc-ol-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 30;
+  pointer-events: none;
+  overflow: visible;           /* allow blur filter to bleed outside SVG viewport */
+}
+
+.nc-ol-frame-line {
+  fill: none;
+  stroke: rgba(80,220,255,.88);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+}
+
+.nc-ol-frame-inner {
+  stroke: rgba(150,245,255,.62);
+  stroke-width: 1.2;
+}
+
+.nc-ol-frame-photo-top,
+.nc-ol-frame-photo-bottom {
+  stroke: rgba(100,235,255,.72);
+  stroke-width: 1.4;
+}
+
+/* .nc-ol-frame-stripes removed in HUD01-1 — replaced by .nc-ol-progress bar */
+
+.nc-ol-frame-tab {
+  fill: rgba(70,200,255,.90);
+  filter: drop-shadow(0 0 10px rgba(80,220,255,.9));
+}
+
+.nc-ol-frame-tab-top {
+  animation: ncOlTopSvgSlider 5s ease-in-out infinite;
+}
+
+/* ── Sweep — geometry from .nc-panel-sweep (effects.css) ─────────── */
+
+.nc-ol-sweep {
+  z-index: 3;
+  opacity: .5;
+}
+
+/* ── Left image column ───────────────────────────────────────────── */
+
+.nc-ol-left {
+  position: relative;
+  min-width: 520px;
+  width: 520px;
+  height: 420px;
+  overflow: hidden;
+  background: #000;
+  z-index: 1;
+}
+
+.nc-ol-image {
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  display: block;
+  object-fit: cover;
+  filter: brightness(.72) contrast(1.18) saturate(.85);
+}
+
+/* ── Reticle ─────────────────────────────────────────────────────── */
+
+.nc-ol-reticle {
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.nc-ol-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.nc-ol-ring-1 {
+  width: 270px;
+  height: 270px;
+  border: 2px solid rgba(80,245,255,.75);
+  box-shadow: 0 0 18px rgba(80,245,255,.5);
+  animation: hudPulseOuter 4s ease-in-out infinite; /* → shared */
+}
+
+.nc-ol-ring-2 {
+  width: 210px;
+  height: 210px;
+  border: 2px dashed rgba(80,245,255,.82);
+  animation: hudRotate 10s linear infinite; /* replaces ncOlRotateSlow → shared */
+}
+
+.nc-ol-ring-3 {
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(170,255,255,.88);
+  opacity: .65;
+  animation: hudPulseInner 2.5s ease-in-out infinite; /* → shared */
+}
+
+.nc-ol-cross {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+}
+
+.nc-ol-cross::before,
+.nc-ol-cross::after {
+  content: "";
+  position: absolute;
+  background: rgba(120,255,255,.85);
+  box-shadow: 0 0 10px rgba(80,245,255,.72);
+}
+
+.nc-ol-cross::before {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+  left: 0;
+}
+
+.nc-ol-cross::after {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+}
+
+.nc-ol-lock-box {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  animation: hudLockBoxPulse 3.2s ease-in-out infinite; /* → shared */
+}
+
+.nc-ol-lock-box span {
+  position: absolute;
+  display: block;
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 0 8px rgba(80,245,255,.9));
+}
+
+.nc-ol-lock-box span::before,
+.nc-ol-lock-box span::after {
+  content: "";
+  position: absolute;
+  background: rgba(150,255,255,.95);
+  box-shadow: 0 0 10px rgba(80,245,255,.75);
+}
+
+.nc-ol-lock-box span::before { width: 34px; height: 3px; }
+.nc-ol-lock-box span::after  { width: 3px;  height: 34px; }
+
+.nc-ol-lock-box span:nth-child(1)         { top: 0;    left: 0; }
+.nc-ol-lock-box span:nth-child(1)::before { top: 0;    left: 0; }
+.nc-ol-lock-box span:nth-child(1)::after  { top: 0;    left: 0; }
+
+.nc-ol-lock-box span:nth-child(2)         { top: 0;    right: 0; }
+.nc-ol-lock-box span:nth-child(2)::before { top: 0;    right: 0; }
+.nc-ol-lock-box span:nth-child(2)::after  { top: 0;    right: 0; }
+
+.nc-ol-lock-box span:nth-child(3)         { bottom: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(3)::before { bottom: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(3)::after  { bottom: 0; left: 0; }
+
+.nc-ol-lock-box span:nth-child(4)         { bottom: 0; right: 0; }
+.nc-ol-lock-box span:nth-child(4)::before { bottom: 0; right: 0; }
+.nc-ol-lock-box span:nth-child(4)::after  { bottom: 0; right: 0; }
+
+.nc-ol-corner {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-color: rgba(210,255,255,.95);
+}
+
+.nc-ol-corner-tl { top: 46px;    left: 46px;  border-top: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-tr { top: 46px;    right: 46px; border-top: 2px solid; border-right: 2px solid; }
+.nc-ol-corner-bl { bottom: 46px; left: 46px;  border-bottom: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-br { bottom: 46px; right: 46px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.nc-ol-center-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 0 18px rgba(80,245,255,.95);
+}
+
+.nc-ol-target-lock {
+  position: absolute;
+  bottom: 30px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .26em;
+  color: #d8ffff;
+  text-shadow: 0 0 12px rgba(80,245,255,.95);
+  animation: hudBlinkSoft 1.4s ease-in-out infinite; /* → shared */
+}
+
+/* ── Right data column ───────────────────────────────────────────── */
+
+.nc-ol-right {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  height: 420px;
+  padding: 52px 68px 30px 10px;
+  color: #cfffff;
+  background: linear-gradient(90deg, rgba(0,18,32,.97), rgba(0,12,26,.99));
+  text-shadow: 0 0 8px rgba(80,245,255,.55);
+  overflow: hidden;
+}
+
+.nc-ol-right > * {
+  position: relative;
+  z-index: 4;
+}
+
+.nc-ol-title {
+  position: relative;
+  margin: 0 auto 34px auto;
+  width: max-content;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-ol-title::before,
+.nc-ol-title::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(120,245,255,.85);
+}
+
+.nc-ol-title::before {
+  left: -40px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.nc-ol-title::after {
+  right: -40px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.nc-ol-title-brackets {
+  position: absolute;
+  top: 116px;
+  left: 50%;
+  width: 260px;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(80,245,255,.75), transparent);
+  box-shadow: 0 0 10px rgba(80,245,255,.8);
+}
+
+.nc-ol-grid {
+  display: grid;
+  grid-template-columns: 85px minmax(0, 1fr) 85px minmax(0, 1fr);
+  row-gap: 8px;
+  column-gap: 10px;
+  padding-top: 26px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.05;
+  letter-spacing: .05em;
+}
+
+.nc-ol-label,
+.nc-ol-value {
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(80,220,255,.26);
+}
+
+.nc-ol-label {
+  font-weight: 400;
+  color: #dfffff;
+  white-space: nowrap;
+}
+
+.nc-ol-value {
+  color: #9ffcff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+/* ── Progress bar (replaces SVG stripes) ────────────────────────── */
+
+/* Positioned to match where stripes were: SVG x=154..532, y=36..59
+   (panel is 420px fixed height; x uses % of panel width) */
+.nc-ol-progress {
+  position: absolute;
+  top: 33px;
+  left: 14%;            /* 154 / 1200 */
+  width: 31.5%;            /* 378 / 1200 */
+  height: 24px;
+  z-index: 25;             /* below SVG (30), above content (1-4) */
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(80,220,255,.10)  0px,
+      rgba(80,220,255,.10) 13px,
+      rgba(0,10,30,.55)    13px,
+      rgba(0,10,30,.55)    14px
+    );
+  box-shadow:
+    0 0 4px rgba(80,220,255,.20),
+    inset 0 0 4px rgba(0,0,0,.40);
+}
+
+/* Scanning beam — animates via shared hudProgressScan keyframe */
+.nc-ol-progress__fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent              0%,
+    rgba(80,220,255,.08)    25%,
+    rgba(80,240,255,.65)    50%,
+    rgba(80,220,255,.08)    75%,
+    transparent             100%
+  );
+  filter: blur(1px);
+  animation: hudProgressScan 3s linear infinite;
+}
+
+/* ── Reticle transitions ─────────────────────────────────────────── */
+
+.nc-ol-reticle {
+  transition: opacity .3s ease;
+}
+
+/* ── Aladin Lite layer (HUD01-2) ─────────────────────────────────── */
+
+.nc-hud-01-aladdin {
+  /* Hidden by default via opacity; data-aladdin="on" fades it in.
+     Falls back to opacity:0 (photo revealed) if Aladin fails to load.
+     z-index: 2 — above image (auto/0), BELOW reticle (4) so the
+     reticle overlay stays on top when both are visible. */
+  display: block;
+  opacity: 0;
+  pointer-events: none;    /* pass clicks through when invisible */
+  transition: opacity 600ms ease;
+
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  z-index: 2;
+  overflow: hidden;
+  background: rgba(0, 8, 18, .96);
+  border: 1px solid rgba(80,220,255,.28);
+  box-shadow: inset 0 0 40px rgba(0,220,255,.06);
+}
+
+/* Aladin viewer fills the layer */
+#nc-hud-01-aladin-viewer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Placeholder — centred overlay shown before / instead of Aladin */
+.nc-hud-01-aladdin__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;              /* above viewer */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+/* Hide placeholder once Aladin initialised successfully */
+.nc-hud-01-aladdin--ready .nc-hud-01-aladdin__placeholder {
+  display: none;
+}
+
+/* ── Aladin Lite UI overrides — HUD dark theme (HUD01-2) ────────────── */
+
+/* Move location/search bar to the bottom-left of the viewer,
+   override Aladin's default top-left placement.
+   Uses !important only where Aladin's specificity matches ours. */
+#nc-hud-01-aladin-viewer .aladin-location {
+  top:    auto  !important;
+  left:   auto  !important;
+  right:  6px;
+  bottom: 6px;
+
+  background:    rgba(0, 8, 20, 0.82);
+  border:        1px solid rgba(80, 220, 255, 0.28);
+  border-radius: 2px;
+  backdrop-filter: blur(3px);
+}
+
+/* Input field inside location bar */
+#nc-hud-01-aladin-viewer .aladin-location .aladin-input-text {
+  background:     transparent;
+  color:          rgba(80, 220, 255, 0.90);
+  border:         none;
+  font-family:    "Share Tech Mono", monospace;
+  font-size:      0.65rem;
+  letter-spacing: 0.04em;
+  padding:        2px 4px;
+}
+
+#nc-hud-01-aladin-viewer .aladin-location .aladin-input-text::placeholder {
+  color:       rgba(80, 220, 255, 0.32);
+  font-family: "Share Tech Mono", monospace;
+}
+
+#nc-hud-01-aladin-viewer .aladin-location .aladin-input-text:focus {
+  outline: none;
+  color:   rgba(120, 240, 255, 1);
+  box-shadow: 0 0 6px rgba(80, 220, 255, 0.25);
+}
+
+/* Copy-to-clipboard icon button */
+#nc-hud-01-aladin-viewer .aladin-location .aladin-location-copy {
+  background:   rgba(0, 8, 20, 0.82);
+  border-color: rgba(80, 220, 255, 0.28);
+  border-right: none;
+}
+
+#nc-hud-01-aladin-viewer .aladin-location .aladin-location-copy img {
+  /* Tint icon to HUD cyan */
+  filter: invert(75%) sepia(60%) saturate(600%) hue-rotate(162deg) brightness(1.2);
+}
+
+/* Hide Aladin logo — not needed inside HUD frame */
+#nc-hud-01-aladin-viewer .aladin-logo-container,
+#nc-hud-01-aladin-viewer .aladin-logo {
+  display: none !important;
+}
+
+.nc-hud-01-aladdin__label {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.60);
+  text-shadow: 0 0 10px rgba(80,220,255,.40);
+}
+
+.nc-hud-01-aladdin__sub {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.30);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────── */
+
+.nc-ol-toolbar {
+  position: absolute;
+  bottom: 16px;
+  right: 72px;
+  z-index: 35;             /* above SVG (30) */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: all;
+}
+
+/* Button groups — inner flex containers */
+.nc-ol-tb-group {
+  display: flex;
+  gap: 6px;
+}
+
+/* Vertical separator between Group A and Group B */
+.nc-ol-tb-sep {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(80, 220, 255, 0.18);
+  margin: 0 6px;
+}
+
+.nc-ol-tb-btn {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 4px 10px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% 100%,
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-ol-tb-btn:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+}
+
+.nc-ol-tb-btn[aria-pressed="true"] {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Mode: data-attribute CSS rules ─────────────────────────────── */
+
+/* Reticle hidden when target-lock mode is off */
+.nc-ol-widget[data-target-lock="off"] .nc-ol-reticle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Reticle hidden when toolbar reticle toggle is off (independent) */
+.nc-ol-widget[data-reticle="off"] .nc-ol-reticle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Aladin layer fades in when aladdin toggle is on */
+.nc-ol-widget[data-aladdin="on"] .nc-hud-01-aladdin {
+  opacity: 1;
+  pointer-events: all;    /* restore Aladin mouse events for pan/zoom */
+}
+
+/* ── Info panel visibility (HUD01-3) ────────────────────────────── */
+
+/* All info panels hidden by default.
+   !important prevents .nc-ol-grid { display: grid } on the data panel
+   from leaking through when the panel should be hidden. */
+.nc-ol-info-panel {
+  display: none !important;
+}
+
+/* DATA panel — grid layout matching the original static data block */
+.nc-ol-widget[data-info-mode="data"] .nc-ol-info-panel--data {
+  display: grid !important;
+}
+
+/* CATALOG panel — flex centering by default (placeholder, loading, error states).
+   Overridden to block + scroll by .nc-ol-papers-list once catalog refs are rendered. */
+.nc-ol-widget[data-info-mode="catalog"] .nc-ol-info-panel--catalog {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+/* Catalog list — overrides flex to block + scroll when refs are rendered */
+.nc-ol-widget[data-info-mode="catalog"] .nc-ol-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 270px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+/* PAPERS panel — centred standby layout (ADS not yet implemented) */
+.nc-ol-widget[data-info-mode="papers"] .nc-ol-info-panel--papers {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 160px;
+}
+
+/* Placeholder text for PAPERS / CATALOG panels */
+.nc-ol-info-placeholder {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.55);
+  text-align: center;
+  line-height: 1.8;
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.25);
+}
+
+/* ── DATA panel status / loading / error ────────────────────────── */
+
+/* Status wrapper — spans both grid columns */
+.nc-ol-data-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0 14px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.nc-ol-data-status--loading {
+  color: rgba(80, 220, 255, 0.50);
+}
+
+.nc-ol-data-status--error {
+  color: rgba(255, 100, 100, 0.60);
+}
+
+/* Spinning ring — shown only in loading state */
+.nc-ol-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(80, 220, 255, 0.14);
+  border-top-color: rgba(80, 220, 255, 0.75);
+  border-radius: 50%;
+  animation: hudSpinner 0.85s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Cached-data note — spans both columns, dim footer */
+.nc-ol-data-note {
+  grid-column: 1 / -1;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-align: center;
+  color: rgba(80, 220, 255, 0.22);
+  padding-top: 8px;
+  border-top: 1px solid rgba(80, 220, 255, 0.10);
+  margin-top: 4px;
+}
+
+/* ── Article cards (HUD01-5) ─────────────────────────────────────── */
+
+.nc-ol-paper-card {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.14);
+}
+
+.nc-ol-paper-card:last-child {
+  border-bottom: none;
+}
+
+.nc-ol-paper-title {
+  display: block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgba(130, 245, 255, 0.90);
+  text-decoration: none;
+  text-shadow: 0 0 6px rgba(80, 220, 255, 0.30);
+  margin-bottom: 4px;
+}
+
+.nc-ol-paper-title:hover {
+  color: rgba(160, 255, 255, 1);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.40);
+  text-underline-offset: 2px;
+}
+
+.nc-ol-paper-meta {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(80, 200, 255, 0.50);
+  margin-bottom: 4px;
+}
+
+.nc-ol-paper-abstract {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(160, 240, 255, 0.45);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Webkit scrollbar for catalog panel */
+.nc-ol-info-panel--catalog::-webkit-scrollbar        { width: 3px; }
+.nc-ol-info-panel--catalog::-webkit-scrollbar-track  { background: transparent; }
+.nc-ol-info-panel--catalog::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.25); border-radius: 2px; }
+
+/* ── PAPERS panel — HUD01-6 ─────────────────────────────────────── */
+
+/* Scrollable list container (class added by loadPapers on render) */
+.nc-ol-widget[data-info-mode="papers"] .nc-ol-info-panel--papers {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+.nc-ol-widget[data-info-mode="papers"] .nc-hud-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 270px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+.nc-ol-info-panel--papers::-webkit-scrollbar        { width: 3px; }
+.nc-ol-info-panel--papers::-webkit-scrollbar-track  { background: transparent; }
+.nc-ol-info-panel--papers::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.25); border-radius: 2px; }
+
+/* Section header — shared by PAPERS and CATALOGS panels */
+.nc-hud-panel-header {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 15px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.82);
+  text-align: center;
+  padding: 7px 8px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.12);
+  margin-bottom: 2px;
+}
+
+/* Paper row */
+.nc-hud-paper-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.06);
+  transition: background .15s;
+}
+.nc-hud-paper-row:hover {
+  background: rgba(80, 220, 255, 0.04);
+}
+.nc-hud-paper-row:last-child {
+  border-bottom: none;
+}
+
+/* [YEAR] badge */
+.nc-hud-paper-year {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: rgba(80, 220, 255, 0.50);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Title — cyan, 2-line clamp; works as both <span> and <a> */
+.nc-hud-paper-title {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: .02em;
+  color: rgba(80, 220, 255, 0.88);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-decoration: none;   /* strip default link underline */
+  cursor: pointer;
+}
+a.nc-hud-paper-title:hover {
+  color: rgba(80, 220, 255, 1);
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.45);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Journal abbreviation — dim, right */
+.nc-hud-paper-journal {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: rgba(80, 220, 255, 0.32);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Mode: object / html (HUD01-4) ──────────────────────────────── */
+
+/* In OBJECT mode everything works as before — no extra rules needed.
+   In HTML mode we hide all object-specific layers and show the slot. */
+
+/* Object-mode-only elements — hidden in html mode */
+.nc-hud-01[data-mode="html"] .nc-ol-left,
+.nc-hud-01[data-mode="html"] .nc-ol-right,
+.nc-hud-01[data-mode="html"] .nc-ol-toolbar {
+  display: none !important;
+}
+
+/* HTML slot — hidden by default (object mode), shown in html mode */
+.nc-hud-01-html-slot {
+  display: none;
+  position: absolute;
+  inset: 62px 30px 20px 30px;  /* top=62px matches inner frame left line (SVG y=62) */
+  z-index: 10;                   /* above sweep (3), below SVG frame (30) */
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 52px horizontal padding — leaves room for .nc-ol-title corner brackets
+     which sit at ±40px from the title edge */
+  padding: 16px 52px 16px 52px;
+
+  /* Custom scrollbar — HUD style */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-hud-01[data-mode="html"] .nc-hud-01-html-slot {
+  display: block;
+}
+
+/* .nc-ol-title reused as a panel heading inside the html-slot */
+.nc-hud-01-html-slot .nc-ol-title {
+  margin-top: 14px;   /* ← shift title down; edit this value */
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: -10px;
+  width: auto;
+}
+
+/* ── HTML slot typography (scoped — no globals) ──────────────────── */
+
+.nc-hud-01-html-slot h1,
+.nc-hud-01-html-slot h2,
+.nc-hud-01-html-slot h3,
+.nc-hud-01-html-slot h4 {
+  font-family: "Share Tech Mono", monospace;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(130, 245, 255, 0.92);
+  text-shadow: 0 0 8px rgba(80, 220, 255, 0.40);
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.nc-hud-01-html-slot h1 { font-size: 22px; }
+.nc-hud-01-html-slot h2 { font-size: 17px; }
+.nc-hud-01-html-slot h3 { font-size: 13px; letter-spacing: .16em; }
+.nc-hud-01-html-slot h4 { font-size: 11px; letter-spacing: .18em; color: rgba(80, 220, 255, 0.70); }
+
+.nc-hud-01-html-slot p {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+}
+
+.nc-hud-01-html-slot a {
+  color: rgba(80, 220, 255, 0.90);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.35);
+  text-underline-offset: 3px;
+}
+
+.nc-hud-01-html-slot a:hover {
+  color: rgba(140, 245, 255, 1);
+  text-decoration-color: rgba(140, 245, 255, 0.60);
+}
+
+.nc-hud-01-html-slot ul,
+.nc-hud-01-html-slot ol {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+  padding-left: 1.4em;
+  line-height: 1.6;
+}
+
+.nc-hud-01-html-slot img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid rgba(80, 220, 255, 0.22);
+  margin-bottom: 10px;
+}
+
+.nc-hud-01-html-slot iframe,
+.nc-hud-01-html-slot video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid rgba(80, 220, 255, 0.18);
+  margin-bottom: 10px;
+}
+
+.nc-hud-01-html-slot table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  color: rgba(190, 250, 255, 0.78);
+  margin-bottom: 10px;
+}
+
+.nc-hud-01-html-slot th,
+.nc-hud-01-html-slot td {
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.18);
+  text-align: left;
+}
+
+.nc-hud-01-html-slot th {
+  color: rgba(130, 245, 255, 0.90);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* Webkit scrollbar styling for html slot */
+.nc-hud-01-html-slot::-webkit-scrollbar       { width: 4px; }
+.nc-hud-01-html-slot::-webkit-scrollbar-track  { background: transparent; }
+.nc-hud-01-html-slot::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.28); border-radius: 2px; }
+
+/* ── Keyframes — widget-specific only ───────────────────────────── */
+/* hudPulseOuter, hudPulseInner, hudBlinkSoft, hudLockBoxPulse → shared/animations.css */
+/* hudProgressScan → shared/animations.css                                             */
+
+/* Loading spinner for DATA panel */
+@keyframes hudSpinner {
+  to { transform: rotate(360deg); }
+}
+
+/* Panel expands from collapsed state on load */
+@keyframes ncOlOpenHud {
+  from { width: 120px; opacity: .65; }
+  to   { width: min(1200px, 100%); opacity: 1; }
+}
+
+/* SVG sliding accent tab */
+@keyframes ncOlTopSvgSlider {
+  0%, 100% { transform: translateX(-70px); opacity: .65; }
+  50%      { transform: translateX(70px);  opacity: 1; }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .nc-ol-widget { padding: 12px; }
+
+  .nc-ol-panel {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .nc-ol-sweep,
+  .nc-ol-frame-svg { display: none; }
+
+  .nc-ol-left {
+    min-width: 0;
+    width: 100%;
+    height: 320px;
+  }
+
+  .nc-ol-image {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-ol-reticle {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-ol-right {
+    min-width: 0;
+    height: auto;
+    padding: 28px 22px 30px;
+  }
+
+  .nc-ol-title {
+    font-size: 22px;
+    margin-bottom: 28px;
+  }
+
+  .nc-ol-grid {
+    grid-template-columns: 100px minmax(0, 1fr);
+    font-size: 12px;
+    row-gap: 12px;
+    column-gap: 12px;
+  }
+
+  .nc-ol-value { white-space: normal; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HUD01-7: Mini / Expanded toggle
+   .nc-ol-widget.is-mini  → compact 148px teaser (full HUD-01 scaled)
+   .nc-ol-widget          → full 420px data panel (default)
+
+   The mini card is the entire HUD-01 panel uniformly scaled down by
+   factor 148/420 ≈ 0.352.  No child overrides — the panel just shrinks.
+   transform-origin: top center → stays centred in the full-width widget.
+══════════════════════════════════════════════════════════════════ */
+
+.nc-ol-widget.is-mini {
+  max-height: 148px;
+  cursor: pointer;
+}
+
+.nc-ol-widget.is-mini .nc-ol-panel {
+  transform: scale(0.352);
+  /* transform-origin inherited from .nc-ol-panel base rule */
+}
+
+/* ── Toggle button — organic HUD element, inside .nc-ol-panel ───── */
+
+/* In mini: counteract the panel's scale(0.352) so the button
+   appears at normal size in the top-right corner of the card */
+.nc-ol-widget.is-mini .nc-ol-toggle-btn {
+  transform: scale(2.84);
+  transform-origin: top right;
+}
+
+.nc-ol-toggle-btn {
+  position: absolute;
+  /* Inside the inner frame's top-right corner:
+     inner-frame diagonal from (1145,26) to (1174,54).
+     At right:30px (x≈1170), diagonal is at y≈50 → align button top there. */
+  top: 50px;
+  right: 30px;
+  z-index: 36;                /* above SVG frame (30) — stays clickable */
+  font-family: "Share Tech Mono", monospace;
+  font-size: 38px;
+  line-height: 1;
+
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+
+  /* Same clip-path family as the toolbar buttons */
+  clip-path: polygon(
+    5px 0%, calc(100% - 5px) 0%,
+    100% 5px, 100% 100%,
+    calc(100% - 5px) 100%, 5px 100%,
+    0% calc(100% - 5px), 0% 5px
+  );
+
+  box-shadow: none;
+
+  transition: border-color .18s ease, box-shadow .18s ease,
+              color .18s ease, background .18s ease;
+  pointer-events: all;
+}
+
+.nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  background: transparent;
+  border-color: rgba(80, 220, 255, .75);
+  box-shadow: none;
+}
+
+/* HUD-style tooltip — appears below the button on hover */
+.nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+
+.nc-ol-toggle-btn:hover::after {
+  display: block;
+}
+
+/* ── Contour sweep runner (HUD-01) ───────────────────────────────── */
+/* Replaces the rectangular .nc-panel-sweep with a stroke that travels
+   around the outer SVG frame path.  Scoped to .nc-hud-01 only.       */
+
+/* Hide the broad rectangular sweep — contour runner takes its place */
+.nc-hud-01 .nc-ol-sweep {
+  display: none;
+}
+
+/* Glow bar — 3 coincident layers, soft feathered edges.
+   blur() on outer layers makes all four edges (sides + ends) dissolve
+   gradually; bright centre line stays sharp. Speed: 11 s. */
+
+/* Glow bar — 4 coincident layers with progressively tighter blur.
+   Very wide outer layers + heavy blur = near-zero brightness at edges,
+   rising smoothly to the bright centre line.  Speed: 22 s.           */
+
+/* Wide aura: 72 px, very faint, extra-heavy blur → ultra-soft dissolve */
+.nc-ol-runner-tail {
+  fill: none;
+  stroke: rgba(60, 190, 255, .13);
+  stroke-width: 72;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;  /* 120 + 2956 = 3076 */
+  filter: blur(32px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+/* Mid-outer: 32 px, moderate-heavy blur */
+.nc-ol-runner-body {
+  fill: none;
+  stroke: rgba(90, 210, 255, .26);
+  stroke-width: 32;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(16px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+/* Mid-inner: 10 px, light blur */
+.nc-ol-runner-head {
+  fill: none;
+  stroke: rgba(150, 232, 255, .55);
+  stroke-width: 10;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(3px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+/* Centre line: no blur, brightness –20% */
+.nc-ol-runner-spark {
+  fill: none;
+  stroke: rgba(200, 240, 255, .77);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter:
+    drop-shadow(0 0 3px  rgba(180, 240, 255, .80))
+    drop-shadow(0 0 10px rgba(80,  200, 255, .64));
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+@keyframes ncOlSweepBar {
+  from { stroke-dashoffset:   0; }
+  to   { stroke-dashoffset: -3076; }
+}

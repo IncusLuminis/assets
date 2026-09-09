@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUD-03 HUD Post — NebulaCast</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+
+  <!-- Shared layer -->
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+
+  <!-- Mini/expand toggle (shared) -->
+  <link rel="stylesheet" href="../../shared/css/mini-toggle.css?v=3">
+
+  <!-- Widget -->
+  <link rel="stylesheet" href="./hud-03.css?v=6">
+</head>
+<body>
+
+  <main class="nc-hud03-stage">
+
+    <div class="nc-hp-widget">
+
+      <!-- ── Mini card thumbnail — shown when panel is collapsed ──── -->
+      <div class="nc-hp-mini-card" aria-hidden="true">
+        <p class="nc-hp-mini-system">OUTPOST 32</p>
+        <div class="nc-hp-mini-body">
+          <img class="nc-hp-mini-thumb"
+               src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg1kUKig0hsebTNeM3jpqs7ncqM5e7GBFsNjc92DAlw0orANkHEkSop4ABR2V2LwLa-_OFMa9IZborUuAnZEreoW-JHByHT2o5hYpsxRTbYvljDtw0K4JWgi79KeFzKaO4EVdRNao1v6-rklSvQMXrItBJZWW4v-1wL-4ngI-qKSudGgfXS07R1HtYAu9g/s1536/Akemi_27.png"
+               alt="">
+          <h2 class="nc-hp-mini-name">АКЕМИ ХАНА</h2>
+        </div>
+      </div>
+
+      <div class="nc-hp-panel">
+
+        <div class="nc-hp-frame-shell"></div>
+
+        <div class="nc-hp-frame-mask nc-hp-frame-mask-left"></div>
+        <div class="nc-hp-frame-mask nc-hp-frame-mask-right"></div>
+
+        <div class="nc-hp-frame-topline">
+          <span class="nc-hp-topline-left"></span>
+          <span class="nc-hp-topline-slope"></span>
+          <span class="nc-hp-topline-right"></span>
+          <span class="nc-hp-topline-side"></span>
+        </div>
+
+        <div class="nc-hp-frame-inner"></div>
+
+        <div class="nc-hp-frame-loader">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+
+        <div class="nc-hp-frame-ticker">
+          <span>
+            JWST / PROTOPLANETARY DISK SURVEY / MHD WINDS DETECTED /
+            MASS LOSS RATE ANALYSIS / TARGET CLASSIFICATION UPDATED
+          </span>
+        </div>
+
+        <!-- nc-panel-sweep provides geometry + animation from effects.css -->
+        <!-- nc-hp-sweep provides widget-specific z-index + opacity        -->
+        <div class="nc-hp-sweep nc-panel-sweep"></div>
+
+        <div class="nc-hp-content">
+
+          <div class="nc-hp-system">
+            OUTPOST 32
+          </div>
+
+          <h2 class="nc-hp-title">АКЕМИ ХАНА</h2>
+
+          <div class="nc-hp-text" lang="ru">
+            <img
+              class="nc-hp-float-image"
+              src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg1kUKig0hsebTNeM3jpqs7ncqM5e7GBFsNjc92DAlw0orANkHEkSop4ABR2V2LwLa-_OFMa9IZborUuAnZEreoW-JHByHT2o5hYpsxRTbYvljDtw0K4JWgi79KeFzKaO4EVdRNao1v6-rklSvQMXrItBJZWW4v-1wL-4ngI-qKSudGgfXS07R1HtYAu9g/s1536/Akemi_27.png"
+              alt="Akemi Hana"
+            >
+
+            Знаете, меня всегда забавляло, насколько романтично люди представляют рождение планет. Все эти красивые картинки: сияющий диск, спирали пыли, юные миры, возникающие вокруг молодой звезды… Очень поэтично. Но реальность, как обычно, куда менее сентиментальна.
+
+            <br><br>
+
+            Эта работа JWST показывает не процесс рождения, а процесс утраты. Диск не просто формирует планеты — он одновременно медленно умирает. И, возможно, именно это определяет судьбу всей системы.
+
+            <br><br>
+
+            Самое важное здесь — даже не сами ветры. Мы подозревали их существование давно. Важнее другое: впервые появляется статистика. Не единичный экзотический объект. Не edge-on красавец для пресс-релиза. А десятки обычных протопланетных дисков. И оказывается, что молекулярные ветры — повсюду.
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script src="../../shared/js/hud-core.js"></script>
+  <script src="../../shared/js/hud-mini.js?v=3"></script>
+  <script src="./hud-03.js?v=3"></script>
+</body>
+</html>

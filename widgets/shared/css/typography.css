@@ -1,0 +1,62 @@
+/* typography.css — HUD typographic scale and text helpers */
+
+/* Headings */
+.nc-heading-1 {
+  font-size: var(--hud-font-2xl);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--hud-text-accent);
+  text-shadow: 0 0 10px var(--hud-glow);
+  line-height: 1.2;
+}
+
+.nc-heading-2 {
+  font-size: var(--hud-font-xl);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--hud-text);
+  line-height: 1.3;
+}
+
+.nc-heading-3 {
+  font-size: var(--hud-font-lg);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hud-text-dim);
+  line-height: 1.4;
+}
+
+/* Body text */
+.nc-body {
+  font-size: var(--hud-font-md);
+  line-height: 1.6;
+  color: var(--hud-text);
+}
+
+/* Small / caption */
+.nc-caption {
+  font-size: var(--hud-font-sm);
+  letter-spacing: 0.08em;
+  color: var(--hud-text-dim);
+  line-height: 1.4;
+}
+
+/* Data / mono */
+.nc-data {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: var(--hud-font-sm);
+  letter-spacing: 0.05em;
+  color: var(--hud-text-accent);
+}
+
+/* Tag / badge */
+.nc-tag {
+  display: inline-block;
+  font-size: var(--hud-font-xs);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--hud-line);
+  border-radius: var(--hud-radius);
+  color: var(--hud-text-accent);
+}

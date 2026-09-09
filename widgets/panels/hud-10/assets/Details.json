@@ -1,0 +1,355 @@
+{
+  "assetId": "asset_mpnhpib3_83ps6",
+  "name": "Details.png",
+  "canvas": {
+    "width": 992,
+    "height": 1586
+  },
+  "shapes": [
+    {
+      "id": "outer_frame_2",
+      "type": "polyline",
+      "layer": "outer",
+      "points": [],
+      "stroke": "#5af0ff",
+      "strokeWidth": 4,
+      "fill": "none",
+      "closed": false,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_5",
+      "type": "polyline",
+      "layer": "inner",
+      "points": [
+        [
+          0.096774,
+          0.680958
+        ],
+        [
+          0.096774,
+          0.849937
+        ]
+      ],
+      "stroke": "#5af0ff",
+      "strokeWidth": 6,
+      "fill": "none",
+      "closed": false,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_6",
+      "type": "polyline",
+      "layer": "inner",
+      "points": [],
+      "stroke": "#5af0ff",
+      "strokeWidth": 6,
+      "fill": "none",
+      "closed": false,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_7",
+      "type": "polyline",
+      "layer": "inner",
+      "points": [],
+      "stroke": "#5af0ff",
+      "strokeWidth": 6,
+      "fill": "none",
+      "closed": false,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_3",
+      "type": "polyline",
+      "layer": "outer",
+      "points": [
+        [
+          0.108871,
+          0.542245
+        ],
+        [
+          0.108871,
+          0.61034
+        ]
+      ],
+      "stroke": "#5af0ff",
+      "strokeWidth": 4,
+      "fill": "none",
+      "closed": false,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_3_2",
+      "type": "polygon",
+      "layer": "outer",
+      "points": [
+        [
+          0.866935,
+          0.754098
+        ],
+        [
+          0.899194,
+          0.771753
+        ],
+        [
+          0.899194,
+          0.870113
+        ],
+        [
+          0.866935,
+          0.860025
+        ]
+      ],
+      "stroke": "#5af0ff",
+      "strokeWidth": 2,
+      "fill": "#5af0ff",
+      "closed": true,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_3_3",
+      "type": "polygon",
+      "layer": "outer",
+      "points": [],
+      "stroke": "#5af0ff",
+      "strokeWidth": 2,
+      "fill": "#5af0ff",
+      "closed": true,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_3_4",
+      "type": "polygon",
+      "layer": "outer",
+      "points": [],
+      "stroke": "#5af0ff",
+      "strokeWidth": 2,
+      "fill": "#5af0ff",
+      "closed": true,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_2",
+      "type": "polygon",
+      "layer": "outer",
+      "points": [
+        [
+          0.157258,
+          0.025221
+        ],
+        [
+          0.346774,
+          0.025221
+        ],
+        [
+          0.383065,
+          0.045397
+        ],
+        [
+          0.850806,
+          0.045397
+        ],
+        [
+          0.919355,
+          0.08575
+        ],
+        [
+          0.927419,
+          0.176545
+        ],
+        [
+          0.899194,
+          0.194199
+        ],
+        [
+          0.895161,
+          0.302648
+        ],
+        [
+          0.923387,
+          0.330391
+        ],
+        [
+          0.927419,
+          0.925599
+        ],
+        [
+          0.834677,
+          0.986129
+        ],
+        [
+          0.608871,
+          0.988651
+        ],
+        [
+          0.560484,
+          0.960908
+        ],
+        [
+          0.379032,
+          0.960908
+        ],
+        [
+          0.334677,
+          0.986129
+        ],
+        [
+          0.153226,
+          0.988651
+        ],
+        [
+          0.076613,
+          0.948298
+        ],
+        [
+          0.080645,
+          0.880202
+        ],
+        [
+          0.060484,
+          0.862547
+        ],
+        [
+          0.060484,
+          0.660782
+        ],
+        [
+          0.08871,
+          0.638083
+        ],
+        [
+          0.092742,
+          0.494325
+        ],
+        [
+          0.068548,
+          0.474149
+        ],
+        [
+          0.068548,
+          0.078184
+        ]
+      ],
+      "stroke": "#5af0ff",
+      "strokeWidth": 4,
+      "fill": "none",
+      "closed": true,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "outer_frame_2_2_2",
+      "type": "polygon",
+      "layer": "outer",
+      "points": [
+        [
+          0.322581,
+          0.058008
+        ],
+        [
+          0.358871,
+          0.078184
+        ],
+        [
+          0.447581,
+          0.080706
+        ],
+        [
+          0.467742,
+          0.068096
+        ],
+        [
+          0.834677,
+          0.070618
+        ],
+        [
+          0.883065,
+          0.098361
+        ],
+        [
+          0.883065,
+          0.15889
+        ],
+        [
+          0.834677,
+          0.199243
+        ],
+        [
+          0.834677,
+          0.923077
+        ],
+        [
+          0.790323,
+          0.953342
+        ],
+        [
+          0.612903,
+          0.958386
+        ],
+        [
+          0.576613,
+          0.940731
+        ],
+        [
+          0.387097,
+          0.938209
+        ],
+        [
+          0.346774,
+          0.953342
+        ],
+        [
+          0.189516,
+          0.955864
+        ],
+        [
+          0.141129,
+          0.933165
+        ],
+        [
+          0.137097,
+          0.484237
+        ],
+        [
+          0.112903,
+          0.464061
+        ],
+        [
+          0.108871,
+          0.093317
+        ],
+        [
+          0.169355,
+          0.055485
+        ]
+      ],
+      "stroke": "#5af0ff",
+      "strokeWidth": 1,
+      "fill": "none",
+      "closed": true,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "shape_11",
+      "type": "polyline",
+      "layer": "inner",
+      "points": [],
+      "stroke": "#5af0ff",
+      "strokeWidth": 2,
+      "fill": "none",
+      "closed": false,
+      "visible": true,
+      "locked": false
+    }
+  ]
+}

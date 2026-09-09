@@ -1,0 +1,81 @@
+/* mini-toggle.css — shared HUD mini/expand toggle
+   Used by: hud-02 through hud-07 (hud-01 has its own equivalent in hud-01.css)
+   NcHudMini.init() in shared/js/hud-mini.js adds .nc-mini-widget and .nc-mini-panel classes.
+*/
+
+/* ── Widget ──────────────────────────────────────────────────────── */
+
+.nc-mini-widget {
+  overflow: hidden;   /* enables max-height clip; overrides panel's clip/visible */
+  transition: max-height 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+.nc-mini-widget.is-mini {
+  cursor: pointer;
+}
+
+/* ── Panel ───────────────────────────────────────────────────────── */
+
+.nc-mini-panel {
+  transform-origin: top center;
+  transition: transform 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── Toggle button ───────────────────────────────────────────────── */
+
+.nc-ol-toggle-btn {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 38px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+  clip-path: polygon(
+    5px 0%, calc(100% - 5px) 0%,
+    100% 5px, 100% 100%,
+    calc(100% - 5px) 100%, 5px 100%,
+    0% calc(100% - 5px), 0% 5px
+  );
+  box-shadow: none;
+  transition: border-color .18s ease, box-shadow .18s ease,
+              color .18s ease, background .18s ease;
+  pointer-events: all;
+}
+
+.nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  background: transparent;
+  border-color: rgba(80, 220, 255, .75);
+  box-shadow: none;
+}
+
+/* HUD-style tooltip — appears below the button on hover */
+.nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+
+.nc-ol-toggle-btn:hover::after {
+  display: block;
+}

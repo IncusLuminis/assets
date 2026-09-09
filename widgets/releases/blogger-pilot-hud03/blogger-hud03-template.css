@@ -1,0 +1,817 @@
+/* ================================================================
+   NebulaCast HUD Panel — Blogger Template CSS
+   Version : 1.0  (2026-05-24)
+   Covers  : HUD-03 (text + image)  and  HUD-04 (text + video)
+   Scope   : All nc-hp-* and nc-hud-* classes — safe for Blogger,
+             no global resets, no :root overrides.
+
+   WHERE TO PUT THIS:
+   Blogger → Theme → Edit HTML
+   Paste the <style> block from optional/blogger-template-snippet.txt
+   just before the closing </head> tag.
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+/* ── Box-sizing (scoped — does not touch Blogger theme) ────────── */
+
+.nc-hp-widget,
+.nc-hp-widget * {
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   KEYFRAMES
+   ================================================================ */
+
+/* Panel open: stretches from center on load */
+@keyframes ncHpOpenHud {
+  from { transform: scaleX(.1); opacity: .65; }
+  to   { transform: scaleX(1);  opacity: 1;   }
+}
+
+/* Ambient glow breathing */
+@keyframes hudBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0,220,255,.18),
+      0 0 42px rgba(0,140,255,.10),
+      inset 0 0 28px rgba(0,255,255,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0,240,255,.28),
+      0 0 64px rgba(0,180,255,.16),
+      inset 0 0 42px rgba(0,255,255,.12);
+  }
+}
+
+/* Diagonal light-beam sweep */
+@keyframes hudPanelSweep {
+  0%   { transform: rotate(8deg) translateX(-320%); }
+  100% { transform: rotate(8deg) translateX(900%); }
+}
+
+/* Scrolling ticker: travels left, snaps back */
+@keyframes hudTickerScroll {
+  0%   { transform: translateX(0);                   opacity: 1; }
+  97%  { transform: translateX(calc(-100% - 100vw)); opacity: 1; }
+  98%  { opacity: 0; }
+  100% { transform: translateX(0);                   opacity: 0; }
+}
+
+/* 8-segment sequential loader */
+@keyframes ncHpLoader1 {
+  0%           { opacity: 0; } 13%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader2 {
+  0%, 6.5%     { opacity: 0; } 19.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader3 {
+  0%, 13%      { opacity: 0; } 26%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader4 {
+  0%, 19.5%    { opacity: 0; } 32.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader5 {
+  0%, 26%      { opacity: 0; } 39%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader6 {
+  0%, 32.5%    { opacity: 0; } 45.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader7 {
+  0%, 39%      { opacity: 0; } 52%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader8 {
+  0%, 45.5%    { opacity: 0; } 58.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+
+/* ================================================================
+   SWEEP BEAM (base — shared by all HUD panels)
+   Future: replace with SVG contour runner per HUD03 spec §10
+   ================================================================ */
+
+.nc-panel-sweep {
+  position: absolute;
+  top: -38%;
+  left: -32%;
+  width: 58%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(80,220,255,0) 8%,
+    rgba(80,220,255,.06) 25%,
+    rgba(180,255,255,.22) 50%,
+    rgba(80,220,255,.08) 75%,
+    transparent 100%
+  );
+  transform: rotate(8deg) translateX(-320%);
+  mix-blend-mode: screen;
+  animation: hudPanelSweep 7s linear infinite;
+}
+
+/* ================================================================
+   MINI / EXPAND TOGGLE
+   NcHudMini.init() (blogger-hud03-template.js) adds
+   .nc-mini-widget and .nc-mini-panel to the DOM.
+   ================================================================ */
+
+.nc-mini-widget {
+  overflow: hidden;
+  transition: max-height 700ms cubic-bezier(.2, .9, .2, 1);
+}
+.nc-mini-widget.is-mini { cursor: pointer; }
+
+.nc-mini-panel {
+  transform-origin: top center;
+  transition: transform 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* Toggle button — anchored to top-left of .nc-hp-panel */
+.nc-hp-widget .nc-ol-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  position: absolute;    /* fixed to panel regardless of content height */
+  top:    43px;
+  left:   40px;
+  right:  auto;
+  bottom: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 24px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 2px 10px 2px 10px;
+  cursor: pointer;
+  clip-path: none;
+  box-shadow: none;
+  transition: border-color .18s ease, color .18s ease;
+  pointer-events: all;
+}
+.nc-hp-widget .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  border-color: rgba(80, 220, 255, .75);
+}
+/* HUD tooltip on hover */
+.nc-hp-widget .nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+.nc-hp-widget .nc-ol-toggle-btn:hover::after { display: block; }
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+.nc-hp-widget {
+  width: 100%;
+  margin: 0 auto;
+  background: #000;
+  overflow: clip;
+  position: relative;
+}
+
+/* ================================================================
+   MAIN PANEL
+   ================================================================ */
+
+.nc-hp-panel {
+  /* Geometry tokens — adjust here to tune proportions */
+  --loader-left:        28%;
+  --loader-width:       230px;
+  --frame-edge:         26px;
+  --top-line-y:         18px;
+  --top-line-drop:      26px;
+  --top-line-lower-y:   calc(var(--top-line-y) + var(--top-line-drop));
+
+  position: relative;
+  width: min(1200px, 100%);
+  min-height: 520px;
+  /* !important: bare <div>, Blogger's ".post div { margin: 0 0 .75em }"
+     (0,1,1) otherwise beats this rule's (0,1,0) and replaces
+     "0 auto" — losing the auto-centering on any post column wider than
+     1200px, plus adding a stray bottom margin. */
+  margin: 0 auto !important;
+  padding: 86px 92px;
+  background: #000;
+  overflow: visible;
+  isolation: isolate;
+
+  opacity: .65;
+  animation:
+    ncHpOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+}
+
+/* ================================================================
+   FRAME DECORATIONS
+   Hide on mobile — content remains readable (see @media below)
+   ================================================================ */
+
+/* Outer border with angled clip.
+   margin !important: uses inset (top AND bottom both set), so a stray
+   ".post div" margin-bottom doesn't just offset this div — it shrinks
+   its computed height, pulling the frame short of the bottom edge it's
+   meant to reach. Same story for .nc-hp-frame-inner and
+   .nc-hp-frame-topline below. */
+.nc-hp-frame-shell {
+  position: absolute;
+  inset: 26px;
+  margin: 0 !important;
+  z-index: 1;
+  pointer-events: none;
+  border: 3px solid rgba(80,220,255,.92);
+  clip-path: polygon(
+    0 22%, 0 100%, 96% 100%,
+    100% 72%, 100% 6%,
+    21% 6%, 18% 5%, 12% 5%
+  );
+  filter:
+    drop-shadow(0 0 6px rgba(80,220,255,.9))
+    drop-shadow(0 0 18px rgba(80,220,255,.5));
+}
+
+/* Black masks that cover the frame corners to create the notch effect */
+.nc-hp-frame-mask {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  background: #000;
+}
+.nc-hp-frame-mask-left {
+  top: 24px; left: 118px;
+  width: 170px; height: 34px;
+  transform: skewX(-32deg);
+}
+.nc-hp-frame-mask-right {
+  top: 24px; right: 18px;
+  width: 46px; height: 48px;
+}
+
+/* Inner inset border */
+.nc-hp-frame-inner {
+  position: absolute;
+  inset: 72px 48px 72px 48px;
+  margin: 0 !important;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(145,245,255,.62);
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 96% 100%, 0 100%);
+  filter: drop-shadow(0 0 4px rgba(80,220,255,.7));
+}
+
+/* Top decorative line + angled slope + right drop */
+.nc-hp-frame-topline {
+  position: absolute;
+  inset: 0;
+  margin: 0 !important;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+.nc-hp-frame-topline span {
+  position: absolute;
+  display: block;
+  background: rgba(80,220,255,.95);
+  box-shadow:
+    0 0 8px rgba(80,220,255,.95),
+    0 0 18px rgba(80,220,255,.45);
+}
+.nc-hp-topline-left {
+  top: var(--top-line-y);
+  left: var(--frame-edge);
+  width: calc(var(--loader-left) + var(--loader-width) + 4px - var(--frame-edge));
+  height: 3px;
+}
+.nc-hp-topline-slope {
+  top: var(--top-line-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 4px);
+  width: 34px; height: 3px;
+  transform-origin: left center;
+  transform: rotate(58deg);
+}
+.nc-hp-topline-right {
+  top: var(--top-line-lower-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 22px);
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 22px) - var(--frame-edge));
+  height: 3px;
+}
+.nc-hp-topline-side {
+  top: var(--top-line-lower-y);
+  right: var(--frame-edge);
+  width: 3px; height: 62px;
+}
+
+/* 8-segment skewed loader bar */
+.nc-hp-frame-loader {
+  position: absolute;
+  top: 42px;
+  left: var(--loader-left);
+  width: var(--loader-width);
+  height: 28px;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  transform: skewX(32deg);
+  padding: 3px;
+  border: 1px solid rgba(80,220,255,.45);
+  background: linear-gradient(90deg, rgba(80,220,255,.08), rgba(80,220,255,.02));
+  filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+}
+.nc-hp-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 12px rgba(80,220,255,.85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.nc-hp-frame-loader span:nth-child(1) { animation-name: ncHpLoader1; }
+.nc-hp-frame-loader span:nth-child(2) { animation-name: ncHpLoader2; }
+.nc-hp-frame-loader span:nth-child(3) { animation-name: ncHpLoader3; }
+.nc-hp-frame-loader span:nth-child(4) { animation-name: ncHpLoader4; }
+.nc-hp-frame-loader span:nth-child(5) { animation-name: ncHpLoader5; }
+.nc-hp-frame-loader span:nth-child(6) { animation-name: ncHpLoader6; }
+.nc-hp-frame-loader span:nth-child(7) { animation-name: ncHpLoader7; }
+.nc-hp-frame-loader span:nth-child(8) { animation-name: ncHpLoader8; }
+
+/* Scrolling ticker strip */
+.nc-hp-frame-ticker {
+  position: absolute;
+  top: 50px;
+  right: 54px;
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 74px));
+  height: 32px;
+  overflow: hidden;
+  z-index: 5;
+  pointer-events: none;
+}
+.nc-hp-frame-ticker span {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%; top: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 14px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(120,245,255,.82);
+  text-shadow: 0 0 8px rgba(80,220,255,.55);
+  animation: hudTickerScroll 30s linear infinite;
+}
+
+/* Sweep overlay — ties into .nc-panel-sweep base */
+.nc-hp-sweep {
+  z-index: 2;
+  opacity: .5;
+}
+
+/* ================================================================
+   CONTENT
+   ================================================================ */
+
+/* margin !important for the same reason as .nc-hp-system/.nc-hp-text
+   below — bare <div>, otherwise picks up Blogger's ".post div"
+   margin-bottom (.75em) uncontested since this rule never declared one. */
+.nc-hp-content {
+  position: relative;
+  z-index: 6;
+  color: #cfffff;
+  margin: 0 !important;
+}
+
+/* Row wrapper: button + system label, floats above the inner frame line */
+.nc-hp-system-row {
+  position: absolute;
+  top: -36px; left: -44px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+/* .nc-ol-toggle-btn (above) is position:absolute so it can anchor to
+   .nc-hp-panel's top-left when it's a bare child of the panel. Inside
+   .nc-hp-system-row it isn't — the row is itself position:absolute, so
+   the button's own absolute positioning resolves against the ROW
+   instead, landing top:43px/left:40px deep in the panel body rather
+   than at the frame corner. Let it flow as a normal flex item instead,
+   then nudge it up so it — and .nc-hp-system next to it — sit just
+   above .nc-hp-frame-inner (inset 72px from the panel edge) instead of
+   overlapping down into the panel body. Values arrived at empirically
+   against the actual rendered rects (button and label bottom-aligned,
+   button 3-4px right of .nc-hp-frame-inner's left edge). */
+.nc-hp-system-row .nc-ol-toggle-btn {
+  position: relative;
+  top: -30px;
+  left: auto;
+  margin-left: 4px;
+}
+
+/* System label — inline inside .nc-hp-system-row. This is the widget's
+   real "top header" (the toggle belongs next to THIS, not .nc-hp-title
+   below, which is a separate description heading further down in the
+   panel body).
+   !important on margin/line-height: this is a bare <div>, and Blogger's
+   own base theme has ".post div { margin: 0 0 .75em; line-height: 1.3em; }"
+   — (0,1,1) specificity, beats this rule's (0,1,0) — which was silently
+   inflating the label's line-height from 24px to 31.2px (1.3em) and
+   adding an unwanted 18px bottom margin (.75em) any time this widget is
+   actually inside a Blogger post's .post/.post-body. staging.html never
+   reproduced this because its preview harness doesn't wrap content in
+   .post, so the bug was invisible there — the two only matched once this
+   was pinned down. */
+.nc-hp-system {
+  display: inline;
+  vertical-align: middle;
+  position: relative;
+  /* -27px, not -21px: with line-height correctly forced to 1 (24px) the
+     label is shorter than the 30px button, so align-items:center on
+     .nc-hp-system-row adds a +3px offset before this shift is even
+     applied. Recalibrated empirically after fixing the line-height bug
+     above — the old -21px was tuned against the buggy 31.2px height and
+     went stale the moment that height became correct. */
+  top: -27px;
+  left: 2px;
+  margin: 0 !important;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 24px;
+  line-height: 1 !important;
+  font-weight: bold;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.72);
+  text-shadow: 0 0 8px rgba(80,220,255,.45);
+}
+
+/* Character / post title */
+.nc-hp-title {
+  margin: 10px 0 34px 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 20px rgba(80,245,255,.45);
+}
+
+/* Body text — supports standard HTML inside.
+   margin/line-height !important for the same reason as .nc-hp-system
+   above: bare <div>, and Blogger's ".post div" (0,1,1) otherwise beats
+   this (0,1,0), silently swapping our line-height:1.72 for 1.3em and
+   adding an unwanted .75em bottom margin this rule never asked for. */
+.nc-hp-text {
+  max-width: 100%;
+  margin: 0 !important;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.72 !important;
+  letter-spacing: .02em;
+  color: rgba(190,250,255,.84);
+  text-shadow: 0 0 10px rgba(80,220,255,.18);
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  display: flow-root;      /* clears floated media children */
+}
+/* text-align-last:left above is meant for the last line of justified
+   paragraph text. Blogger's image/embed wrapper (.separator) sets its own
+   text-align:center inline — but since it's a single-line block, that one
+   line IS its "last line", so the inherited text-align-last:left silently
+   wins and the image sits flush left instead of centered. Reset it here so
+   .separator's own centering takes effect. */
+.nc-hp-text .separator {
+  text-align-last: auto;
+}
+/* Blogger inserts images with a fixed width= attribute (usually 640px,
+   whatever size was picked in the image-insert dialog). The panel itself
+   is up to 1200px wide, so a plain 640px graphic ends up small and
+   centered with a lot of dead frame space on both sides. Let it fill the
+   available content width instead — height:auto keeps the aspect ratio.
+   For a crisp result at full width, pick "X-Large" or "Original" size
+   when inserting the image in Blogger rather than the 640px default. */
+.nc-hp-text .separator img {
+  width: 100%;
+  height: auto;
+}
+.nc-hp-text::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* ================================================================
+   MEDIA SLOTS  (public API — use these class names in your posts)
+
+   nc-hud-float-image        → static image, floated left
+   nc-hud-media              → wrapper for any embedded media
+     + nc-hud-media-vertical   → portrait aspect (HeyGen / TikTok / Shorts)
+     + nc-hud-media-horizontal → landscape aspect (YouTube / Vimeo)
+   ================================================================ */
+
+/* --- Static image -------------------------------------------- */
+.nc-hud-float-image {
+  float: left;
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  height: auto;
+  margin: 0 34px 22px 0;
+  object-fit: contain;
+  filter: brightness(.76) contrast(1.14) saturate(.9);
+  border: 1px solid rgba(80,220,255,.36);
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+
+/* --- Embedded media container ------------------------------- */
+.nc-hud-media {
+  float: left;
+  position: relative;
+  top: 0;
+  left: -14px;
+  overflow: hidden;
+  border: 1px solid rgba(80,220,255,.36);
+  background: rgba(0,20,34,.55);
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+.nc-hud-media-vertical {
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  aspect-ratio: 9 / 16;
+}
+.nc-hud-media-horizontal {
+  width: 42%;
+  min-width: 320px;
+  max-width: 620px;
+  aspect-ratio: 16 / 9;
+}
+.nc-hud-media iframe,
+.nc-hud-media video,
+.nc-hud-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+/* Smooth reveal after src swap */
+.nc-hud-media iframe {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+.nc-hud-media iframe[src="about:blank"] { opacity: 0; }
+
+/* "RECONNECTING…" placeholder — shown while iframe loads */
+.nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.45);
+  text-shadow: 0 0 8px rgba(80,220,255,.3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ================================================================
+   MINI CARD  (shown in collapsed state)
+   ================================================================ */
+
+.nc-hp-mini-card {
+  position: absolute;
+  top: 0; left: 0;
+  transform: none;
+  width: fit-content;
+  min-width: 240px;
+  max-width: min(420px, 90%);
+  height: 148px;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+/* HUD frame border on mini card */
+.nc-hp-mini-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2.5px solid rgba(80,220,255,.92);
+  box-shadow:
+    0 0 8px  rgba(80,220,255,.9),
+    0 0 20px rgba(80,220,255,.4),
+    inset 0 0 12px rgba(80,220,255,.06);
+  pointer-events: none;
+  clip-path: polygon(
+    12% 0, 100% 0, 100% 74%, 96% 100%, 0 100%, 0 22%
+  );
+}
+/* Expand arrow hint */
+.nc-hp-mini-card::after {
+  content: '▼';
+  position: absolute;
+  top: 17px; left: 12px; right: auto;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(80,220,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.6);
+  z-index: 5;
+}
+.nc-mini-widget.is-mini .nc-hp-mini-card {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.nc-mini-widget.is-mini .nc-hp-panel { visibility: hidden; }
+
+/* System label inside mini card */
+.nc-hp-mini-system {
+  position: absolute;
+  top: 18px; left: 24px;
+  margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.65);
+  text-shadow: 0 0 8px rgba(80,220,255,.4);
+  z-index: 4;
+}
+/* Row: thumbnail + name.
+   margin !important: another bare <div> vulnerable to Blogger's own
+   ".post div { margin: 0 0 .75em }" — see .nc-hp-system above. Clipped
+   by .nc-hp-mini-card's overflow:hidden either way, but the stray
+   margin still pushed the flex row (and everything in it) up off-center
+   inside the fixed 148px card height. */
+.nc-hp-mini-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 0 !important;
+  padding: 38px 50px 16px 20px;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 3;
+}
+/* Static image thumbnail.
+   padding/border !important: Blogger's ".post img { padding: 4px;
+   border: 1px solid $borderColor }" otherwise beats this (same
+   specificity fight as the divs above), silently adding padding this
+   thumbnail never wanted and swapping the intended cyan border for
+   Blogger's generic one. */
+.nc-hp-mini-thumb {
+  height: 80px; width: auto;
+  max-width: none; min-width: 48px;
+  object-fit: contain;
+  padding: 0 !important;
+  border: 1px solid rgba(80,220,255,.38) !important;
+  flex-shrink: 0;
+  filter: brightness(.82) contrast(1.12) saturate(.9);
+}
+/* Live video thumbnail (scaled-down iframe) */
+.nc-hp-mini-video-wrap {
+  width: 45px;
+  height: 80px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(80,220,255,.38);
+  box-shadow: 0 0 8px rgba(80,220,255,.18);
+}
+.nc-hp-mini-video-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 270px; height: 480px;
+  transform: scale(0.1667);
+  transform-origin: top left;
+  pointer-events: none;
+  border: 0;
+}
+/* Character name in mini card */
+.nc-hp-mini-name {
+  margin: 0;
+  white-space: normal;
+  flex-shrink: 1;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 22px rgba(80,245,255,.42);
+}
+
+/* ================================================================
+   MOBILE  (≤ 900px)
+   Frame decorations hidden; content stays readable; media goes full-width
+   ================================================================ */
+
+@media (max-width: 900px) {
+  .nc-hp-panel {
+    min-height: 0;
+    padding: 48px 24px;
+  }
+
+  /* Hide all decorative frame elements */
+  .nc-hp-frame-shell,
+  .nc-hp-frame-inner,
+  .nc-hp-frame-loader,
+  .nc-hp-frame-topline,
+  .nc-hp-frame-mask,
+  .nc-hp-sweep { display: none; }
+
+  .nc-hp-title {
+    font-size: 30px;
+    margin-bottom: 24px;
+  }
+  .nc-hp-text {
+    font-size: 15px;
+    line-height: 1.72;
+    letter-spacing: .02em;
+  }
+
+  /* Float → block, full width */
+  .nc-hud-float-image {
+    float: none;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 24px 0;
+  }
+  .nc-hud-media {
+    float: none;
+    left: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 24px 0;
+  }
+}
+
+/* ================================================================
+   ROW CONTAINER — HUD-03 / HUD-04 mini-card row
+   ================================================================ */
+
+/* Collapsed slot: fixed width so mini-cards sit side by side */
+.nc-hud-row .nc-hp-widget.is-mini {
+  flex: 0 0 auto;
+  width: 280px;
+}
+
+/* Expanded panel: full width, pushed below the mini-card row */
+.nc-hud-row .nc-hp-widget:not(.is-mini) {
+  flex: 0 0 100%;
+  order: 99;
+}

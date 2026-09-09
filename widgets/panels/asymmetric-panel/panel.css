@@ -1,0 +1,73 @@
+/* asymmetric-panel/panel.css — namespace: .nc-asym-panel */
+
+.nc-demo-stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hud-space-xl);
+}
+
+.nc-asym-panel {
+  position: relative;
+  width: 340px;
+  background: var(--hud-panel);
+  border: 1px solid var(--hud-line);
+  border-left-width: 3px;
+  border-radius: var(--hud-radius);
+  padding: var(--hud-space-md);
+  /* Asymmetric clip: top-right corner cut */
+  clip-path: polygon(0% 0%, calc(100% - 24px) 0%, 100% 24px, 100% 100%, 0% 100%);
+  backdrop-filter: blur(6px);
+  box-shadow:
+    0 0 12px var(--hud-glow),
+    inset 0 0 20px rgba(0, 255, 231, 0.03);
+  animation: hudSlideIn 0.5s ease both;
+}
+
+/* Left accent bar */
+.nc-asym-panel__accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 60%;
+  background: var(--hud-line);
+  box-shadow: 0 0 8px var(--hud-glow);
+}
+
+/* Header row */
+.nc-asym-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--hud-space-sm);
+  padding-bottom: var(--hud-space-sm);
+  border-bottom: 1px solid rgba(0, 255, 231, 0.2);
+  margin-bottom: var(--hud-space-md);
+}
+
+/* Live status dot */
+.nc-asym-panel__status {
+  margin-left: auto;
+  font-size: var(--hud-font-xs);
+  letter-spacing: 0.1em;
+  color: var(--hud-text-accent);
+  text-shadow: 0 0 6px var(--hud-glow);
+}
+
+/* Body */
+.nc-asym-panel__body {
+  padding: var(--hud-space-xs) 0;
+}
+
+/* Bottom-right corner decoration */
+.nc-asym-panel__corner-deco {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  border-top: 1px solid var(--hud-line);
+  border-left: 1px solid var(--hud-line);
+  opacity: 0.5;
+}

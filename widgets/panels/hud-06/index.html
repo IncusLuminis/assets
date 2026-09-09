@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUD-06 Vertical Sidebar — NebulaCast</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+
+  <!-- Shared layer -->
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+
+  <!-- Mini/expand toggle (shared) -->
+  <link rel="stylesheet" href="../../shared/css/mini-toggle.css?v=3">
+
+  <!-- Widget -->
+  <link rel="stylesheet" href="./hud-06.css?v=5">
+</head>
+<body>
+
+  <main class="nc-hud06-stage">
+
+    <div class="nc-vs-widget nc-vs-sidebar">
+
+      <!-- ── Mini card thumbnail — shown when panel is collapsed ──── -->
+      <div class="nc-hp-mini-card" aria-hidden="true">
+        <p class="nc-hp-mini-system">OUTPOST 32</p>
+        <div class="nc-hp-mini-body">
+          <div class="nc-hp-mini-video-wrap">
+            <iframe
+              src="https://app.heygen.com/embeds/21a8ec0238bb4e54a153374163cb059f"
+              frameborder="0"
+              allow="encrypted-media; fullscreen;"
+              allowfullscreen
+              tabindex="-1">
+            </iframe>
+          </div>
+          <h2 class="nc-hp-mini-name">КОМАНДОР КЕЛЛАН</h2>
+        </div>
+      </div>
+
+      <div class="nc-vs-panel">
+
+        <svg class="nc-vs-svg-frame" viewBox="0 0 320 480"
+             preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <filter id="ncVsGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="3" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="ncVsGlowS" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="1.5" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <g class="nc-vs-frame-g"></g>
+        </svg>
+
+        <!-- nc-panel-sweep provides geometry + animation from effects.css -->
+        <!-- nc-vs-sweep provides widget-specific z-index + opacity        -->
+        <div class="nc-vs-sweep nc-panel-sweep"></div>
+
+        <div class="nc-vs-loader">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+          <span></span>
+        </div>
+
+        <div class="nc-vs-ticker">
+          <span>JWST / PROTOPLANETARY DISK SURVEY / MHD WINDS DETECTED / MASS LOSS RATE ANALYSIS / TARGET CLASSIFICATION UPDATED</span>
+        </div>
+
+        <div class="nc-vs-content">
+
+          <h2 class="nc-vs-title">КОМАНДОР КЕЛЛАН</h2>
+
+          <div class="nc-vs-media">
+            <div class="nc-reconnect">RECONNECTING…</div>
+            <iframe
+              src="https://app.heygen.com/embeds/21a8ec0238bb4e54a153374163cb059f"
+              title="Kellan_VLOG04T10_ENG"
+              frameborder="0"
+              allow="encrypted-media; fullscreen;"
+              allowfullscreen>
+            </iframe>
+          </div>
+
+          <div class="nc-vs-text" lang="ru">
+            Знаете, меня всегда забавляло, насколько романтично люди представляют рождение планет. Все эти красивые картинки: сияющий диск, спирали пыли, юные миры, возникающие вокруг молодой звезды… Очень поэтично. Но реальность, как обычно, куда менее сентиментальна.
+            <br><br>
+            Эта работа JWST показывает не процесс рождения, а процесс утраты. Диск не просто формирует планеты — он одновременно медленно умирает.
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script src="../../shared/js/hud-core.js"></script>
+  <script src="../../shared/js/hud-mini.js?v=3"></script>
+  <script src="./hud-06.js?v=3"></script>
+</body>
+</html>

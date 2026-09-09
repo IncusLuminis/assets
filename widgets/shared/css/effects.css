@@ -1,0 +1,217 @@
+/* effects.css — visual FX: glows, scanlines, noise, borders, overlays */
+
+/* Glow box shadow levels */
+.nc-fx-glow-sm  { box-shadow: 0 0 4px var(--hud-glow); }
+.nc-fx-glow-md  { box-shadow: 0 0 10px var(--hud-glow); }
+.nc-fx-glow-lg  { box-shadow: 0 0 24px var(--hud-glow); }
+
+/* Glow text shadow levels */
+.nc-fx-text-glow-sm { text-shadow: 0 0 4px var(--hud-glow); }
+.nc-fx-text-glow-md { text-shadow: 0 0 10px var(--hud-glow); }
+.nc-fx-text-glow-lg { text-shadow: 0 0 20px var(--hud-glow); }
+
+/* Scanlines overlay — add as ::after on a positioned parent */
+.nc-fx-scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.nc-fx-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.1) 3px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Vignette overlay */
+.nc-fx-vignette {
+  position: relative;
+}
+.nc-fx-vignette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Glitching horizontal shift — apply transiently via JS */
+@keyframes ncGlitch {
+  0%   { clip-path: inset(0 0 96% 0); transform: translateX(-4px); }
+  20%  { clip-path: inset(30% 0 50% 0); transform: translateX(4px); }
+  40%  { clip-path: inset(60% 0 20% 0); transform: translateX(-2px); }
+  60%  { clip-path: inset(80% 0 5% 0);  transform: translateX(3px); }
+  80%  { clip-path: inset(10% 0 80% 0); transform: translateX(-1px); }
+  100% { clip-path: inset(0 0 96% 0);   transform: translateX(0); }
+}
+.nc-fx-glitch { animation: ncGlitch 0.3s steps(1) both; }
+
+/* Static noise texture (CSS-only approximation via gradient) */
+.nc-fx-noise {
+  position: relative;
+}
+.nc-fx-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Inset border glow */
+.nc-fx-border-glow {
+  box-shadow:
+    0 0 0 1px var(--hud-line),
+    inset 0 0 12px rgba(0, 255, 231, 0.06);
+}
+
+/* Corner cut — top-left only */
+.nc-fx-cut-tl {
+  clip-path: polygon(14px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 14px);
+}
+
+/* Corner cut — top-right only */
+.nc-fx-cut-tr {
+  clip-path: polygon(0% 0%, calc(100% - 14px) 0%, 100% 14px, 100% 100%, 0% 100%);
+}
+
+/* Corner cut — both top corners */
+.nc-fx-cut-top {
+  clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 14px, 100% 100%, 0% 100%, 0% 14px);
+}
+
+/* Backdrop blur panel base */
+.nc-fx-glass {
+  background: var(--hud-panel);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Canonical short-hand effect classes ───────────────────────────── */
+
+/* Primary glow — border + box shadow */
+.nc-glow {
+  box-shadow: 0 0 10px var(--hud-glow), 0 0 0 1px var(--hud-line);
+}
+
+/* Soft ambient glow — no hard border */
+.nc-glow-soft {
+  box-shadow: 0 0 24px rgba(0, 255, 231, 0.2);
+}
+
+/* Glass panel — blur + semi-transparent bg */
+.nc-glass {
+  background: var(--hud-panel);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Noise texture overlay (requires assets/noise/subtle-noise.png) */
+.nc-noise {
+  position: relative;
+}
+.nc-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('../assets/noise/subtle-noise.png');
+  background-size: 128px 128px;
+  background-repeat: repeat;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* CRT scanlines */
+.nc-scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.nc-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.1) 3px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Border glow — inset glow + glowing border */
+.nc-border-glow {
+  border: 1px solid var(--hud-line);
+  box-shadow:
+    0 0 8px var(--hud-glow),
+    inset 0 0 12px rgba(0, 255, 231, 0.05);
+}
+
+/* Deep shadow — dark depth under floating panels */
+.nc-shadow-deep {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* HUD reflection — top-edge specular shine */
+.nc-hud-reflection {
+  position: relative;
+}
+.nc-hud-reflection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 255, 231, 0.6) 40%,
+    rgba(0, 255, 231, 0.6) 60%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ── Legacy panel sweep ─────────────────────────────────────────── */
+
+/* Diagonal translating light beam — shared by legacy panels.
+   Apply to the sweep element alongside a widget-specific class
+   that sets z-index and opacity. Requires hudPanelSweep keyframe
+   from animations.css. */
+.nc-panel-sweep {
+  position: absolute;
+  top: -38%;
+  left: -32%;
+  width: 58%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(80,220,255,0) 8%,
+    rgba(80,220,255,.06) 25%,
+    rgba(180,255,255,.22) 50%,
+    rgba(80,220,255,.08) 75%,
+    transparent 100%
+  );
+  transform: rotate(8deg) translateX(-320%);
+  mix-blend-mode: screen;
+  animation: hudPanelSweep 7s linear infinite;
+}

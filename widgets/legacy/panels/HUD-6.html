@@ -1,0 +1,181 @@
+<div class="nc-vs-widget nc-vs-sidebar">
+  <div class="nc-vs-panel">
+
+    <svg class="nc-vs-svg-frame" viewBox="0 0 320 480"
+         preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <filter id="ncVsGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="ncVsGlowS" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g class="nc-vs-frame-g"></g>
+    </svg>
+
+    <div class="nc-vs-sweep"></div>
+
+    <div class="nc-vs-loader">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span>
+    </div>
+
+    <div class="nc-vs-ticker">
+      <span>JWST / PROTOPLANETARY DISK SURVEY / MHD WINDS DETECTED / MASS LOSS RATE ANALYSIS / TARGET CLASSIFICATION UPDATED</span>
+    </div>
+
+    <div class="nc-vs-content">
+
+      <h2 class="nc-vs-title">КОМАНДОР КЕЛЛАН</h2>
+
+      <div class="nc-vs-media">
+        <iframe
+          src="https://app.heygen.com/embeds/21a8ec0238bb4e54a153374163cb059f"
+          title="Kellan_VLOG04T10_ENG"
+          frameborder="0"
+          allow="encrypted-media; fullscreen;"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+      <div class="nc-vs-text" lang="ru">
+        Знаете, меня всегда забавляло, насколько романтично люди представляют рождение планет. Все эти красивые картинки: сияющий диск, спирали пыли, юные миры, возникающие вокруг молодой звезды… Очень поэтично. Но реальность, как обычно, куда менее сентиментальна.
+        <br><br>
+        Эта работа JWST показывает не процесс рождения, а процесс утраты. Диск не просто формирует планеты — он одновременно медленно умирает.
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  function drawVerticalSidebarFrame(widget) {
+    const panel = widget.querySelector(".nc-vs-panel");
+    const svg = widget.querySelector(".nc-vs-svg-frame");
+    const g = widget.querySelector(".nc-vs-frame-g");
+    const loader = widget.querySelector(".nc-vs-loader");
+    const ticker = widget.querySelector(".nc-vs-ticker");
+    const content = widget.querySelector(".nc-vs-content");
+
+    if (!panel || !svg || !g || !loader || !ticker || !content) return;
+
+    const W = panel.offsetWidth;
+    if (!W) return;
+
+    const pad = Math.round(W * 18 / 320);
+    const bev = Math.round(W * 50 / 320);
+
+    content.style.paddingTop = (pad + 22) + "px";
+    content.style.paddingLeft = (pad + 8) + "px";
+    content.style.paddingRight = (pad + 8) + "px";
+    content.style.paddingBottom = (pad + 36) + "px";
+
+    const H = panel.offsetHeight;
+
+    const x0 = pad;
+    const y0 = pad;
+    const x1 = W - pad;
+    const y1 = pad;
+    const x1b = W - pad;
+    const y1b = H - pad - bev;
+    const x2 = W - pad - bev;
+    const y2 = H - pad;
+    const x3 = pad;
+    const y3 = H - pad;
+
+    const outer = `${x0},${y0} ${x1},${y1} ${x1b},${y1b} ${x2},${y2} ${x3},${y3}`;
+
+    const ip = 6;
+    const ix0 = x0 + ip;
+    const iy0 = y0 + ip;
+    const ix1 = x1 - ip;
+    const iy1 = y1 + ip;
+    const ix1b = x1 - ip;
+    const iy1b = y1b - ip * (bev / (bev + 50));
+    const ix2 = x2 - ip * (50 / (bev + 50)) * 0.5;
+    const iy2 = y2 - ip;
+    const ix3 = x0 + ip;
+    const iy3 = y3 - ip;
+
+    const inner = `${ix0},${iy0} ${ix1},${iy1} ${ix1b},${iy1b} ${ix2},${iy2} ${ix3},${iy3}`;
+
+    const loaderH = Math.round(H * 10 / 480);
+    const loaderW = Math.round(W * 180 / 320);
+    const loaderX = Math.round((x0 + x2) / 2 - loaderW / 2);
+    const loaderY = y3 + Math.round(H * 3 / 480);
+
+    loader.style.left = loaderX + "px";
+    loader.style.top = loaderY + "px";
+    loader.style.width = loaderW + "px";
+    loader.style.height = loaderH + "px";
+
+    const lineY = loaderY + loaderH + 3;
+    const lineEndX = x2 - Math.round(W * 14 / 320);
+    const stripLine = `M ${loaderX},${y3} L ${loaderX},${lineY} L ${lineEndX},${lineY} L ${x2},${y3}`;
+
+    ticker.style.left = (x0 + 36) + "px";
+    ticker.style.top = (y0 - 19) + "px";
+    ticker.style.width = (x1 - x0 - 80) + "px";
+    ticker.style.height = "16px";
+
+    const ltOff = Math.round(W * 6 / 320);
+    const ltT = Math.round(W * 8 / 320);
+    const ltHW = Math.round(W * 36 / 320);
+    const ltVH = Math.round(H * 64 / 480);
+    const ltBev = Math.round(H * 14 / 480);
+
+    const lx = x0 - ltOff;
+    const lt = y0 - ltOff;
+
+    const cornerTL = `${lx},${lt} ${lx + ltHW},${lt} ${lx + ltHW},${lt + ltT} ${lx + ltT},${lt + ltT} ${lx + ltT},${lt + ltVH} ${lx},${lt + ltVH + ltBev}`;
+
+    const lb = y3 + ltOff;
+    const cornerBL = `${lx},${lb} ${lx},${lb - ltVH - ltBev} ${lx + ltT},${lb - ltVH} ${lx + ltT},${lb - ltT} ${lx + ltHW},${lb - ltT} ${lx + ltHW},${lb}`;
+
+    const rx = x1 + ltOff;
+    const rt = y0 - ltOff;
+    const rtVH = Math.round(H * 44 / 480);
+    const cornerTR = `${rx - ltHW},${rt} ${rx},${rt} ${rx},${rt + rtVH} ${rx - ltT},${rt + rtVH} ${rx - ltT},${rt + ltT} ${rx - ltHW},${rt + ltT}`;
+
+    const bevOff = ltT;
+    const cornerBevel = `${x1b + ltOff},${y1b - bevOff} ${x1b + ltOff + ltT},${y1b - bevOff} ${x2 + ltOff + ltT},${y2 + ltOff} ${x2 + ltOff - ltT},${y2 + ltOff} ${x2 + ltOff - ltT + bevOff},${y2 + ltOff - bevOff}`;
+
+    g.innerHTML = `
+      <polygon points="${outer}" fill="#000" stroke="none"/>
+      <polygon points="${outer}" fill="none" stroke="#1ab8f0" stroke-width="2.5" filter="url(#ncVsGlow)"/>
+      <polygon points="${inner}" fill="none" stroke="#1ab8f0" stroke-width="1" opacity="0.7"/>
+      <polygon points="${cornerTL}" fill="#1ab8f0" filter="url(#ncVsGlow)"/>
+      <polygon points="${cornerBL}" fill="#1ab8f0" filter="url(#ncVsGlow)"/>
+      <polygon points="${cornerTR}" fill="#1ab8f0" filter="url(#ncVsGlow)"/>
+      <polygon points="${cornerBevel}" fill="#1ab8f0" filter="url(#ncVsGlow)"/>
+      <path d="${stripLine}" fill="none" stroke="#1ab8f0" stroke-width="1.5" filter="url(#ncVsGlowS)"/>
+    `;
+
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  }
+
+  function initVerticalSidebarPanels() {
+    document.querySelectorAll(".nc-vs-widget").forEach(function (widget) {
+      drawVerticalSidebarFrame(widget);
+      requestAnimationFrame(function () {
+        drawVerticalSidebarFrame(widget);
+      });
+    });
+  }
+
+  window.addEventListener("resize", initVerticalSidebarPanels);
+  window.addEventListener("load", initVerticalSidebarPanels);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initVerticalSidebarPanels);
+  } else {
+    initVerticalSidebarPanels();
+  }
+})();
+</script>

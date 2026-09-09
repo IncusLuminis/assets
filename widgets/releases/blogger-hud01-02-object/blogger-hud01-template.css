@@ -1,0 +1,1967 @@
+/* ================================================================
+   NebulaCast HUD-01 — Blogger Template CSS
+   Version : 1.1  (2026-06-09)
+   Covers  : HUD-01 (object lock panel, nc-ol-*)
+   Scope   : All nc-ol-* and nc-hud-01-* classes — safe for Blogger,
+             no :root overrides, no global resets.
+
+   REQUIRES: blogger-hud-shared.css must be loaded first.
+             (keyframes, .nc-panel-sweep, paper rows,
+              media base, .nc-hud-row)
+
+   WHERE TO PUT THIS:
+   Blogger → Theme → Edit HTML
+   Paste the <style> block from optional/blogger-template-snippet.txt
+   just before the closing </head> tag.
+   ================================================================ */
+
+/* ── Box-sizing (scoped — does not touch Blogger theme) ────────── */
+
+.nc-ol-widget,
+.nc-ol-widget * {
+  box-sizing: border-box;
+}
+
+/* Keyframes, .nc-panel-sweep → blogger-hud-shared.css */
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+.nc-ol-widget {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  max-height: 600px;
+  transition: max-height 1000ms cubic-bezier(.2, .9, .2, 1),
+              opacity    150ms ease;
+}
+
+/* ── Main panel ──────────────────────────────────────────────── */
+
+.nc-ol-panel {
+  position: relative;
+  width: 100%;        /* fills blog width in expanded state */
+  height: 420px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 520px 1fr;
+
+  overflow: visible;  /* allows button to sit outside frame */
+
+  background:
+    linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)),
+    rgba(0,8,16,.95);
+
+  opacity: .65;
+
+  animation:
+    ncOlOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+
+  transform-origin: top left;  /* mini thumbnail anchors from left edge */
+  transition: transform 1000ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── SVG frame ───────────────────────────────────────────────── */
+
+.nc-ol-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 30;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.nc-ol-frame-line {
+  fill: none;
+  stroke: rgba(80,220,255,.88);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+}
+
+.nc-ol-frame-inner {
+  stroke: rgba(150,245,255,.62);
+  stroke-width: 1.2;
+}
+
+.nc-ol-frame-photo-top,
+.nc-ol-frame-photo-bottom {
+  stroke: rgba(100,235,255,.72);
+  stroke-width: 1.4;
+}
+
+.nc-ol-frame-tab {
+  fill: rgba(70,200,255,.90);
+  filter: drop-shadow(0 0 10px rgba(80,220,255,.9));
+}
+
+.nc-ol-frame-tab-top {
+  animation: ncOlTopSvgSlider 5s ease-in-out infinite;
+}
+
+/* ── Sweep ───────────────────────────────────────────────────── */
+
+.nc-ol-sweep {
+  z-index: 3;
+  opacity: .5;
+}
+
+/* ── Left image column ───────────────────────────────────────── */
+
+.nc-ol-left {
+  position: relative;
+  min-width: 520px;
+  width: 520px;
+  height: 420px;
+  overflow: hidden;
+  background: #000;
+  z-index: 1;
+}
+
+.nc-ol-image {
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  display: block;
+  object-fit: cover;
+  filter: brightness(.72) contrast(1.18) saturate(.85);
+}
+
+/* ── Reticle ─────────────────────────────────────────────────── */
+
+.nc-ol-reticle {
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+.nc-ol-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.nc-ol-ring-1 {
+  width: 270px;
+  height: 270px;
+  border: 2px solid rgba(80,245,255,.75);
+  box-shadow: 0 0 18px rgba(80,245,255,.5);
+  animation: hudPulseOuter 4s ease-in-out infinite;
+}
+
+.nc-ol-ring-2 {
+  width: 210px;
+  height: 210px;
+  border: 2px dashed rgba(80,245,255,.82);
+  animation: hudRotate 10s linear infinite;
+}
+
+.nc-ol-ring-3 {
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(170,255,255,.88);
+  opacity: .65;
+  animation: hudPulseInner 2.5s ease-in-out infinite;
+}
+
+.nc-ol-cross {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+}
+
+.nc-ol-cross::before,
+.nc-ol-cross::after {
+  content: "";
+  position: absolute;
+  background: rgba(120,255,255,.85);
+  box-shadow: 0 0 10px rgba(80,245,255,.72);
+}
+
+.nc-ol-cross::before {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+  left: 0;
+}
+
+.nc-ol-cross::after {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+}
+
+.nc-ol-lock-box {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  animation: hudLockBoxPulse 3.2s ease-in-out infinite;
+}
+
+.nc-ol-lock-box span {
+  position: absolute;
+  display: block;
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 0 8px rgba(80,245,255,.9));
+}
+
+.nc-ol-lock-box span::before,
+.nc-ol-lock-box span::after {
+  content: "";
+  position: absolute;
+  background: rgba(150,255,255,.95);
+  box-shadow: 0 0 10px rgba(80,245,255,.75);
+}
+
+.nc-ol-lock-box span::before { width: 34px; height: 3px; }
+.nc-ol-lock-box span::after  { width: 3px;  height: 34px; }
+
+.nc-ol-lock-box span:nth-child(1)         { top: 0;    left: 0; }
+.nc-ol-lock-box span:nth-child(1)::before { top: 0;    left: 0; }
+.nc-ol-lock-box span:nth-child(1)::after  { top: 0;    left: 0; }
+
+.nc-ol-lock-box span:nth-child(2)         { top: 0;    right: 0; }
+.nc-ol-lock-box span:nth-child(2)::before { top: 0;    right: 0; }
+.nc-ol-lock-box span:nth-child(2)::after  { top: 0;    right: 0; }
+
+.nc-ol-lock-box span:nth-child(3)         { bottom: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(3)::before { bottom: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(3)::after  { bottom: 0; left: 0; }
+
+.nc-ol-lock-box span:nth-child(4)         { bottom: 0; right: 0; }
+.nc-ol-lock-box span:nth-child(4)::before { bottom: 0; right: 0; }
+.nc-ol-lock-box span:nth-child(4)::after  { bottom: 0; right: 0; }
+
+.nc-ol-corner {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-color: rgba(210,255,255,.95);
+}
+
+.nc-ol-corner-tl { top: 46px;    left: 46px;  border-top: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-tr { top: 46px;    right: 46px; border-top: 2px solid; border-right: 2px solid; }
+.nc-ol-corner-bl { bottom: 46px; left: 46px;  border-bottom: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-br { bottom: 46px; right: 46px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.nc-ol-center-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 0 18px rgba(80,245,255,.95);
+}
+
+.nc-ol-target-lock {
+  position: absolute;
+  bottom: 30px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .26em;
+  color: #d8ffff;
+  text-shadow: 0 0 12px rgba(80,245,255,.95);
+  animation: hudBlinkSoft 1.4s ease-in-out infinite;
+}
+
+/* ── Right data column ───────────────────────────────────────── */
+
+.nc-ol-right {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  height: 420px;
+  padding: 52px 68px 30px 10px;
+  color: #cfffff;
+  background: linear-gradient(90deg, rgba(0,18,32,.97), rgba(0,12,26,.99));
+  text-shadow: 0 0 8px rgba(80,245,255,.55);
+  overflow: hidden;
+}
+
+.nc-ol-right > * {
+  position: relative;
+  z-index: 4;
+}
+
+.nc-ol-title {
+  position: relative;
+  margin: 0 auto 34px auto;
+  width: max-content;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-ol-title::before,
+.nc-ol-title::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(120,245,255,.85);
+}
+
+.nc-ol-title::before {
+  left: -40px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.nc-ol-title::after {
+  right: -40px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.nc-ol-title-brackets {
+  position: absolute;
+  top: 116px;
+  left: 50%;
+  width: 260px;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(80,245,255,.75), transparent);
+  box-shadow: 0 0 10px rgba(80,245,255,.8);
+}
+
+.nc-ol-grid {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+  row-gap: 8px;
+  column-gap: 10px;
+  padding-top: 26px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: var(--nc-data-font-size, 12px);
+  line-height: 1.05;
+  letter-spacing: .05em;
+}
+
+.nc-ol-label,
+.nc-ol-value {
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(80,220,255,.26);
+}
+
+.nc-ol-label {
+  font-weight: 400;
+  color: #dfffff;
+  white-space: nowrap;
+}
+
+.nc-ol-value {
+  color: #9ffcff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+/* ── Progress bar ────────────────────────────────────────────── */
+
+.nc-ol-progress {
+  position: absolute;
+  top: 33px;
+  left: 14%;
+  width: 31.5%;
+  height: 24px;
+  z-index: 25;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(80,220,255,.10)  0px,
+      rgba(80,220,255,.10) 13px,
+      rgba(0,10,30,.55)    13px,
+      rgba(0,10,30,.55)    14px
+    );
+  box-shadow:
+    0 0 4px rgba(80,220,255,.20),
+    inset 0 0 4px rgba(0,0,0,.40);
+}
+
+.nc-ol-progress__fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent              0%,
+    rgba(80,220,255,.08)    25%,
+    rgba(80,240,255,.65)    50%,
+    rgba(80,220,255,.08)    75%,
+    transparent             100%
+  );
+  filter: blur(1px);
+  animation: hudProgressScan 3s linear infinite;
+}
+
+/* ── Aladin Lite layer ───────────────────────────────────────── */
+
+.nc-hud-01-aladdin {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+  position: absolute;
+  left: var(--nc-aladin-left, 42px);
+  top: var(--nc-aladin-top, 34px);
+  width: var(--nc-aladin-width, 445px);
+  height: var(--nc-aladin-height, 352px);
+  z-index: 2;
+  overflow: hidden;
+  background: rgba(0, 8, 18, .96);
+  border: 1px solid rgba(80,220,255,.28);
+  box-shadow: inset 0 0 40px rgba(0,220,255,.06);
+}
+
+.nc-hud-01-aladdin > div:first-child {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* ── Aladin UI — dark theme overrides ──────────────────────────── */
+.nc-hud-01-aladdin .aladin-logo-container,
+.nc-hud-01-aladdin .aladin-logo,
+.nc-hud-01-aladdin .aladin-location {
+  display: none !important;
+}
+
+.nc-hud-01-aladdin .aladin-location {
+  background:    rgba(0, 8, 20, 0.82) !important;
+  border:        1px solid rgba(80, 220, 255, 0.28) !important;
+  border-radius: 2px !important;
+  backdrop-filter: blur(3px);
+}
+
+.nc-hud-01-aladdin .aladin-location .aladin-input-text {
+  background:     transparent !important;
+  color:          rgba(80, 220, 255, 0.90) !important;
+  border:         none !important;
+  font-family:    "Share Tech Mono", monospace;
+  font-size:      0.65rem;
+  letter-spacing: 0.04em;
+  padding:        2px 4px;
+}
+
+.nc-hud-01-aladdin .aladin-location .aladin-input-text::placeholder {
+  color:       rgba(80, 220, 255, 0.32);
+  font-family: "Share Tech Mono", monospace;
+}
+
+.nc-hud-01-aladdin .aladin-location .aladin-input-text:focus {
+  outline: none;
+  color:   rgba(120, 240, 255, 1) !important;
+  box-shadow: 0 0 6px rgba(80, 220, 255, 0.25);
+}
+
+.nc-hud-01-aladdin .aladin-location .aladin-location-copy {
+  background:   rgba(0, 8, 20, 0.82) !important;
+  border-color: rgba(80, 220, 255, 0.28) !important;
+}
+
+.nc-hud-01-aladdin .aladin-location .aladin-location-copy img {
+  filter: invert(75%) sepia(60%) saturate(600%) hue-rotate(162deg) brightness(1.2);
+}
+
+.nc-hud-01-aladdin__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.nc-hud-01-aladdin--ready .nc-hud-01-aladdin__placeholder {
+  display: none;
+}
+
+.nc-hud-01-aladdin__label {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.60);
+  text-shadow: 0 0 10px rgba(80,220,255,.40);
+}
+
+.nc-hud-01-aladdin__sub {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.30);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────── */
+
+.nc-ol-toolbar {
+  position: absolute;
+  bottom: 16px;
+  right: 72px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: all;
+}
+
+.nc-ol-tb-group {
+  display: flex;
+  gap: 6px;
+}
+
+.nc-ol-tb-sep {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(80, 220, 255, 0.18);
+  margin: 0 6px;
+}
+
+.nc-ol-tb-btn {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 4px 10px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-ol-tb-btn:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+}
+
+.nc-ol-tb-btn[aria-pressed="true"] {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Data-attribute CSS rules ────────────────────────────────── */
+
+.nc-ol-widget[data-target-lock="off"] .nc-ol-reticle,
+.nc-ol-widget[data-reticle="off"] .nc-ol-reticle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nc-ol-widget[data-aladdin="on"] .nc-hud-01-aladdin {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Info panel visibility ───────────────────────────────────── */
+
+.nc-ol-info-panel {
+  display: none !important;
+}
+
+.nc-ol-widget[data-info-mode="data"] .nc-ol-info-panel--data {
+  display: grid !important;
+}
+
+.nc-ol-widget[data-info-mode="catalog"] .nc-ol-info-panel--catalog {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.nc-ol-widget[data-info-mode="catalog"] .nc-ol-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 270px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-ol-widget[data-info-mode="papers"] .nc-ol-info-panel--papers {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.nc-ol-widget[data-info-mode="papers"] .nc-hud-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 270px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-ol-info-panel--catalog::-webkit-scrollbar,
+.nc-ol-info-panel--papers::-webkit-scrollbar  { width: 3px; }
+.nc-ol-info-panel--catalog::-webkit-scrollbar-track,
+.nc-ol-info-panel--papers::-webkit-scrollbar-track  { background: transparent; }
+.nc-ol-info-panel--catalog::-webkit-scrollbar-thumb,
+.nc-ol-info-panel--papers::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.25); border-radius: 2px; }
+
+.nc-ol-info-placeholder {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.55);
+  text-align: center;
+  line-height: 1.8;
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.25);
+}
+
+/* ── DATA panel status / spinner / note ──────────────────────── */
+
+.nc-ol-data-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0 14px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.nc-ol-data-status--loading { color: rgba(80, 220, 255, 0.50); }
+.nc-ol-data-status--error   { color: rgba(255, 100, 100, 0.60); }
+
+.nc-ol-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(80, 220, 255, 0.14);
+  border-top-color: rgba(80, 220, 255, 0.75);
+  border-radius: 50%;
+  animation: hudSpinner 0.85s linear infinite;
+  flex-shrink: 0;
+}
+
+.nc-ol-data-note {
+  grid-column: 1 / -1;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-align: center;
+  color: rgba(80, 220, 255, 0.22);
+  padding-top: 8px;
+  border-top: 1px solid rgba(80, 220, 255, 0.10);
+  margin-top: 4px;
+}
+
+/* ── Catalog / paper cards ───────────────────────────────────── */
+
+.nc-ol-paper-card {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.14);
+}
+
+.nc-ol-paper-card:last-child { border-bottom: none; }
+
+.nc-ol-paper-title {
+  display: block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgba(130, 245, 255, 0.90);
+  text-decoration: none;
+  text-shadow: 0 0 6px rgba(80, 220, 255, 0.30);
+  margin-bottom: 4px;
+}
+
+.nc-ol-paper-title:hover {
+  color: rgba(160, 255, 255, 1);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.40);
+  text-underline-offset: 2px;
+}
+
+.nc-ol-paper-meta {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(80, 200, 255, 0.50);
+  margin-bottom: 4px;
+}
+
+.nc-ol-paper-abstract {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(160, 240, 255, 0.45);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* .nc-hud-panel-header, .nc-hud-paper-* → blogger-hud-shared.css */
+
+/* ── HTML slot (html mode) ───────────────────────────────────── */
+
+.nc-hud-01-html-slot {
+  display: none;
+  position: absolute;
+  inset: 62px 30px 20px 30px;
+  z-index: 10;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 52px 16px 52px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-hud-01[data-mode="html"] .nc-hud-01-html-slot { display: block; }
+
+/* HTML mode: hide object-specific layers */
+.nc-hud-01[data-mode="html"] .nc-ol-left,
+.nc-hud-01[data-mode="html"] .nc-ol-right,
+.nc-hud-01[data-mode="html"] .nc-ol-toolbar { display: none !important; }
+
+/* HTML mode: auto-height panel (spec §10 — height adapts to content) */
+.nc-hud-01[data-mode="html"] .nc-ol-panel {
+  display: block;
+  height: auto;
+  min-height: 420px;
+  overflow: hidden;
+}
+
+/* HTML mode maxi: remove widget max-height so long content isn't clipped */
+.nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) {
+  max-height: none;
+  overflow: visible;
+}
+
+/* HTML mode: push title below inner SVG frame line (y≈62 in viewBox coords) */
+.nc-hud-01[data-mode="html"] .nc-ol-title {
+  top: 75px;
+}
+
+.nc-hud-01[data-mode="html"] .nc-hud-01-html-slot {
+  position: static;
+  inset: unset;
+  overflow-x: hidden;
+  overflow-y: visible;
+  padding: 70px 52px var(--nc-slot-padding-bottom, 90px);
+}
+
+/* Clear floats after Blogger / pasted HTML */
+.nc-hud-01-html-slot::after,
+.nc-hud-02-html-slot::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.nc-hud-01-html-slot::-webkit-scrollbar       { width: 4px; }
+.nc-hud-01-html-slot::-webkit-scrollbar-track  { background: transparent; }
+.nc-hud-01-html-slot::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.28); border-radius: 2px; }
+
+/* HTML slot typography */
+.nc-hud-01-html-slot h1,
+.nc-hud-01-html-slot h2,
+.nc-hud-01-html-slot h3,
+.nc-hud-01-html-slot h4 {
+  font-family: "Share Tech Mono", monospace;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(130, 245, 255, 0.92);
+  text-shadow: 0 0 8px rgba(80, 220, 255, 0.40);
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.nc-hud-01-html-slot h1 { font-size: 22px; }
+.nc-hud-01-html-slot h2 { font-size: 17px; }
+.nc-hud-01-html-slot h3 { font-size: 13px; letter-spacing: .16em; }
+.nc-hud-01-html-slot h4 { font-size: 11px; letter-spacing: .18em; color: rgba(80, 220, 255, 0.70); }
+
+.nc-hud-01-html-slot p {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+}
+
+.nc-hud-01-html-slot a {
+  color: rgba(80, 220, 255, 0.90);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.35);
+  text-underline-offset: 3px;
+}
+.nc-hud-01-html-slot a:hover {
+  color: rgba(140, 245, 255, 1);
+  text-decoration-color: rgba(140, 245, 255, 0.60);
+}
+
+.nc-hud-01-html-slot ul,
+.nc-hud-01-html-slot ol {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+  padding-left: 1.4em;
+  line-height: 1.6;
+}
+
+/* Editorial images (Blogger paste) — not inside .nc-hud-media */
+.nc-hud-01-html-slot img:not(.nc-hud-media img) {
+  max-width: 100%;
+  width: auto !important;
+  height: auto !important;
+  display: block;
+  border: 1px solid rgba(80, 220, 255, 0.22);
+  margin-bottom: 10px;
+  object-fit: contain;
+}
+
+/* Maxi: cap floated Blogger thumbnails (.separator, float:left) */
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot img:not(.nc-hud-media img),
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot img:not(.nc-hud-media img) {
+  max-height: var(--nc-image-maxi-height, 280px);
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .separator,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .separator {
+  float: left;
+  max-width: var(--nc-image-maxi-width, 42%);
+  margin: 0 16px 12px 0;
+  box-sizing: border-box;
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .separator a,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .separator a {
+  float: none !important;
+  display: block;
+  max-width: 100%;
+  margin: 0 !important;
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .separator img,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .separator img {
+  max-width: 100%;
+  max-height: var(--nc-image-maxi-height, 280px);
+  width: auto !important;
+  height: auto !important;
+  margin-bottom: 0;
+}
+
+.nc-hud-01-html-slot iframe,
+.nc-hud-01-html-slot video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid rgba(80, 220, 255, 0.18);
+  margin-bottom: 10px;
+}
+
+/* Raw YouTube embed (пастят напрямую из Share → Embed): responsive 16:9 */
+.nc-hud-01-html-slot iframe[src*="youtube.com/embed"],
+.nc-hud-01-html-slot iframe[src*="youtube-nocookie.com/embed"],
+.nc-hud-02-html-slot iframe[src*="youtube.com/embed"],
+.nc-hud-02-html-slot iframe[src*="youtube-nocookie.com/embed"] {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: none;
+  display: block;
+}
+
+.nc-hud-01-html-slot table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  color: rgba(190, 250, 255, 0.78);
+  margin-bottom: 10px;
+}
+
+.nc-hud-01-html-slot th,
+.nc-hud-01-html-slot td {
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.18);
+  text-align: left;
+}
+
+.nc-hud-01-html-slot th {
+  color: rgba(130, 245, 255, 0.90);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* .nc-hud-media, .nc-yt-facade, .nc-tt-facade, etc. → blogger-hud-shared.css */
+
+/* Video position — inline vars on widget or .nc-hud-media (см. cheat-sheet)
+   --nc-video-{maxi|mini|micro}-{top|left|width|height}, fallback --nc-video-{top|left|width|height} */
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-media,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-media {
+  top: var(--nc-video-maxi-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-maxi-left, var(--nc-video-left, 0px));
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .nc-hud-media,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .nc-hud-media {
+  top: var(--nc-video-mini-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-mini-left, var(--nc-video-left, 0px));
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot .nc-hud-media,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot .nc-hud-media {
+  top: var(--nc-video-micro-top, var(--nc-video-top, 0px));
+  left: var(--nc-video-micro-left, var(--nc-video-left, 0px));
+}
+
+/* Video (YouTube / HeyGen): description + title only in maxi; mini/micro = media thumbnail */
+.nc-hud-only-maxi { }
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .nc-hud-only-maxi,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .nc-hud-only-maxi {
+  display: none !important;
+}
+
+/* YouTube maxi: video full width, copy below; mini/micro = video thumbnail only */
+.nc-hud-youtube-maxi {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+}
+.nc-hud-youtube-maxi > .nc-hud-media.nc-hud-media-horizontal {
+  flex: 0 0 auto;
+  width: var(--nc-video-maxi-width, var(--nc-video-width, 100%));
+  height: var(--nc-video-maxi-height, var(--nc-video-height, auto));
+  max-width: 100%;
+  margin-bottom: 0;
+}
+.nc-hud-youtube-copy {
+  width: 100%;
+  min-width: 0;
+}
+.nc-hud-youtube-copy p {
+  margin-bottom: 10px;
+}
+.nc-hud-youtube-copy p:last-child {
+  margin-bottom: 0;
+}
+
+/* Vertical video (9:16): HeyGen, YouTube Shorts, TikTok — maxi/mini: video|copy; micro: video only */
+.nc-hud-01.nc-ol-widget:has(.nc-hud-vertical-maxi),
+.nc-hud-01.nc-ol-widget:has(.nc-hud-heygen-maxi) {
+  --nc-vertical-video-h: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-heygen-video-h, 300px)));
+  --nc-vertical-row-h: calc(var(--nc-vertical-video-h, 300px) + 20px);
+}
+
+.nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-ol-panel:has(.nc-hud-vertical-maxi),
+.nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-ol-panel:has(.nc-hud-heygen-maxi) {
+  height: auto;
+  min-height: calc(58px + var(--nc-vertical-row-h, 320px) + 24px);
+  max-height: none;
+}
+
+
+.nc-hud-01[data-mode="html"] .nc-hud-01-html-slot:has(.nc-hud-vertical-maxi),
+.nc-hud-01[data-mode="html"] .nc-hud-01-html-slot:has(.nc-hud-heygen-maxi) {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot:has(.nc-hud-vertical-maxi),
+.nc-hud-01[data-mode="html"].nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot:has(.nc-hud-heygen-maxi) {
+  overflow: visible;
+  padding-bottom: 20px;
+}
+
+.nc-hud-vertical-maxi,
+.nc-hud-heygen-maxi {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  height: var(--nc-vertical-row-h, 320px);
+  min-height: var(--nc-vertical-row-h, 320px);
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+
+.nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-hud-heygen-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: var(--nc-video-maxi-width, var(--nc-video-width, calc(var(--nc-vertical-video-h, 300px) * 9 / 16)));
+  height: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-vertical-video-h, 300px)));
+  max-height: var(--nc-video-maxi-height, var(--nc-video-height, var(--nc-vertical-video-h, 300px)));
+  max-width: none;
+  aspect-ratio: 9 / 16;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* TikTok direct iframe /embed/v2/ — вписать в 9:16 бокс (как YouTube) */
+.nc-hud-media.nc-hud-media-tiktok > iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  border: none !important;
+  display: block !important;
+}
+
+/* Fallback: blockquote + embed.js (если вставлен вручную без facade) */
+.nc-hud-media.nc-hud-media-tiktok .tiktok-embed,
+.nc-hud-media.nc-hud-media-tiktok .tiktok-embed > div,
+.nc-hud-media.nc-hud-media-tiktok .tiktok-embed iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+  border: none !important;
+}
+
+/* TikTok: ширино-управляемый размер.
+   --nc-tt-w задаётся на ряде, наследуется медиа-элементом.
+   min-height ряда = высота видео + 20px gap (динамически). */
+.nc-hud-vertical-maxi:has(.nc-hud-media-tiktok),
+.nc-hud-heygen-maxi:has(.nc-hud-media-tiktok) {
+  --nc-tt-w: max(200px, var(--nc-video-maxi-width, var(--nc-video-width, 250px)));
+  align-items: stretch;
+  height: auto;
+  min-height: calc(var(--nc-tt-w) * 16 / 9 + 20px);
+}
+
+.nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  width:      var(--nc-tt-w) !important;
+  height:     calc(var(--nc-tt-w) * 16 / 9) !important;
+  max-height: none !important;
+  min-width:  200px;
+  min-height: 356px;
+}
+
+.nc-hud-vertical-copy,
+.nc-hud-heygen-copy {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  max-height: var(--nc-vertical-video-h, 300px);
+  overflow-y: auto;
+  text-align: left;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .nc-hud-vertical-copy,
+.nc-ol-widget.is-mini .nc-hud-heygen-copy {
+  display: block !important;
+  visibility: visible !important;
+  width: auto !important;
+  height: auto !important;
+  pointer-events: auto !important;
+}
+
+.nc-hud-vertical-copy p,
+.nc-hud-heygen-copy p {
+  margin-bottom: 10px;
+}
+
+.nc-hud-vertical-copy p:last-child,
+.nc-hud-heygen-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot:has(.nc-hud-media):not(:has(.nc-hud-vertical-maxi)):not(:has(.nc-hud-heygen-maxi)) > h2,
+.nc-or-widget.is-mini .nc-hud-02-html-slot:has(.nc-hud-media):not(:has(.nc-hud-vertical-maxi)):not(:has(.nc-hud-heygen-maxi)) > h2 {
+  display: none !important;
+}
+
+/* Mini slot with non-youtube media (vertical/heygen): keep flex-column layout */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(.nc-hud-media),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(.nc-hud-media) {
+  padding: 58px 24px 18px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  height: 420px !important;
+  max-height: 420px !important;
+}
+
+/* Mini slot with youtube-maxi: switch to block+relative so absolute children work */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(.nc-hud-youtube-maxi),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(.nc-hud-youtube-maxi) {
+  display: block !important;
+  position: relative !important;
+}
+
+/* Mini youtube-maxi: absolute fill of slot content area */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi {
+  position: absolute !important;
+  top: 24px !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-vertical-maxi,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-vertical-maxi,
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-heygen-maxi,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-heygen-maxi,
+.nc-ol-widget:not([data-collapse]).is-mini .nc-hud-vertical-maxi,
+.nc-ol-widget:not([data-collapse]).is-mini .nc-hud-heygen-maxi {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  gap: 10px !important;
+}
+
+.nc-ol-widget.is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-ol-widget.is-mini .nc-hud-heygen-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-ol-widget.is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  flex: 0 0 auto !important;
+  width: var(--nc-video-mini-width, var(--nc-video-width, auto)) !important;
+  max-width: 40% !important;
+  height: var(--nc-video-mini-height, var(--nc-video-height, 100%)) !important;
+  max-height: var(--nc-video-mini-height, var(--nc-video-height, 100%)) !important;
+  aspect-ratio: 9 / 16 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget.is-mini .nc-hud-vertical-maxi:has(.nc-hud-media-tiktok) {
+  align-items: stretch !important;
+}
+
+.nc-ol-widget.is-mini .nc-hud-vertical-copy,
+.nc-ol-widget.is-mini .nc-hud-heygen-copy {
+  flex: 1 1 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(.nc-hud-media) > .nc-hud-media,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(.nc-hud-media) > .nc-hud-media,
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi > .nc-hud-media,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-youtube-maxi > .nc-hud-media {
+  /* absolute fill: parent (youtube-maxi) is already position:absolute with explicit bounds */
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  aspect-ratio: unset !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-media,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-media {
+  position: relative !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-media iframe,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-media iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Image position — vars on widget: --nc-image-{maxi|mini|micro|}-{top|left|width|height} */
+.nc-hud-float-image,
+.nc-hud-slot-image {
+  position: relative;
+  display: block;
+  border: 1px solid rgba(80,220,255,.22);
+  object-fit: contain;
+}
+
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-float-image,
+.nc-ol-widget:not(.is-mini) .nc-hud-01-html-slot .nc-hud-slot-image,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-float-image,
+.nc-or-widget:not(.is-mini) .nc-hud-02-html-slot .nc-hud-slot-image {
+  float: right;
+  top: var(--nc-image-maxi-top, var(--nc-image-top, 0px));
+  left: var(--nc-image-maxi-left, var(--nc-image-left, auto));
+  width: var(--nc-image-maxi-width, var(--nc-image-width, auto)) !important;
+  height: var(--nc-image-maxi-height, var(--nc-image-height, auto)) !important;
+  max-width: var(--nc-image-maxi-width, var(--nc-image-width, 42%)) !important;
+  margin: 0 0 12px 16px;
+}
+
+.nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-float-image,
+.nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot .nc-hud-slot-image,
+.nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-hud-02-html-slot .nc-hud-float-image,
+.nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-hud-02-html-slot .nc-hud-slot-image {
+  float: none;
+  position: absolute;
+  top: var(--nc-image-mini-top, var(--nc-image-top, 0px)) !important;
+  left: var(--nc-image-mini-left, var(--nc-image-left, 0px)) !important;
+  width: var(--nc-image-mini-width, auto) !important;
+  max-width: none !important;
+  height: var(--nc-image-mini-height, 100%) !important;
+  max-height: 100% !important;
+  margin: 0;
+  object-fit: contain;
+  object-position: left top;
+}
+
+/* HTML mini thumbnail: fit inside 420×0.352 ≈ 148px frame (panelH set in JS) */
+.nc-hud-01[data-mode="html"].nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-ol-panel,
+.nc-hud-02[data-mode="html"].nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-or-panel {
+  height: 420px !important;
+  max-height: 420px !important;
+  min-height: 420px !important;
+}
+
+.nc-hud-01[data-mode="html"].nc-ol-widget.is-mini:not([data-collapse="micro"]) .nc-hud-01-html-slot:not(:has(.nc-hud-media)),
+.nc-hud-02[data-mode="html"].nc-or-widget.is-mini:not([data-collapse="micro"]) .nc-hud-02-html-slot:not(:has(.nc-hud-media)) {
+  position: absolute;
+  inset: 5px 20px 5px 10px;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box;
+  display: block !important;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot img:not(.nc-hud-media img),
+.nc-or-widget.is-mini .nc-hud-02-html-slot img:not(.nc-hud-media img) {
+  max-height: var(--nc-image-mini-height, 100%);
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .separator,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .separator {
+  float: left;
+  max-width: var(--nc-image-mini-width, 40%);
+  margin: 0 10px 6px 0;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot .separator img,
+.nc-or-widget.is-mini .nc-hud-02-html-slot .separator img {
+  max-height: var(--nc-image-mini-height, 160px);
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot p,
+.nc-or-widget.is-mini .nc-hud-02-html-slot p {
+  font-size: 11px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.nc-ol-widget.is-mini .nc-hud-01-html-slot h2,
+.nc-or-widget.is-mini .nc-hud-02-html-slot h2 {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+/* ── HUD-01 title classes (5 independent variants) ───────────── */
+/* All five share an identical base (identical to nc-ol-title, which is
+   reserved for object-mode use in .nc-ol-right). These suffixed variants
+   are for html-slot content — customize each independently.
+
+   NOTE: nc-ol-title (no suffix) is reserved for object-mode use.
+   These five use the -maxi / -mini / -micro / -b / -c suffixes to stay clear.
+
+   Variants:
+     nc-ol-title-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-ol-title-mini   — mini thumbnail
+     nc-ol-title-micro  — micro thumbnail
+     nc-ol-title-b      — reserve B
+     nc-ol-title-c      — reserve C                              */
+
+.nc-ol-title-maxi,
+.nc-ol-title-mini,
+.nc-ol-title-micro,
+.nc-ol-title-b,
+.nc-ol-title-c {
+  position: relative;
+  margin: 0 auto 34px auto;
+  width: max-content;
+  font-family: "Share Tech Mono", monospace;
+  font-size: var(--nc-title-maxi-size, var(--nc-title-size, 30px)) !important;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-ol-widget.is-mini .nc-ol-title-maxi,
+.nc-or-widget.is-mini .nc-or-title-maxi {
+  font-size: var(--nc-title-mini-size, var(--nc-title-size, 30px)) !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-title-micro,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-title-micro {
+  font-size: var(--nc-title-micro-size, var(--nc-title-size, 30px)) !important;
+}
+
+.nc-ol-title-maxi::before,  .nc-ol-title-maxi::after,
+.nc-ol-title-mini::before,  .nc-ol-title-mini::after,
+.nc-ol-title-micro::before, .nc-ol-title-micro::after,
+.nc-ol-title-b::before,     .nc-ol-title-b::after,
+.nc-ol-title-c::before,     .nc-ol-title-c::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(120,245,255,.85);
+}
+
+.nc-ol-title-maxi::before,
+.nc-ol-title-mini::before,
+.nc-ol-title-micro::before,
+.nc-ol-title-b::before,
+.nc-ol-title-c::before {
+  left: -40px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.nc-ol-title-maxi::after,
+.nc-ol-title-mini::after,
+.nc-ol-title-micro::after,
+.nc-ol-title-b::after,
+.nc-ol-title-c::after {
+  right: -40px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+/* ── Per-variant position vars ───────────────────────────────── */
+/* Set on WIDGET ROOT via style="". Uses position:relative from base.
+   Maxi/micro coords are in screen px.
+   Mini coords are in UNSCALED panel space (÷ 0.352 → screen px). */
+.nc-ol-title-maxi {
+  top:  var(--nc-title-maxi-top,  0px);
+  left: var(--nc-title-maxi-left, 0px);
+}
+.nc-ol-title-mini {
+  top:  var(--nc-title-mini-top,  0px);
+  left: var(--nc-title-mini-left, 0px);
+}
+/* When widget is is-mini, apply mini-vars regardless of title class suffix */
+.nc-ol-widget.is-mini .nc-ol-title-maxi,
+.nc-or-widget.is-mini .nc-or-title-maxi {
+  top:  var(--nc-title-mini-top,  var(--nc-title-maxi-top,  0px));
+  left: var(--nc-title-mini-left, var(--nc-title-maxi-left, 0px));
+}
+/* nc-ol-title-micro position: see micro-mini state rule below.
+   .nc-ol-title-b { }  .nc-ol-title-c { }                       */
+
+/* ── HUD-01 button classes (5 independent variants) ──────────── */
+/* All five share an identical base (mirrors nc-ol-tb-btn style).
+   NOTE: nc-ol-tb-btn (no suffix) is reserved for object-mode tab buttons.
+
+   Variants:
+     nc-ol-btn-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-ol-btn-mini   — mini thumbnail
+     nc-ol-btn-micro  — micro thumbnail
+     nc-ol-btn-b      — reserve B
+     nc-ol-btn-c      — reserve C                               */
+
+.nc-ol-btn-maxi,
+.nc-ol-btn-mini,
+.nc-ol-btn-micro,
+.nc-ol-btn-b,
+.nc-ol-btn-c {
+  display: inline-block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 6px 14px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-ol-btn-maxi:hover,
+.nc-ol-btn-mini:hover,
+.nc-ol-btn-micro:hover,
+.nc-ol-btn-b:hover,
+.nc-ol-btn-c:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+  text-decoration: none;
+}
+
+.nc-ol-btn-maxi:active,
+.nc-ol-btn-mini:active,
+.nc-ol-btn-micro:active,
+.nc-ol-btn-b:active,
+.nc-ol-btn-c:active {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Per-variant overrides ────────────────────────────────────── */
+/* Add properties here to diverge from the shared base.
+
+.nc-ol-btn-maxi   { }
+.nc-ol-btn-mini   { }
+.nc-ol-btn-micro  { }
+.nc-ol-btn-b      { }
+.nc-ol-btn-c      { }                                           */
+
+/* ── Mini / Expanded toggle ──────────────────────────────────── */
+
+/* Default (mini) slot — 317×148, scale 0.352 */
+.nc-ol-widget.is-mini {
+  max-height: 148px;
+  max-width: 317px;
+  cursor: pointer;
+}
+
+/* ── Mini external button (nc-ol-btn-mini) ───────────────────────
+   Placement: direct child of widget AFTER the panel, same pattern as nc-ol-btn-micro.
+   The panel's layout height is ~420px (scale shrinks it visually, not in flow), so
+   the button MUST be position:absolute to escape the flow.
+   !important overrides JS widget.style.maxHeight = '148px' and overflow = 'hidden'. */
+.nc-ol-widget[data-collapse="mini"].is-mini > .nc-ol-btn-mini,
+.nc-ol-widget:not([data-collapse]).is-mini > .nc-ol-btn-mini {
+  position: absolute !important;
+  top:  var(--nc-btn-mini-top,  152px) !important;  /* thumbnail (148px) + gap (4px) */
+  left: var(--nc-btn-mini-left, 0px)   !important;
+  z-index: 100 !important;
+}
+.nc-ol-widget:not(.is-mini) > .nc-ol-btn-mini {
+  display: none !important;
+}
+.nc-ol-widget[data-collapse="mini"].is-mini:has(> .nc-ol-btn-mini),
+.nc-ol-widget:not([data-collapse]).is-mini:has(> .nc-ol-btn-mini) {
+  max-height: 174px !important;   /* 148px + 4px gap + 22px button */
+  overflow: visible !important;
+}
+
+/* Micro slot — no scale; custom layout: unscaled h2 label above + portrait image slot.
+   JS passes scale=null / panelW=87 / panelH=130 / miniH=149 to NcHudMini by default.
+   Widget overflow:visible lets the outer h2 (direct child, before panel) show above. */
+.nc-ol-widget[data-collapse="micro"].is-mini {
+  max-height: calc(var(--nc-micro-h, 130px) + 19px); /* slot + label (~15px) + gap (4px) */
+  max-width: var(--nc-micro-w, 87px);
+  overflow: visible !important;
+}
+/* When an external micro button is present — extend height to fit it below the slot */
+.nc-ol-widget[data-collapse="micro"].is-mini:has(> .nc-ol-btn-micro) {
+  max-height: calc(var(--nc-micro-h, 130px) + 45px); /* +26px btn (22px + 4px gap) */
+}
+
+/* Panel in micro mini: portrait slot (not mini 420px html frame) */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-panel,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel {
+  min-height: 0 !important;
+  height: var(--nc-micro-h, 130px) !important;
+  max-height: var(--nc-micro-h, 130px) !important;
+  overflow: visible !important; /* allow SVG frame drop-shadow to extend beyond panel bounds */
+}
+
+/* Scale progress bar to fit the portrait slot.
+   In micro the panel aspect ratio flips (portrait vs landscape), so the inner-frame
+   top spans ~70% of width — override left + width from the base 14%/31.5% values. */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-progress {
+  top:    calc(var(--nc-micro-h, 130px) * 0.079);  /* SVG inner-top y=26/420 */
+  left:   14%;                                       /* SVG x=170/1200 ≈ 14% */
+  width:  70%;                                       /* inner-top runs to x≈84% of panel */
+  height: calc(var(--nc-micro-h, 130px) * 0.070);  /* slightly taller for visibility */
+}
+
+/* HTML slot in micro mini: strip padding */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:has(.nc-hud-media) {
+  height: 100% !important;
+}
+
+/* Micro + video: only .nc-hud-media / wrappers (existing rules below) */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:has(.nc-hud-media) > *:not(.nc-hud-media):not(.nc-hud-youtube-maxi):not(.nc-hud-vertical-maxi):not(.nc-hud-heygen-maxi):not(.nc-ol-btn-micro) {
+  display: none !important;
+}
+
+/* Micro + image/text (Blogger .separator, float-image): только <img> в слоте */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) {
+  position: relative !important;
+  width: 100% !important;
+  height: var(--nc-micro-h, 130px) !important;
+  min-height: var(--nc-micro-h, 130px) !important;
+  max-height: var(--nc-micro-h, 130px) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Blogger .separator / <a><img></a>: display:none on wrapper hides nested img */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) .separator,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) .separator,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) a:has(> img),
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) a:has(> img) {
+  display: contents !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) > *:not(img):not(.nc-ol-btn-micro):not(:has(img)),
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) > *:not(img):not(.nc-or-btn-micro):not(:has(img)),
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) :is(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, pre, table, .nc-hud-text, .nc-ol-btn-maxi, .nc-or-btn-maxi, br, hr),
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) :is(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, pre, table, .nc-hud-text, .nc-ol-btn-maxi, .nc-or-btn-maxi, br, hr) {
+  display: none !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) img,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) img,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) > img,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) > img {
+  display: block !important;
+  visibility: visible !important;
+  position: absolute !important;
+  top: var(--nc-image-micro-top, var(--nc-image-top, 0px)) !important;
+  left: var(--nc-image-micro-left, var(--nc-image-left, 0px)) !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: var(--nc-image-micro-width, var(--nc-image-width, 100%)) !important;
+  height: var(--nc-image-micro-height, var(--nc-image-height, 100%)) !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  float: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border: none !important;
+  box-sizing: border-box !important;
+  z-index: 1 !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-01-html-slot:not(:has(.nc-hud-media)) img ~ img,
+.nc-or-widget[data-collapse="micro"].is-mini .nc-hud-02-html-slot:not(:has(.nc-hud-media)) img ~ img {
+  display: none !important;
+}
+
+/* Video embed fills micro slot (same idea as float image) */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-youtube-maxi {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  display: block !important;
+}
+
+/* Micro: только вертикальное видео по высоте слота (Shorts / TikTok / HeyGen) */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-vertical-copy,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-heygen-copy {
+  display: none !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-vertical-maxi,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-heygen-maxi {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-media {
+  float: none !important;
+  width: var(--nc-video-micro-width, var(--nc-video-width, 100%)) !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  max-height: var(--nc-video-micro-height, var(--nc-video-height, var(--nc-micro-h, 130px))) !important;
+  aspect-ratio: 16 / 9;
+  height: var(--nc-video-micro-height, var(--nc-video-height, auto)) !important;
+}
+
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-heygen-maxi > .nc-hud-media.nc-hud-media-vertical,
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-vertical-maxi > .nc-hud-media.nc-hud-media-tiktok {
+  width: var(--nc-video-micro-width, var(--nc-video-width, calc(var(--nc-micro-h, 130px) * 9 / 16))) !important;
+  max-width: 100% !important;
+  height: var(--nc-video-micro-height, var(--nc-video-height, var(--nc-micro-h, 130px))) !important;
+  max-height: var(--nc-video-micro-height, var(--nc-video-height, var(--nc-micro-h, 130px))) !important;
+  aspect-ratio: 9 / 16 !important;
+  margin: 0 !important;
+  align-self: flex-start !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-hud-media iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* (float-image / slot-image — см. правила img в :not(:has(.nc-hud-media)) выше) */
+
+/* Outer h2 (direct child of widget, before panel):
+   hidden in expanded, shown as label above the slot in micro mini */
+.nc-ol-widget[data-collapse="micro"] > .nc-ol-title-micro {
+  display: none;
+}
+.nc-ol-widget[data-collapse="micro"].is-mini > .nc-ol-title-micro {
+  display: block !important;
+  font-size: 11px;
+  letter-spacing: .10em;
+  text-align: center;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: var(--nc-micro-w, 87px);
+  width: auto;
+  top:  var(--nc-title-micro-top,  0px);  /* screen px, from normal flow position */
+  left: var(--nc-title-micro-left, 0px);
+}
+.nc-ol-widget[data-collapse="micro"].is-mini > .nc-ol-title-micro::before,
+.nc-ol-widget[data-collapse="micro"].is-mini > .nc-ol-title-micro::after {
+  display: none;
+}
+
+/* Toggle button in micro mini: scaled down, coords in screen px.
+   top/left override prevents clipping by panel overflow:hidden.
+   Per-panel vars: --nc-toggle-micro-top/left/scale (→ --nc-toggle-top/left → --nc-btn-* fallback). */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Micro button: absolute within widget/panel — descendant selector handles any placement */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-btn-micro {
+  position: absolute !important;
+  top:  var(--nc-btn-micro-top,  19px) !important;  /* label (~15px) + gap (4px) */
+  left: var(--nc-btn-micro-left, 0px)  !important;
+  z-index: 9999 !important;
+}
+/* Hidden in expanded state (btn-maxi inside slot handles that) */
+.nc-ol-widget[data-collapse="micro"]:not(.is-mini) .nc-ol-btn-micro {
+  display: none !important;
+}
+
+/* ── Micro size modifier classes ──────────────────────────────── */
+/* Add one of these classes to the widget root alongside data-collapse="micro"
+   to change the slot dimensions.  Omit the class for the 106×49 default.
+
+   Usage:  <div class="nc-hud-01 nc-ol-widget nc-micro-l" data-collapse="micro" …>
+
+   Sizes (w × h of the image slot; total widget height = h + 19px):
+     nc-micro-s    —  87 × 130 px
+     (default)     —  87 × 130 px
+     nc-micro-l    — 200 × 308 px                                 */
+
+.nc-micro-s { --nc-micro-w: 87px; --nc-micro-h: 130px; }
+.nc-micro-l { --nc-micro-w: 200px; --nc-micro-h: 308px; }
+
+/* .nc-ol-widget.is-mini .nc-ol-panel constraints (transform, transformOrigin,
+   width, height, margin, overflow) are applied as inline styles by hud-mini.js.
+   No CSS rule needed here — removing it avoids duplication and specificity fights. */
+
+/* Toggle button — scoped to HUD-01 only.
+   Per-mode CSS vars (all optional, set on widget root):
+     --nc-toggle-maxi-top/left      expanded state only
+     --nc-toggle-mini-top/left/scale  mini state only (coords in UNSCALED panel space, ÷ 0.352)
+     --nc-toggle-micro-top/left/scale micro state only (coords in screen px)
+     --nc-toggle-top/left           shared fallback across all modes
+   Old vars --nc-btn-top/left/scale remain as ultimate fallback (backward compat). */
+.nc-ol-panel .nc-ol-toggle-btn {
+  position: absolute;
+  top:  var(--nc-toggle-maxi-top,  var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left: var(--nc-toggle-maxi-left, var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  right: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 38px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+  clip-path: polygon(
+    5px 0%, calc(100% - 5px) 0%,
+    100% 5px, 100% calc(100% - 5px),
+    calc(100% - 5px) 100%, 5px 100%,
+    0% calc(100% - 5px), 0% 5px
+  );
+  box-shadow: none;
+  transition: border-color .18s ease, box-shadow .18s ease,
+              color .18s ease, background .18s ease;
+  pointer-events: all;
+}
+
+.nc-ol-panel .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  background: transparent;
+  border-color: rgba(80, 220, 255, .75);
+  box-shadow: none;
+}
+
+/* Mini mode: button scales with the 0.352× panel.
+   Coords in UNSCALED panel space (÷ 0.352 to convert to screen px).
+   Per-panel vars: --nc-toggle-mini-top/left/scale (→ --nc-toggle-* → --nc-btn-* fallback). */
+.nc-ol-widget.is-mini .nc-ol-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-mini-top,   var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left:      var(--nc-toggle-mini-left,  var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  transform: scale(var(--nc-toggle-mini-scale, var(--nc-btn-scale, 1)));
+  transform-origin: top left;
+}
+
+/* Micro mode: duplicate of the rule in the micro layout section above — kept here
+   for cascade legibility. Specificity wins over the base rule and mini rule. */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Tooltip */
+.nc-ol-panel .nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+
+.nc-ol-panel .nc-ol-toggle-btn:hover::after { display: block; }
+
+/* ── Contour sweep runner ─────────────────────────────────────── */
+
+.nc-hud-01 .nc-ol-sweep { display: none; }
+
+.nc-ol-runner-tail {
+  fill: none;
+  stroke: rgba(60, 190, 255, .13);
+  stroke-width: 72;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(32px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+.nc-ol-runner-body {
+  fill: none;
+  stroke: rgba(90, 210, 255, .26);
+  stroke-width: 32;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(16px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+.nc-ol-runner-head {
+  fill: none;
+  stroke: rgba(150, 232, 255, .55);
+  stroke-width: 10;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(3px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+.nc-ol-runner-spark {
+  fill: none;
+  stroke: rgba(200, 240, 255, .77);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter:
+    drop-shadow(0 0 3px  rgba(180, 240, 255, .80))
+    drop-shadow(0 0 10px rgba(80,  200, 255, .64));
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+/* .nc-hud-row + widget sizing → blogger-hud-shared.css */
+
+/* ── Keyframes — HUD-01 local ─────────────────────────────────── */
+
+@keyframes hudSpinner {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ncOlOpenHud {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ncOlTopSvgSlider {
+  0%, 100% { transform: translateX(-70px); opacity: .65; }
+  50%      { transform: translateX(70px);  opacity: 1; }
+}
+
+@keyframes ncOlSweepBar {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: calc(-1 * var(--nc-ol-runner-p, 3076px)); }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .nc-ol-widget { padding: 12px; }
+
+  .nc-ol-panel {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .nc-ol-sweep,
+  .nc-ol-frame-svg { display: none; }
+
+  .nc-ol-left {
+    min-width: 0;
+    width: 100%;
+    height: 320px;
+  }
+
+  .nc-ol-image {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-ol-reticle {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-ol-right {
+    min-width: 0;
+    height: auto;
+    padding: 28px 22px 30px;
+  }
+
+  .nc-ol-title {
+    font-size: 22px;
+    margin-bottom: 28px;
+  }
+
+  .nc-ol-grid {
+    grid-template-columns: 100px minmax(0, 1fr);
+    font-size: 12px;
+    row-gap: 12px;
+    column-gap: 12px;
+  }
+
+  .nc-ol-value { white-space: normal; }
+}

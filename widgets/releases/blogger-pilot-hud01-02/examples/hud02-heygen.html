@@ -1,0 +1,104 @@
+<!--
+  NebulaCast HUD-02 Object Report — EXAMPLE: HTML Mode, HeyGen Vertical Video
+  ============================================================================
+  Ready to paste into a Blogger post (HTML mode).
+  Global CSS and JS must already be in the Blogger template.
+
+  Collapse mode : micro  (data-collapse="micro")
+  Title class   : nc-or-title-micro  (micro thumbnail context)
+  Button class  : nc-or-btn-micro
+
+  What this example shows:
+  - HTML mode: content slot shown inside HUD-02 frame
+  - Vertical (portrait) video embed, 9:16 ratio — ideal for HeyGen AI avatar videos
+  - Text below the video
+
+  To customise:
+  1. Replace HEYGEN_VIDEO_ID with your HeyGen embed URL
+  2. Replace the <p> tags with your post text
+-->
+
+<div class="nc-hud-02 nc-or-widget"
+     data-mode="html"
+     data-reticle="off"
+     data-aladdin="off"
+     data-collapse="micro">
+  <!-- Outer h2: visible ONLY in micro collapsed state (above the slot).
+       Hidden in expanded state via CSS. -->
+  <h2 class="nc-or-title-micro">АГЕНТ СВЯЗИ</h2>
+  <div class="nc-or-panel">
+
+    <svg class="nc-or-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-frame-main"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-frame-inner"
+        d="M58 76 L1140 76 L1140 316 L1092 366 L58 366 Z" />
+      <g class="nc-or-frame-teeth">
+        <rect x="118" y="382" width="16" height="28"/>
+        <rect x="148" y="382" width="16" height="28"/>
+        <rect x="178" y="382" width="16" height="28"/>
+        <rect x="208" y="382" width="16" height="28"/>
+        <rect x="238" y="382" width="16" height="28"/>
+        <rect x="268" y="382" width="16" height="28"/>
+      </g>
+      <path class="nc-or-frame-teeth-box"
+        d="M98 382 L304 382 L304 412 L98 412 Z" />
+    </svg>
+
+    <div class="nc-or-sweep nc-panel-sweep"></div>
+
+    <svg class="nc-or-runner-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-runner-tail"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-body"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-head"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-spark"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+    </svg>
+
+    <div class="nc-or-frame-loader" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- HTML content slot -->
+    <div class="nc-hud-02-html-slot" aria-hidden="false">
+
+      <h2 class="nc-or-title-micro">АГЕНТ СВЯЗИ</h2>
+
+      <!--
+        Vertical video embed — 9:16 portrait format for HeyGen AI avatar videos.
+        Replace HEYGEN_VIDEO_ID with your actual HeyGen embed URL.
+      -->
+      <div class="nc-hud-media nc-hud-media-vertical">
+        <div class="nc-reconnect">RECONNECTING…</div>
+        <iframe
+          src="https://share.heygen.com/embed/HEYGEN_VIDEO_ID"
+          frameborder="0"
+          allow="autoplay; encrypted-media; fullscreen"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+      <p>Входящий сигнал от офицера связи. Приоритет: экстренный. Расшифровка завершена.</p>
+
+      <p>Координаты точки встречи переданы в навигационную систему. Отправление через 20 минут.</p>
+
+      <a href="#" class="nc-or-btn-micro">ДОСТУП</a>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var all    = document.querySelectorAll('.nc-hud-02:not([data-hud-init])');
+  var widget = all[all.length - 1];
+  if (!widget) return;
+  widget.setAttribute('data-hud-init', '1');
+  NcHud02.init(widget);
+})();
+</script>

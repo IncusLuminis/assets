@@ -1,0 +1,104 @@
+<svg width="1920" height="900" viewBox="0 0 1920 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="cyanGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6FEAFF"/>
+      <stop offset="100%" stop-color="#00CFFF"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer Frame -->
+  <path
+    d="M40 90
+       L620 90
+       L650 55
+       L990 55
+       L1020 90
+       L1860 90
+       L1890 120
+       L1890 430
+       L1910 450
+       L1910 760
+       L1860 820
+       L980 820
+       L950 860
+       L120 860
+       L90 820
+       L40 820
+       L20 790
+       L20 640
+       L40 610
+       L40 300
+       L10 270
+       L10 140
+       L40 90Z"
+    stroke="url(#cyanGlow)"
+    stroke-width="6"
+    fill="rgba(0,0,0,0.15)"
+    filter="url(#glow)"
+  />
+  <!-- Inner Frame -->
+  <path
+    d="M75 145
+       L770 145
+       L790 125
+       L1810 125
+       L1835 150
+       L1835 430
+       L1860 455
+       L1860 730
+       L1810 790
+       L980 790
+       L955 820
+       L150 820
+       L120 790
+       L75 790
+       L55 760
+       L55 620
+       L75 595
+       L75 145Z"
+    stroke="#44E3FF"
+    stroke-opacity="0.55"
+    stroke-width="2"
+    fill="none"
+  />
+  <!-- Top Left Header Accent -->
+  <path
+    d="M120 72 L430 72 L455 102 L120 102 Z"
+    fill="#39DFFF"
+    fill-opacity="0.18"
+    filter="url(#glow)"
+  />
+  <!-- Bottom Loader Bar -->
+  <g transform="translate(90 805)">
+    <rect width="420" height="28" rx="2" fill="#06131A" stroke="#44E3FF" stroke-width="2"/>
+    <rect x="8" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="52" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="96" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="140" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="184" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="228" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="272" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="316" y="5" width="36" height="18" fill="#4BE7FF"/>
+    <rect x="360" y="5" width="36" height="18" fill="#12313A"/>
+  </g>
+  <!-- Decorative Right Corner -->
+  <path
+    d="M1835 150 L1880 150 L1880 360"
+    stroke="#59E8FF"
+    stroke-width="4"
+    filter="url(#glow)"
+  />
+  <!-- Left Vertical Accent -->
+  <path
+    d="M10 270 L40 300 L40 610 L20 640"
+    stroke="#4BE7FF"
+    stroke-width="5"
+    filter="url(#glow)"
+  />
+</svg>

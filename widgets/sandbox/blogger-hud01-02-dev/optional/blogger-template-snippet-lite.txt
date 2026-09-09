@@ -1,0 +1,4585 @@
+<!--
+  NebulaCast HUD Panels — Blogger Template Snippet LITE (HTML mode only)
+  =======================================================================
+  Paste this entire block into your Blogger theme's HTML,
+  just before the closing </head> tag.
+
+  Blogger → Theme → Edit HTML → find </head> → paste above it → Save.
+
+  This only needs to be done ONCE per blog.
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  LITE vs FULL                                                   │
+  │  This snippet supports HTML mode only (data-mode="html").       │
+  │  Aladin sky viewer, SIMBAD, VizieR and ADS are NOT included.   │
+  │  Use blogger-template-snippet.txt for full object-mode panels.  │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Supported panels in this lite build:
+  • HUD-01  (nc-ol-*) — HTML mode: image, YouTube, HeyGen
+  • HUD-02  (nc-or-*) — HTML mode: image, YouTube, HeyGen
+  • HUD-03  (nc-hp-*) — text + image panel
+  • HUD-04  (nc-hp-*) — text + video panel
+
+  Contents:
+  1. Google Fonts (Share Tech Mono)
+  2. CSS for HUD-01 + HUD-02 + HUD-03/04
+  3. Shared JS: NcHudMini (expand/collapse toggle)
+  4. Lite JS: NcHud01 stub, NcHud02 stub (HTML mode only)
+-->
+
+<!-- NebulaCast HUD: Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;display=swap" rel="stylesheet"/>
+
+<!-- NebulaCast HUD: Panel CSS (HUD-01 + HUD-02 + HUD-03/04) -->
+<style>
+/*<![CDATA[*/
+/* ================================================================
+   HUD-01 (nc-ol-*) CSS — Object Lock Panel
+   ================================================================ */
+/* ================================================================
+   NebulaCast HUD-01 — Blogger Template CSS
+   Version : 1.0  (2026-05-25)
+   Covers  : HUD-01 (object lock panel, nc-ol-*)
+   Scope   : All nc-ol-* and nc-hud-01-* classes — safe for Blogger,
+             no :root overrides, no global resets.
+
+   WHERE TO PUT THIS:
+   Blogger → Theme → Edit HTML
+   Paste the <style> block from optional/blogger-template-snippet.txt
+   just before the closing </head> tag.
+   ================================================================ */
+
+/* ── Box-sizing (scoped — does not touch Blogger theme) ────────── */
+
+.nc-ol-widget,
+.nc-ol-widget * {
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   SHARED KEYFRAMES (inlined from shared/animations.css + effects.css)
+   ================================================================ */
+
+@keyframes hudBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0,220,255,.18),
+      0 0 42px rgba(0,140,255,.10),
+      inset 0 0 28px rgba(0,255,255,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0,240,255,.28),
+      0 0 64px rgba(0,180,255,.16),
+      inset 0 0 42px rgba(0,255,255,.12);
+  }
+}
+
+@keyframes hudPanelSweep {
+  0%   { transform: rotate(8deg) translateX(-320%); }
+  100% { transform: rotate(8deg) translateX(900%); }
+}
+
+@keyframes hudProgressScan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+
+@keyframes hudRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes hudPulseOuter {
+  0%, 100% { transform: scale(.94); opacity: .35; }
+  50%      { transform: scale(1.02); opacity: 1; }
+}
+
+@keyframes hudPulseInner {
+  0%, 100% { transform: scale(.92); opacity: .28; }
+  50%      { transform: scale(1.05); opacity: .78; }
+}
+
+@keyframes hudBlinkSoft {
+  0%, 100% { opacity: .32; }
+  50%      { opacity: 1; }
+}
+
+@keyframes hudLockBoxPulse {
+  0%, 100% { transform: scale(.78); opacity: .25; }
+  50%      { transform: scale(1.12); opacity: .95; }
+}
+
+/* ── .nc-panel-sweep (inlined from shared/effects.css) ───────── */
+
+.nc-panel-sweep {
+  position: absolute;
+  top: -38%;
+  left: -32%;
+  width: 58%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(80,220,255,0) 8%,
+    rgba(80,220,255,.06) 25%,
+    rgba(180,255,255,.22) 50%,
+    rgba(80,220,255,.08) 75%,
+    transparent 100%
+  );
+  transform: rotate(8deg) translateX(-320%);
+  mix-blend-mode: screen;
+  animation: hudPanelSweep 7s linear infinite;
+}
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+.nc-ol-widget {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  max-height: 600px;
+  transition: max-height 1000ms cubic-bezier(.2, .9, .2, 1),
+              opacity    150ms ease;
+}
+
+/* ── Main panel ──────────────────────────────────────────────── */
+
+.nc-ol-panel {
+  position: relative;
+  width: 100%;        /* fills blog width in expanded state */
+  height: 420px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 520px 1fr;
+
+  overflow: visible;  /* allows button to sit outside frame */
+
+  background:
+    linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)),
+    rgba(0,8,16,.95);
+
+  opacity: .65;
+
+  animation:
+    ncOlOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+
+  transform-origin: top left;  /* mini thumbnail anchors from left edge */
+  transition: transform 1000ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── SVG frame ───────────────────────────────────────────────── */
+
+.nc-ol-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 30;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.nc-ol-frame-line {
+  fill: none;
+  stroke: rgba(80,220,255,.88);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+}
+
+.nc-ol-frame-inner {
+  stroke: rgba(150,245,255,.62);
+  stroke-width: 1.2;
+}
+
+.nc-ol-frame-photo-top,
+.nc-ol-frame-photo-bottom {
+  stroke: rgba(100,235,255,.72);
+  stroke-width: 1.4;
+}
+
+.nc-ol-frame-tab {
+  fill: rgba(70,200,255,.90);
+  filter: drop-shadow(0 0 10px rgba(80,220,255,.9));
+}
+
+.nc-ol-frame-tab-top {
+  animation: ncOlTopSvgSlider 5s ease-in-out infinite;
+}
+
+/* ── Sweep ───────────────────────────────────────────────────── */
+
+.nc-ol-sweep {
+  z-index: 3;
+  opacity: .5;
+}
+
+/* ── Left image column ───────────────────────────────────────── */
+
+.nc-ol-left {
+  position: relative;
+  min-width: 520px;
+  width: 520px;
+  height: 420px;
+  overflow: hidden;
+  background: #000;
+  z-index: 1;
+}
+
+.nc-ol-image {
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  display: block;
+  object-fit: cover;
+  filter: brightness(.72) contrast(1.18) saturate(.85);
+}
+
+/* ── Reticle ─────────────────────────────────────────────────── */
+
+.nc-ol-reticle {
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+.nc-ol-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.nc-ol-ring-1 {
+  width: 270px;
+  height: 270px;
+  border: 2px solid rgba(80,245,255,.75);
+  box-shadow: 0 0 18px rgba(80,245,255,.5);
+  animation: hudPulseOuter 4s ease-in-out infinite;
+}
+
+.nc-ol-ring-2 {
+  width: 210px;
+  height: 210px;
+  border: 2px dashed rgba(80,245,255,.82);
+  animation: hudRotate 10s linear infinite;
+}
+
+.nc-ol-ring-3 {
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(170,255,255,.88);
+  opacity: .65;
+  animation: hudPulseInner 2.5s ease-in-out infinite;
+}
+
+.nc-ol-cross {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+}
+
+.nc-ol-cross::before,
+.nc-ol-cross::after {
+  content: "";
+  position: absolute;
+  background: rgba(120,255,255,.85);
+  box-shadow: 0 0 10px rgba(80,245,255,.72);
+}
+
+.nc-ol-cross::before {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+  left: 0;
+}
+
+.nc-ol-cross::after {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+}
+
+.nc-ol-lock-box {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  animation: hudLockBoxPulse 3.2s ease-in-out infinite;
+}
+
+.nc-ol-lock-box span {
+  position: absolute;
+  display: block;
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 0 8px rgba(80,245,255,.9));
+}
+
+.nc-ol-lock-box span::before,
+.nc-ol-lock-box span::after {
+  content: "";
+  position: absolute;
+  background: rgba(150,255,255,.95);
+  box-shadow: 0 0 10px rgba(80,245,255,.75);
+}
+
+.nc-ol-lock-box span::before { width: 34px; height: 3px; }
+.nc-ol-lock-box span::after  { width: 3px;  height: 34px; }
+
+.nc-ol-lock-box span:nth-child(1)         { top: 0;    left: 0; }
+.nc-ol-lock-box span:nth-child(1)::before { top: 0;    left: 0; }
+.nc-ol-lock-box span:nth-child(1)::after  { top: 0;    left: 0; }
+
+.nc-ol-lock-box span:nth-child(2)         { top: 0;    right: 0; }
+.nc-ol-lock-box span:nth-child(2)::before { top: 0;    right: 0; }
+.nc-ol-lock-box span:nth-child(2)::after  { top: 0;    right: 0; }
+
+.nc-ol-lock-box span:nth-child(3)         { bottom: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(3)::before { bottom: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(3)::after  { bottom: 0; left: 0; }
+
+.nc-ol-lock-box span:nth-child(4)         { bottom: 0; right: 0; }
+.nc-ol-lock-box span:nth-child(4)::before { bottom: 0; right: 0; }
+.nc-ol-lock-box span:nth-child(4)::after  { bottom: 0; right: 0; }
+
+.nc-ol-corner {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-color: rgba(210,255,255,.95);
+}
+
+.nc-ol-corner-tl { top: 46px;    left: 46px;  border-top: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-tr { top: 46px;    right: 46px; border-top: 2px solid; border-right: 2px solid; }
+.nc-ol-corner-bl { bottom: 46px; left: 46px;  border-bottom: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-br { bottom: 46px; right: 46px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.nc-ol-center-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 0 18px rgba(80,245,255,.95);
+}
+
+.nc-ol-target-lock {
+  position: absolute;
+  bottom: 30px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .26em;
+  color: #d8ffff;
+  text-shadow: 0 0 12px rgba(80,245,255,.95);
+  animation: hudBlinkSoft 1.4s ease-in-out infinite;
+}
+
+/* ── Right data column ───────────────────────────────────────── */
+
+.nc-ol-right {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  height: 420px;
+  padding: 52px 68px 30px 10px;
+  color: #cfffff;
+  background: linear-gradient(90deg, rgba(0,18,32,.97), rgba(0,12,26,.99));
+  text-shadow: 0 0 8px rgba(80,245,255,.55);
+  overflow: hidden;
+}
+
+.nc-ol-right > * {
+  position: relative;
+  z-index: 4;
+}
+
+.nc-ol-title {
+  position: relative;
+  margin: 0 auto 34px auto;
+  width: max-content;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-ol-title::before,
+.nc-ol-title::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(120,245,255,.85);
+}
+
+.nc-ol-title::before {
+  left: -40px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.nc-ol-title::after {
+  right: -40px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.nc-ol-title-brackets {
+  position: absolute;
+  top: 116px;
+  left: 50%;
+  width: 260px;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(80,245,255,.75), transparent);
+  box-shadow: 0 0 10px rgba(80,245,255,.8);
+}
+
+.nc-ol-grid {
+  display: grid;
+  grid-template-columns: 85px minmax(0, 1fr) 85px minmax(0, 1fr);
+  row-gap: 8px;
+  column-gap: 10px;
+  padding-top: 26px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.05;
+  letter-spacing: .05em;
+}
+
+.nc-ol-label,
+.nc-ol-value {
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(80,220,255,.26);
+}
+
+.nc-ol-label {
+  font-weight: 400;
+  color: #dfffff;
+  white-space: nowrap;
+}
+
+.nc-ol-value {
+  color: #9ffcff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+/* ── Progress bar ────────────────────────────────────────────── */
+
+.nc-ol-progress {
+  position: absolute;
+  top: 33px;
+  left: 14%;
+  width: 31.5%;
+  height: 24px;
+  z-index: 25;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(80,220,255,.10)  0px,
+      rgba(80,220,255,.10) 13px,
+      rgba(0,10,30,.55)    13px,
+      rgba(0,10,30,.55)    14px
+    );
+  box-shadow:
+    0 0 4px rgba(80,220,255,.20),
+    inset 0 0 4px rgba(0,0,0,.40);
+}
+
+.nc-ol-progress__fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent              0%,
+    rgba(80,220,255,.08)    25%,
+    rgba(80,240,255,.65)    50%,
+    rgba(80,220,255,.08)    75%,
+    transparent             100%
+  );
+  filter: blur(1px);
+  animation: hudProgressScan 3s linear infinite;
+}
+
+/* ── Aladin Lite layer ───────────────────────────────────────── */
+
+.nc-hud-01-aladdin {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+  position: absolute;
+  left: 42px;
+  top: 34px;
+  width: 445px;
+  height: 352px;
+  z-index: 2;
+  overflow: hidden;
+  background: rgba(0, 8, 18, .96);
+  border: 1px solid rgba(80,220,255,.28);
+  box-shadow: inset 0 0 40px rgba(0,220,255,.06);
+}
+
+.nc-hud-01-aladdin > div:first-child {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.nc-hud-01-aladdin__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.nc-hud-01-aladdin--ready .nc-hud-01-aladdin__placeholder {
+  display: none;
+}
+
+.nc-hud-01-aladdin__label {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.60);
+  text-shadow: 0 0 10px rgba(80,220,255,.40);
+}
+
+.nc-hud-01-aladdin__sub {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.30);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────── */
+
+.nc-ol-toolbar {
+  position: absolute;
+  bottom: 16px;
+  right: 72px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: all;
+}
+
+.nc-ol-tb-group {
+  display: flex;
+  gap: 6px;
+}
+
+.nc-ol-tb-sep {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(80, 220, 255, 0.18);
+  margin: 0 6px;
+}
+
+.nc-ol-tb-btn {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 4px 10px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-ol-tb-btn:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+}
+
+.nc-ol-tb-btn[aria-pressed="true"] {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Data-attribute CSS rules ────────────────────────────────── */
+
+.nc-ol-widget[data-target-lock="off"] .nc-ol-reticle,
+.nc-ol-widget[data-reticle="off"] .nc-ol-reticle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nc-ol-widget[data-aladdin="on"] .nc-hud-01-aladdin {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Info panel visibility ───────────────────────────────────── */
+
+.nc-ol-info-panel {
+  display: none !important;
+}
+
+.nc-ol-widget[data-info-mode="data"] .nc-ol-info-panel--data {
+  display: grid !important;
+}
+
+.nc-ol-widget[data-info-mode="catalog"] .nc-ol-info-panel--catalog {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.nc-ol-widget[data-info-mode="catalog"] .nc-ol-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 270px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-ol-widget[data-info-mode="papers"] .nc-ol-info-panel--papers {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.nc-ol-widget[data-info-mode="papers"] .nc-hud-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 270px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-ol-info-panel--catalog::-webkit-scrollbar,
+.nc-ol-info-panel--papers::-webkit-scrollbar  { width: 3px; }
+.nc-ol-info-panel--catalog::-webkit-scrollbar-track,
+.nc-ol-info-panel--papers::-webkit-scrollbar-track  { background: transparent; }
+.nc-ol-info-panel--catalog::-webkit-scrollbar-thumb,
+.nc-ol-info-panel--papers::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.25); border-radius: 2px; }
+
+.nc-ol-info-placeholder {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.55);
+  text-align: center;
+  line-height: 1.8;
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.25);
+}
+
+/* ── DATA panel status / spinner / note ──────────────────────── */
+
+.nc-ol-data-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0 14px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.nc-ol-data-status--loading { color: rgba(80, 220, 255, 0.50); }
+.nc-ol-data-status--error   { color: rgba(255, 100, 100, 0.60); }
+
+.nc-ol-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(80, 220, 255, 0.14);
+  border-top-color: rgba(80, 220, 255, 0.75);
+  border-radius: 50%;
+  animation: hudSpinner 0.85s linear infinite;
+  flex-shrink: 0;
+}
+
+.nc-ol-data-note {
+  grid-column: 1 / -1;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-align: center;
+  color: rgba(80, 220, 255, 0.22);
+  padding-top: 8px;
+  border-top: 1px solid rgba(80, 220, 255, 0.10);
+  margin-top: 4px;
+}
+
+/* ── Catalog / paper cards ───────────────────────────────────── */
+
+.nc-ol-paper-card {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.14);
+}
+
+.nc-ol-paper-card:last-child { border-bottom: none; }
+
+.nc-ol-paper-title {
+  display: block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgba(130, 245, 255, 0.90);
+  text-decoration: none;
+  text-shadow: 0 0 6px rgba(80, 220, 255, 0.30);
+  margin-bottom: 4px;
+}
+
+.nc-ol-paper-title:hover {
+  color: rgba(160, 255, 255, 1);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.40);
+  text-underline-offset: 2px;
+}
+
+.nc-ol-paper-meta {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(80, 200, 255, 0.50);
+  margin-bottom: 4px;
+}
+
+.nc-ol-paper-abstract {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(160, 240, 255, 0.45);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Shared paper rows (HudPapers.render output) ─────────────── */
+
+.nc-hud-panel-header {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 15px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.82);
+  text-align: center;
+  padding: 7px 8px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.12);
+  margin-bottom: 2px;
+}
+
+.nc-hud-paper-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.06);
+  transition: background .15s;
+}
+.nc-hud-paper-row:hover { background: rgba(80, 220, 255, 0.04); }
+.nc-hud-paper-row:last-child { border-bottom: none; }
+
+.nc-hud-paper-year {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: rgba(80, 220, 255, 0.50);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.nc-hud-paper-title {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: .02em;
+  color: rgba(80, 220, 255, 0.88);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.nc-hud-paper-title:hover {
+  color: rgba(80, 220, 255, 1);
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.45);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.nc-hud-paper-journal {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: rgba(80, 220, 255, 0.32);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── HTML slot (html mode) ───────────────────────────────────── */
+
+.nc-hud-01-html-slot {
+  display: none;
+  position: absolute;
+  inset: 62px 30px 20px 30px;
+  z-index: 10;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 52px 16px 52px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-hud-01[data-mode="html"] .nc-hud-01-html-slot { display: block; }
+
+/* HTML mode: hide object-specific layers */
+.nc-hud-01[data-mode="html"] .nc-ol-left,
+.nc-hud-01[data-mode="html"] .nc-ol-right,
+.nc-hud-01[data-mode="html"] .nc-ol-toolbar { display: none !important; }
+
+/* HTML mode: auto-height panel (spec §10 — height adapts to content) */
+.nc-hud-01[data-mode="html"] .nc-ol-panel {
+  display: block;
+  height: auto;
+  min-height: 420px;
+}
+
+/* HTML mode: push title below inner SVG frame line (y≈62 in viewBox coords) */
+.nc-hud-01[data-mode="html"] .nc-ol-title {
+  top: 75px;
+}
+
+.nc-hud-01[data-mode="html"] .nc-hud-01-html-slot {
+  position: static;
+  inset: unset;
+  overflow: visible;
+  padding: 70px 52px 40px;
+}
+
+.nc-hud-01-html-slot::-webkit-scrollbar       { width: 4px; }
+.nc-hud-01-html-slot::-webkit-scrollbar-track  { background: transparent; }
+.nc-hud-01-html-slot::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.28); border-radius: 2px; }
+
+/* HTML slot typography */
+.nc-hud-01-html-slot h1,
+.nc-hud-01-html-slot h2,
+.nc-hud-01-html-slot h3,
+.nc-hud-01-html-slot h4 {
+  font-family: "Share Tech Mono", monospace;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(130, 245, 255, 0.92);
+  text-shadow: 0 0 8px rgba(80, 220, 255, 0.40);
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.nc-hud-01-html-slot h1 { font-size: 22px; }
+.nc-hud-01-html-slot h2 { font-size: 17px; }
+.nc-hud-01-html-slot h3 { font-size: 13px; letter-spacing: .16em; }
+.nc-hud-01-html-slot h4 { font-size: 11px; letter-spacing: .18em; color: rgba(80, 220, 255, 0.70); }
+
+.nc-hud-01-html-slot p {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+}
+
+.nc-hud-01-html-slot a {
+  color: rgba(80, 220, 255, 0.90);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.35);
+  text-underline-offset: 3px;
+}
+.nc-hud-01-html-slot a:hover {
+  color: rgba(140, 245, 255, 1);
+  text-decoration-color: rgba(140, 245, 255, 0.60);
+}
+
+.nc-hud-01-html-slot ul,
+.nc-hud-01-html-slot ol {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+  padding-left: 1.4em;
+  line-height: 1.6;
+}
+
+.nc-hud-01-html-slot img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid rgba(80, 220, 255, 0.22);
+  margin-bottom: 10px;
+}
+
+.nc-hud-01-html-slot iframe,
+.nc-hud-01-html-slot video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid rgba(80, 220, 255, 0.18);
+  margin-bottom: 10px;
+}
+
+.nc-hud-01-html-slot table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  color: rgba(190, 250, 255, 0.78);
+  margin-bottom: 10px;
+}
+
+.nc-hud-01-html-slot th,
+.nc-hud-01-html-slot td {
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.18);
+  text-align: left;
+}
+
+.nc-hud-01-html-slot th {
+  color: rgba(130, 245, 255, 0.90);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* ── Media containers (shared with HUD03/04) ─────────────────── */
+
+.nc-hud-media {
+  position: relative;
+  width: 100%;
+  margin-bottom: 14px;
+  background: rgba(0,8,18,.90);
+}
+
+.nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .18em;
+  color: rgba(80,220,255,.55);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nc-hud-media iframe {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  border: none;
+}
+
+.nc-hud-media-vertical  { aspect-ratio: 9/16; }
+.nc-hud-media-horizontal { aspect-ratio: 16/9; }
+
+.nc-hud-media-vertical  iframe { height: 100%; }
+.nc-hud-media-horizontal iframe { height: 100%; position: absolute; inset: 0; }
+
+.nc-hud-float-image {
+  float: right;
+  max-width: 42%;
+  height: auto;
+  margin: 0 0 12px 16px;
+  border: 1px solid rgba(80,220,255,.22);
+  display: block;
+}
+
+/* ── HUD-01 title classes (5 independent variants) ───────────── */
+/* All five share an identical base (identical to nc-ol-title, which is
+   reserved for object-mode use in .nc-ol-right). These suffixed variants
+   are for html-slot content — customize each independently.
+
+   NOTE: nc-ol-title (no suffix) is reserved for object-mode use.
+   These five use the -maxi / -mini / -micro / -b / -c suffixes to stay clear.
+
+   Variants:
+     nc-ol-title-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-ol-title-mini   — mini thumbnail
+     nc-ol-title-micro  — micro thumbnail
+     nc-ol-title-b      — reserve B
+     nc-ol-title-c      — reserve C                              */
+
+.nc-ol-title-maxi,
+.nc-ol-title-mini,
+.nc-ol-title-micro,
+.nc-ol-title-b,
+.nc-ol-title-c {
+  position: relative;
+  margin: 0 auto 34px auto;
+  width: max-content;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-ol-title-maxi::before,  .nc-ol-title-maxi::after,
+.nc-ol-title-mini::before,  .nc-ol-title-mini::after,
+.nc-ol-title-micro::before, .nc-ol-title-micro::after,
+.nc-ol-title-b::before,     .nc-ol-title-b::after,
+.nc-ol-title-c::before,     .nc-ol-title-c::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(120,245,255,.85);
+}
+
+.nc-ol-title-maxi::before,
+.nc-ol-title-mini::before,
+.nc-ol-title-micro::before,
+.nc-ol-title-b::before,
+.nc-ol-title-c::before {
+  left: -40px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.nc-ol-title-maxi::after,
+.nc-ol-title-mini::after,
+.nc-ol-title-micro::after,
+.nc-ol-title-b::after,
+.nc-ol-title-c::after {
+  right: -40px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+/* ── Per-variant overrides ────────────────────────────────────── */
+/* Per-variant position vars (set on WIDGET ROOT via style="").
+   Maxi/micro: screen px. Mini: UNSCALED panel coords (÷ 0.352). */
+.nc-ol-title-maxi {
+  top:  var(--nc-title-maxi-top,  0px);
+  left: var(--nc-title-maxi-left, 0px);
+}
+.nc-ol-title-mini {
+  top:  var(--nc-title-mini-top,  0px);
+  left: var(--nc-title-mini-left, 0px);
+}
+/* nc-ol-title-micro position: see micro-mini state rule below.   */
+
+/* ── HUD-01 button classes (5 independent variants) ──────────── */
+/* All five share an identical base (mirrors nc-ol-tb-btn style).
+   NOTE: nc-ol-tb-btn (no suffix) is reserved for object-mode tab buttons.
+
+   Variants:
+     nc-ol-btn-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-ol-btn-mini   — mini thumbnail
+     nc-ol-btn-micro  — micro thumbnail
+     nc-ol-btn-b      — reserve B
+     nc-ol-btn-c      — reserve C                               */
+
+.nc-ol-btn-maxi,
+.nc-ol-btn-mini,
+.nc-ol-btn-micro,
+.nc-ol-btn-b,
+.nc-ol-btn-c {
+  display: inline-block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 6px 14px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-ol-btn-maxi:hover,
+.nc-ol-btn-mini:hover,
+.nc-ol-btn-micro:hover,
+.nc-ol-btn-b:hover,
+.nc-ol-btn-c:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+  text-decoration: none;
+}
+
+.nc-ol-btn-maxi:active,
+.nc-ol-btn-mini:active,
+.nc-ol-btn-micro:active,
+.nc-ol-btn-b:active,
+.nc-ol-btn-c:active {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Per-variant overrides ────────────────────────────────────── */
+/* Add properties here to diverge from the shared base.
+
+.nc-ol-btn-maxi   { }
+.nc-ol-btn-mini   { }
+.nc-ol-btn-micro  { }
+.nc-ol-btn-b      { }
+.nc-ol-btn-c      { }                                           */
+
+/* ── Mini / Expanded toggle ──────────────────────────────────── */
+
+/* Default (mini) slot — 317×148, scale 0.352 */
+.nc-ol-widget.is-mini {
+  max-height: 148px;
+  max-width: 317px;
+  cursor: pointer;
+}
+
+/* ── Mini external button (nc-ol-btn-mini) ───────────────────────
+   Placement: direct child of widget AFTER the panel, same pattern as nc-ol-btn-micro.
+   The panel's layout height is ~420px (scale shrinks it visually, not in flow), so
+   the button MUST be position:absolute to escape the flow.
+   !important overrides JS widget.style.maxHeight = '148px' and overflow = 'hidden'. */
+.nc-ol-widget[data-collapse="mini"].is-mini > .nc-ol-btn-mini,
+.nc-ol-widget:not([data-collapse]).is-mini > .nc-ol-btn-mini {
+  position: absolute !important;
+  top:  var(--nc-btn-mini-top,  152px) !important;  /* thumbnail (148px) + gap (4px) */
+  left: var(--nc-btn-mini-left, 0px)   !important;
+  z-index: 100 !important;
+}
+.nc-ol-widget:not(.is-mini) > .nc-ol-btn-mini {
+  display: none !important;
+}
+.nc-ol-widget[data-collapse="mini"].is-mini:has(> .nc-ol-btn-mini),
+.nc-ol-widget:not([data-collapse]).is-mini:has(> .nc-ol-btn-mini) {
+  max-height: 174px !important;   /* 148px + 4px gap + 22px button */
+  overflow: visible !important;
+}
+
+/* Micro slot — no scale; custom layout: unscaled h2 label above + portrait image slot.
+   JS passes scale=null / panelW=87 / panelH=130 / miniH=149 to NcHudMini by default.
+   Widget overflow:visible lets the outer h2 (direct child, before panel) show above. */
+.nc-ol-widget[data-collapse="micro"].is-mini {
+  max-height: calc(var(--nc-micro-h, 130px) + 19px); /* slot + label (~15px) + gap (4px) */
+  max-width: var(--nc-micro-w, 87px);
+  overflow: visible !important;
+}
+
+/* Panel in micro mini: no min-height so panel can be short */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-panel {
+  min-height: 0 !important;
+}
+
+/* Scale progress bar to fit the portrait slot.
+   In micro the panel aspect ratio flips (portrait vs landscape), so the inner-frame
+   top spans ~70% of width — override left + width from the base 14%/31.5% values. */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-progress {
+  top:    calc(var(--nc-micro-h, 130px) * 0.079);  /* SVG inner-top y=26/420 */
+  left:   14%;                                       /* SVG x=170/1200 ≈ 14% */
+  width:  70%;                                       /* inner-top runs to x≈84% of panel */
+  height: calc(var(--nc-micro-h, 130px) * 0.070);  /* slightly taller for visibility */
+}
+
+/* HTML slot in micro mini — см. blogger-hud01-template.css (micro image slot) */
+
+/* Outer h2 (direct child of widget, before panel):
+   hidden in expanded, shown as label above the slot in micro mini */
+.nc-ol-widget[data-collapse="micro"] > .nc-ol-title-micro {
+  display: none;
+}
+.nc-ol-widget[data-collapse="micro"].is-mini > .nc-ol-title-micro {
+  display: block !important;
+  font-size: 11px;
+  letter-spacing: .10em;
+  text-align: center;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: var(--nc-micro-w, 87px);
+  width: auto;
+  top:  var(--nc-title-micro-top,  0px);
+  left: var(--nc-title-micro-left, 0px);
+}
+.nc-ol-widget[data-collapse="micro"].is-mini > .nc-ol-title-micro::before,
+.nc-ol-widget[data-collapse="micro"].is-mini > .nc-ol-title-micro::after {
+  display: none;
+}
+
+/* Toggle button in micro mini: scaled down, coords in screen px. */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Micro button: absolute within widget/panel — descendant selector handles any placement */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-btn-micro {
+  position: absolute !important;
+  top:  var(--nc-btn-micro-top,  19px) !important;  /* label (~15px) + gap (4px) */
+  left: var(--nc-btn-micro-left, 0px)  !important;
+  z-index: 9999 !important;
+}
+/* Hidden in expanded state (btn-maxi inside slot handles that) */
+.nc-ol-widget[data-collapse="micro"]:not(.is-mini) .nc-ol-btn-micro {
+  display: none !important;
+}
+
+/* ── Micro size modifier classes ──────────────────────────────── */
+/* Add one of these classes to the widget root alongside data-collapse="micro"
+   to change the slot dimensions.  Omit the class for the 106×49 default.
+
+   Usage:  <div class="nc-hud-01 nc-ol-widget nc-micro-l" data-collapse="micro" …>
+
+   Sizes (w × h of the image slot; total widget height = h + 19px):
+     nc-micro-s    —  87 × 130 px
+     (default)     —  87 × 130 px
+     nc-micro-l    — 200 × 308 px                                 */
+
+.nc-micro-s { --nc-micro-w: 87px; --nc-micro-h: 130px; }
+.nc-micro-l { --nc-micro-w: 200px; --nc-micro-h: 308px; }
+
+/* .nc-ol-widget.is-mini .nc-ol-panel constraints (transform, transformOrigin,
+   width, height, margin, overflow) are applied as inline styles by hud-mini.js.
+   No CSS rule needed here — removing it avoids duplication and specificity fights. */
+
+/* Toggle button — scoped to HUD-01 only.
+   Per-mode vars (set on widget root): --nc-toggle-maxi-top/left | --nc-toggle-mini-top/left/scale
+   --nc-toggle-micro-top/left/scale | --nc-toggle-top/left (shared). Old --nc-btn-* = fallback. */
+.nc-ol-panel .nc-ol-toggle-btn {
+  position: absolute;
+  top:  var(--nc-toggle-maxi-top,  var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left: var(--nc-toggle-maxi-left, var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  right: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 38px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+  clip-path: polygon(
+    5px 0%, calc(100% - 5px) 0%,
+    100% 5px, 100% calc(100% - 5px),
+    calc(100% - 5px) 100%, 5px 100%,
+    0% calc(100% - 5px), 0% 5px
+  );
+  box-shadow: none;
+  transition: border-color .18s ease, box-shadow .18s ease,
+              color .18s ease, background .18s ease;
+  pointer-events: all;
+}
+
+.nc-ol-panel .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  background: transparent;
+  border-color: rgba(80, 220, 255, .75);
+  box-shadow: none;
+}
+
+/* Mini mode: coords in UNSCALED panel space (÷ 0.352). Vars: --nc-toggle-mini-top/left/scale. */
+.nc-ol-widget.is-mini .nc-ol-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-mini-top,   var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left:      var(--nc-toggle-mini-left,  var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  transform: scale(var(--nc-toggle-mini-scale, var(--nc-btn-scale, 1)));
+  transform-origin: top left;
+}
+
+/* Micro mode: duplicate of the rule in the micro layout section above — kept here
+   for cascade legibility. Specificity wins over the base rule and mini rule. */
+.nc-ol-widget[data-collapse="micro"].is-mini .nc-ol-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Tooltip */
+.nc-ol-panel .nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+
+.nc-ol-panel .nc-ol-toggle-btn:hover::after { display: block; }
+
+/* ── Contour sweep runner ─────────────────────────────────────── */
+
+.nc-hud-01 .nc-ol-sweep { display: none; }
+
+.nc-ol-runner-tail {
+  fill: none;
+  stroke: rgba(60, 190, 255, .13);
+  stroke-width: 72;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(32px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+.nc-ol-runner-body {
+  fill: none;
+  stroke: rgba(90, 210, 255, .26);
+  stroke-width: 32;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(16px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+.nc-ol-runner-head {
+  fill: none;
+  stroke: rgba(150, 232, 255, .55);
+  stroke-width: 10;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: blur(3px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+.nc-ol-runner-spark {
+  fill: none;
+  stroke: rgba(200, 240, 255, .77);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter:
+    drop-shadow(0 0 3px  rgba(180, 240, 255, .80))
+    drop-shadow(0 0 10px rgba(80,  200, 255, .64));
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+/* ── Row container (for multi-panel rows of HUD01) ───────────── */
+
+.nc-hud-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: flex-start;
+  background: #000;
+}
+
+.nc-hud-row .nc-ol-widget.is-mini {
+  flex: 0 0 317px;
+  width: 317px;
+  max-width: 317px;
+}
+
+/* Micro mode override: slot width tracks --nc-micro-w (default 130px) */
+.nc-hud-row .nc-ol-widget[data-collapse="micro"].is-mini {
+  flex: 0 0 var(--nc-micro-w, 87px);
+  width: var(--nc-micro-w, 87px);
+  max-width: var(--nc-micro-w, 87px);
+}
+
+.nc-hud-row .nc-ol-widget:not(.is-mini) {
+  flex: 0 0 100%;
+  order: 99;
+}
+
+/* ── Keyframes — HUD-01 local ─────────────────────────────────── */
+
+@keyframes hudSpinner {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ncOlOpenHud {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ncOlTopSvgSlider {
+  0%, 100% { transform: translateX(-70px); opacity: .65; }
+  50%      { transform: translateX(70px);  opacity: 1; }
+}
+
+@keyframes ncOlSweepBar {
+  from { stroke-dashoffset:   0; }
+  to   { stroke-dashoffset: -3076; }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .nc-ol-widget { padding: 12px; }
+
+  .nc-ol-panel {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .nc-ol-sweep,
+  .nc-ol-frame-svg { display: none; }
+
+  .nc-ol-left {
+    min-width: 0;
+    width: 100%;
+    height: 320px;
+  }
+
+  .nc-ol-image {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-ol-reticle {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-ol-right {
+    min-width: 0;
+    height: auto;
+    padding: 28px 22px 30px;
+  }
+
+  .nc-ol-title {
+    font-size: 22px;
+    margin-bottom: 28px;
+  }
+
+  .nc-ol-grid {
+    grid-template-columns: 100px minmax(0, 1fr);
+    font-size: 12px;
+    row-gap: 12px;
+    column-gap: 12px;
+  }
+
+  .nc-ol-value { white-space: normal; }
+}
+
+/* ================================================================
+   HUD-02 (nc-or-*) CSS — Object Recon Panel
+   ================================================================ */
+/* ================================================================
+   NebulaCast HUD-02 — Blogger Template CSS
+   Version : 1.0  (2026-05-25)
+   Covers  : HUD-02 (object report panel, nc-or-*)
+   Scope   : All nc-or-* and nc-hud-02-* classes — safe for Blogger,
+             no :root overrides, no global resets.
+
+   WHERE TO PUT THIS:
+   Blogger → Theme → Edit HTML
+   Paste the <style> block from optional/blogger-template-snippet.txt
+   just before the closing </head> tag.
+   ================================================================ */
+
+/* ── Box-sizing (scoped — does not touch Blogger theme) ────────── */
+
+.nc-or-widget,
+.nc-or-widget * {
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   SHARED KEYFRAMES (inlined from shared/animations.css + effects.css)
+   These names are identical across HUD-01 and HUD-02 CSS files;
+   when both files are loaded the browser deduplicates by name.
+   ================================================================ */
+
+@keyframes hudBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0,220,255,.18),
+      0 0 42px rgba(0,140,255,.10),
+      inset 0 0 28px rgba(0,255,255,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0,240,255,.28),
+      0 0 64px rgba(0,180,255,.16),
+      inset 0 0 42px rgba(0,255,255,.12);
+  }
+}
+
+@keyframes hudPanelSweep {
+  0%   { transform: rotate(8deg) translateX(-320%); }
+  100% { transform: rotate(8deg) translateX(900%); }
+}
+
+@keyframes hudProgressScan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+
+@keyframes hudRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes hudPulseOuter {
+  0%, 100% { transform: scale(.94); opacity: .35; }
+  50%      { transform: scale(1.02); opacity: 1; }
+}
+
+@keyframes hudPulseInner {
+  0%, 100% { transform: scale(.92); opacity: .28; }
+  50%      { transform: scale(1.05); opacity: .78; }
+}
+
+@keyframes hudBlinkSoft {
+  0%, 100% { opacity: .32; }
+  50%      { opacity: 1; }
+}
+
+@keyframes hudLockBoxPulse {
+  0%, 100% { transform: scale(.78); opacity: .25; }
+  50%      { transform: scale(1.12); opacity: .95; }
+}
+
+/* ── .nc-panel-sweep (inlined from shared/effects.css) ───────── */
+
+.nc-panel-sweep {
+  position: absolute;
+  top: -38%;
+  left: -32%;
+  width: 58%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(80,220,255,0) 8%,
+    rgba(80,220,255,.06) 25%,
+    rgba(180,255,255,.22) 50%,
+    rgba(80,220,255,.08) 75%,
+    transparent 100%
+  );
+  transform: rotate(8deg) translateX(-320%);
+  mix-blend-mode: screen;
+  animation: hudPanelSweep 7s linear infinite;
+}
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+.nc-or-widget {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  max-height: 600px;
+  transition: max-height 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── Main panel ──────────────────────────────────────────────── */
+
+.nc-or-panel {
+  position: relative;
+  width: 120px;
+  max-width: 100%;
+  min-height: 420px; /* allows html-mode content to grow; 420px fixed via JS in mini */
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 30% 70%;
+
+  overflow: clip;
+  background: transparent;
+
+  opacity: .65;
+
+  animation:
+    ncOrOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+
+  transform-origin: top center;
+  transition: transform 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* ── SVG frame ───────────────────────────────────────────────── */
+
+.nc-or-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.nc-or-frame-main {
+  fill: rgba(5,18,38,0);
+  stroke: rgba(80,220,255,.92);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+}
+
+.nc-or-frame-inner,
+.nc-or-frame-teeth-box {
+  fill: none;
+  stroke: rgba(145,245,255,.62);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.65));
+}
+
+.nc-or-frame-teeth rect {
+  fill: rgba(80,220,255,.92);
+  filter: drop-shadow(0 0 6px rgba(80,220,255,.8));
+}
+
+/* ── Sweep ───────────────────────────────────────────────────── */
+
+.nc-or-sweep {
+  z-index: 2;
+  opacity: .65;
+}
+
+/* ── Columns ─────────────────────────────────────────────────── */
+
+.nc-or-left {
+  position: relative;
+  z-index: 3;
+  min-width: 0;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+}
+
+.nc-or-right {
+  position: relative;
+  z-index: 5;
+  height: 420px;
+  padding: 58px 72px 28px 46px;
+  color: #cfffff;
+  background: transparent;
+  overflow: hidden;
+}
+
+.nc-or-right > * {
+  position: relative;
+  z-index: 7;
+}
+
+/* ── Image ───────────────────────────────────────────────────── */
+
+.nc-or-image {
+  position: absolute;
+  left: 25%;
+  top: 18%;
+  width: 80%;
+  height: 66%;
+  object-fit: cover;
+  filter: brightness(.72) contrast(1.18) saturate(.85);
+}
+
+/* ── Reticle ─────────────────────────────────────────────────── */
+
+.nc-or-reticle {
+  position: absolute;
+  left: 25%;
+  top: 18%;
+  width: 80%;
+  height: 66%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.nc-or-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.nc-or-ring-1 {
+  width: 210px;
+  height: 210px;
+  border: 2px solid rgba(80,245,255,.75);
+  box-shadow: 0 0 18px rgba(80,245,255,.5);
+  animation: hudPulseOuter 4s ease-in-out infinite;
+}
+
+.nc-or-ring-2 {
+  width: 166px;
+  height: 166px;
+  border: 2px dashed rgba(80,245,255,.82);
+  animation: hudRotate 10s linear infinite;
+}
+
+.nc-or-ring-3 {
+  width: 94px;
+  height: 94px;
+  border: 1px solid rgba(170,255,255,.88);
+  opacity: .65;
+  animation: hudPulseInner 2.5s ease-in-out infinite;
+}
+
+.nc-or-cross {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+}
+
+.nc-or-cross::before,
+.nc-or-cross::after {
+  content: "";
+  position: absolute;
+  background: rgba(120,255,255,.85);
+  box-shadow: 0 0 10px rgba(80,245,255,.72);
+}
+
+.nc-or-cross::before {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+  left: 0;
+}
+
+.nc-or-cross::after {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+}
+
+.nc-or-lock-box {
+  position: absolute;
+  width: 122px;
+  height: 122px;
+  animation: hudLockBoxPulse 3.2s ease-in-out infinite;
+}
+
+.nc-or-lock-box span {
+  position: absolute;
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.nc-or-lock-box span::before,
+.nc-or-lock-box span::after {
+  content: "";
+  position: absolute;
+  background: rgba(150,255,255,.95);
+  box-shadow: 0 0 10px rgba(80,245,255,.75);
+}
+
+.nc-or-lock-box span::before { width: 30px; height: 3px; }
+.nc-or-lock-box span::after  { width: 3px;  height: 30px; }
+
+.nc-or-lock-box span:nth-child(1)         { top: 0;    left: 0; }
+.nc-or-lock-box span:nth-child(1)::before { top: 0;    left: 0; }
+.nc-or-lock-box span:nth-child(1)::after  { top: 0;    left: 0; }
+
+.nc-or-lock-box span:nth-child(2)         { top: 0;    right: 0; }
+.nc-or-lock-box span:nth-child(2)::before { top: 0;    right: 0; }
+.nc-or-lock-box span:nth-child(2)::after  { top: 0;    right: 0; }
+
+.nc-or-lock-box span:nth-child(3)         { bottom: 0; left: 0; }
+.nc-or-lock-box span:nth-child(3)::before { bottom: 0; left: 0; }
+.nc-or-lock-box span:nth-child(3)::after  { bottom: 0; left: 0; }
+
+.nc-or-lock-box span:nth-child(4)         { bottom: 0; right: 0; }
+.nc-or-lock-box span:nth-child(4)::before { bottom: 0; right: 0; }
+.nc-or-lock-box span:nth-child(4)::after  { bottom: 0; right: 0; }
+
+.nc-or-corner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-color: rgba(210,255,255,.95);
+}
+
+.nc-or-corner-tl { top: 26px;    left: 26px;  border-top: 2px solid; border-left: 2px solid; }
+.nc-or-corner-tr { top: 26px;    right: 26px; border-top: 2px solid; border-right: 2px solid; }
+.nc-or-corner-bl { bottom: 26px; left: 26px;  border-bottom: 2px solid; border-left: 2px solid; }
+.nc-or-corner-br { bottom: 26px; right: 26px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.nc-or-center-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 0 18px rgba(80,245,255,.95);
+}
+
+.nc-or-target-lock {
+  position: absolute;
+  bottom: 16px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .24em;
+  color: #d8ffff;
+  text-shadow: 0 0 12px rgba(80,245,255,.95);
+  animation: hudBlinkSoft 1.4s ease-in-out infinite;
+}
+
+/* ── Right column content ─────────────────────────────────────── */
+
+.nc-or-system {
+  margin-bottom: 10px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  color: rgba(80,220,255,.62);
+}
+
+.nc-or-title {
+  margin: 0 0 16px 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: .18em;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+.nc-or-desc {
+  max-width: 92%;
+  margin-bottom: 18px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: .08em;
+  color: rgba(170,245,255,.84);
+}
+
+.nc-or-textbox {
+  max-width: 82%;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid rgba(80,220,255,.28);
+  background: rgba(0,32,52,.16);
+}
+
+.nc-or-text-title {
+  margin-bottom: 7px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .2em;
+  color: rgba(80,220,255,.82);
+}
+
+.nc-or-text {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: .06em;
+  color: rgba(190,250,255,.78);
+}
+
+.nc-or-log {
+  max-width: 82%;
+  margin-top: 14px;
+  padding: 9px 11px;
+  border-left: 2px solid rgba(80,220,255,.6);
+  background: rgba(0,24,42,.16);
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(170,245,255,.72);
+}
+
+/* Object mode title centering */
+.nc-hud-02[data-mode="object"] .nc-or-title {
+  margin: 23px auto 18px auto;
+  width: max-content;
+}
+
+/* ── Animated loader bar ──────────────────────────────────────── */
+
+.nc-or-frame-loader {
+  position: absolute;
+  top: 38px;
+  left: 23.67%;
+  width: 200px;
+  height: 24px;
+  z-index: 25;
+  pointer-events: none;
+
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+
+  transform: skewX(49deg);
+  padding: 3px;
+  border: 1px solid rgba(80,220,255,.45);
+
+  background: linear-gradient(
+    90deg,
+    rgba(80,220,255,.08),
+    rgba(80,220,255,.02)
+  );
+
+  filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+}
+
+.nc-or-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 12px rgba(80,220,255,.85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.nc-or-frame-loader span:nth-child(1) { animation-name: ncOrLoader1; }
+.nc-or-frame-loader span:nth-child(2) { animation-name: ncOrLoader2; }
+.nc-or-frame-loader span:nth-child(3) { animation-name: ncOrLoader3; }
+.nc-or-frame-loader span:nth-child(4) { animation-name: ncOrLoader4; }
+.nc-or-frame-loader span:nth-child(5) { animation-name: ncOrLoader5; }
+.nc-or-frame-loader span:nth-child(6) { animation-name: ncOrLoader6; }
+.nc-or-frame-loader span:nth-child(7) { animation-name: ncOrLoader7; }
+.nc-or-frame-loader span:nth-child(8) { animation-name: ncOrLoader8; }
+
+/* ── Aladin Lite layer (HUD02-2) ─────────────────────────────── */
+
+.nc-hud-02-aladdin {
+  display: none;
+  position: absolute;
+  left: 25%;
+  top: 18%;
+  width: 80%;
+  height: 66%;
+  z-index: 2;
+  pointer-events: all;
+  overflow: hidden;
+  background: rgba(0, 8, 18, .96);
+  border: 1px solid rgba(80,220,255,.28);
+  box-shadow: inset 0 0 40px rgba(0,220,255,.06);
+}
+
+#nc-hud-02-aladin-viewer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.nc-hud-02-aladdin__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.nc-hud-02-aladdin--ready .nc-hud-02-aladdin__placeholder {
+  display: none;
+}
+
+/* Aladin UI overrides — HUD dark theme */
+#nc-hud-02-aladin-viewer .aladin-location {
+  top:    6px   !important;
+  left:   auto  !important;
+  right:  6px;
+  bottom: auto;
+  background:    rgba(0, 8, 20, 0.82);
+  border:        1px solid rgba(80, 220, 255, 0.28);
+  border-radius: 2px;
+  backdrop-filter: blur(3px);
+}
+
+#nc-hud-02-aladin-viewer .aladin-location .aladin-input-text {
+  background:     transparent;
+  color:          rgba(80, 220, 255, 0.90);
+  border:         none;
+  font-family:    "Share Tech Mono", monospace;
+  font-size:      0.65rem;
+  letter-spacing: 0.04em;
+  padding:        2px 4px;
+}
+
+#nc-hud-02-aladin-viewer .aladin-location .aladin-input-text::placeholder {
+  color:       rgba(80, 220, 255, 0.32);
+  font-family: "Share Tech Mono", monospace;
+}
+
+#nc-hud-02-aladin-viewer .aladin-location .aladin-input-text:focus {
+  outline: none;
+  color:   rgba(120, 240, 255, 1);
+  box-shadow: 0 0 6px rgba(80, 220, 255, 0.25);
+}
+
+#nc-hud-02-aladin-viewer .aladin-location .aladin-location-copy {
+  background:   rgba(0, 8, 20, 0.82);
+  border-color: rgba(80, 220, 255, 0.28);
+  border-right: none;
+}
+
+#nc-hud-02-aladin-viewer .aladin-location .aladin-location-copy img {
+  filter: invert(75%) sepia(60%) saturate(600%) hue-rotate(162deg) brightness(1.2);
+}
+
+#nc-hud-02-aladin-viewer .aladin-logo-container,
+#nc-hud-02-aladin-viewer .aladin-logo {
+  display: none !important;
+}
+
+.nc-hud-02-aladdin__label {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.60);
+  text-shadow: 0 0 10px rgba(80,220,255,.40);
+}
+
+.nc-hud-02-aladdin__sub {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.30);
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────── */
+
+.nc-or-toolbar {
+  position: absolute;
+  bottom: 42px;
+  right: 142px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: all;
+}
+
+.nc-or-tb-group {
+  display: flex;
+  gap: 6px;
+}
+
+.nc-or-tb-sep {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(80, 220, 255, 0.18);
+  margin: 0 6px;
+}
+
+.nc-or-tb-btn {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 4px 10px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-or-tb-btn:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+}
+
+.nc-or-tb-btn[aria-pressed="true"] {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Data-attribute CSS rules ─────────────────────────────────── */
+
+.nc-or-widget[data-target-lock="off"] .nc-or-reticle,
+.nc-or-widget[data-reticle="off"] .nc-or-reticle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nc-or-reticle {
+  transition: opacity .3s ease;
+}
+
+.nc-or-widget[data-aladdin="on"] .nc-hud-02-aladdin {
+  display: block;
+}
+
+/* ── Info panel visibility ────────────────────────────────────── */
+
+.nc-or-info-panel {
+  display: none !important;
+}
+
+.nc-or-widget[data-info-mode="data"] .nc-or-info-panel--data {
+  display: grid !important;
+}
+
+.nc-or-widget[data-info-mode="catalog"] .nc-or-info-panel--catalog {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.nc-or-widget[data-info-mode="catalog"] .nc-or-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 200px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-or-widget[data-info-mode="papers"] .nc-or-info-panel--papers {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.nc-or-widget[data-info-mode="papers"] .nc-hud-papers-list {
+  display: block !important;
+  overflow-y: auto;
+  max-height: 200px;
+  min-height: 0;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-or-info-panel--catalog::-webkit-scrollbar,
+.nc-or-info-panel--papers::-webkit-scrollbar  { width: 3px; }
+.nc-or-info-panel--catalog::-webkit-scrollbar-track,
+.nc-or-info-panel--papers::-webkit-scrollbar-track  { background: transparent; }
+.nc-or-info-panel--catalog::-webkit-scrollbar-thumb,
+.nc-or-info-panel--papers::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.25); border-radius: 2px; }
+
+.nc-or-info-placeholder {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.55);
+  text-align: center;
+  line-height: 1.8;
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.25);
+}
+
+/* ── DATA panel grid ──────────────────────────────────────────── */
+
+.nc-or-grid {
+  display: grid;
+  grid-template-columns: 95px minmax(0, 1fr) 95px minmax(0, 1fr);
+  row-gap: 8px;
+  column-gap: 14px;
+  padding-top: 26px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.05;
+  letter-spacing: .05em;
+}
+
+.nc-or-label,
+.nc-or-value {
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(80,220,255,.26);
+}
+
+.nc-or-label {
+  font-weight: 400;
+  color: #dfffff;
+  white-space: nowrap;
+}
+
+.nc-or-value {
+  color: #9ffcff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+/* ── Data status / spinner / note ─────────────────────────────── */
+
+.nc-or-data-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 10px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.nc-or-data-status--loading { color: rgba(80, 220, 255, 0.50); }
+.nc-or-data-status--error   { color: rgba(255, 100, 100, 0.60); }
+
+.nc-or-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(80, 220, 255, 0.14);
+  border-top-color: rgba(80, 220, 255, 0.75);
+  border-radius: 50%;
+  animation: hudSpinner02 0.85s linear infinite;
+  flex-shrink: 0;
+}
+
+.nc-or-data-note {
+  grid-column: 1 / -1;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-align: center;
+  color: rgba(80, 220, 255, 0.22);
+  padding-top: 8px;
+  border-top: 1px solid rgba(80, 220, 255, 0.10);
+  margin-top: 4px;
+}
+
+/* ── Catalog / paper cards ────────────────────────────────────── */
+
+.nc-or-paper-card {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.14);
+}
+
+.nc-or-paper-card:last-child {
+  border-bottom: none;
+}
+
+.nc-or-paper-title {
+  display: block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgba(130, 245, 255, 0.90);
+  text-decoration: none;
+  text-shadow: 0 0 6px rgba(80, 220, 255, 0.30);
+  margin-bottom: 4px;
+}
+
+.nc-or-paper-title:hover {
+  color: rgba(160, 255, 255, 1);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.40);
+  text-underline-offset: 2px;
+}
+
+.nc-or-paper-meta {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(80, 200, 255, 0.50);
+  margin-bottom: 4px;
+}
+
+.nc-or-paper-abstract {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(160, 240, 255, 0.45);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── PAPERS shared styles (HudPapers.render() output) ─────────── */
+
+.nc-hud-02 .nc-hud-panel-header {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 15px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.82);
+  text-align: center;
+  padding: 7px 8px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.12);
+  margin-bottom: 2px;
+}
+
+.nc-hud-02 .nc-hud-paper-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.06);
+  transition: background .15s;
+}
+
+.nc-hud-02 .nc-hud-paper-row:hover {
+  background: rgba(80, 220, 255, 0.04);
+}
+
+.nc-hud-02 .nc-hud-paper-row:last-child {
+  border-bottom: none;
+}
+
+.nc-hud-02 .nc-hud-paper-year {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: rgba(80, 220, 255, 0.50);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.nc-hud-02 .nc-hud-paper-title {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: .02em;
+  color: rgba(80, 220, 255, 0.88);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nc-hud-02 a.nc-hud-paper-title:hover {
+  color: rgba(80, 220, 255, 1);
+  text-shadow: 0 0 10px rgba(80, 220, 255, 0.45);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.nc-hud-02 .nc-hud-paper-journal {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: rgba(80, 220, 255, 0.32);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Mode: object / html ──────────────────────────────────────── */
+
+.nc-hud-02[data-mode="html"] .nc-or-left,
+.nc-hud-02[data-mode="html"] .nc-or-right,
+.nc-hud-02[data-mode="html"] .nc-or-toolbar {
+  display: none !important;
+}
+
+/* HTML slot — positioned in fixed-height object mode */
+.nc-hud-02-html-slot {
+  display: none;
+  position: absolute;
+  inset: 76px 30px 20px 30px;
+  z-index: 10;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 40px 16px 40px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 220, 255, 0.30) transparent;
+}
+
+.nc-hud-02[data-mode="html"] .nc-hud-02-html-slot {
+  display: block;
+}
+
+.nc-hud-02-html-slot::-webkit-scrollbar       { width: 4px; }
+.nc-hud-02-html-slot::-webkit-scrollbar-track  { background: transparent; }
+.nc-hud-02-html-slot::-webkit-scrollbar-thumb  { background: rgba(80, 220, 255, 0.28); border-radius: 2px; }
+
+/* HTML slot typography */
+.nc-hud-02-html-slot h1,
+.nc-hud-02-html-slot h2,
+.nc-hud-02-html-slot h3,
+.nc-hud-02-html-slot h4 {
+  font-family: "Share Tech Mono", monospace;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(130, 245, 255, 0.92);
+  text-shadow: 0 0 8px rgba(80, 220, 255, 0.40);
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.nc-hud-02-html-slot h1 { font-size: 22px; }
+.nc-hud-02-html-slot h2 { font-size: 17px; }
+.nc-hud-02-html-slot h3 { font-size: 13px; letter-spacing: .16em; }
+.nc-hud-02-html-slot h4 { font-size: 11px; letter-spacing: .18em; color: rgba(80, 220, 255, 0.70); }
+
+.nc-hud-02-html-slot p {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(190, 250, 255, 0.78);
+  margin: 0 0 10px;
+}
+
+.nc-hud-02-html-slot a {
+  color: rgba(80, 220, 255, 0.90);
+  text-decoration: underline;
+  text-decoration-color: rgba(80, 220, 255, 0.35);
+  text-underline-offset: 3px;
+}
+
+.nc-hud-02-html-slot a:hover {
+  color: rgba(140, 245, 255, 1);
+  text-decoration-color: rgba(140, 245, 255, 0.60);
+}
+
+/* ── HUD-02 title classes (5 independent variants) ───────────── */
+/* All five share an identical base (mirrors HUD-01 nc-ol-title).
+   Edit the comma block once to change the base for all variants.
+   Add per-variant overrides in the stubs below — no cascade bleed.
+
+   NOTE: nc-or-title (no suffix) is reserved for object-mode use (line ~372).
+   These five use the -maxi / -mini / -micro / -b / -c suffixes to stay clear.
+
+   Variants:
+     nc-or-title-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-or-title-mini   — mini thumbnail
+     nc-or-title-micro  — micro thumbnail
+     nc-or-title-b      — reserve B
+     nc-or-title-c      — reserve C                              */
+
+.nc-or-title-maxi,
+.nc-or-title-mini,
+.nc-or-title-micro,
+.nc-or-title-b,
+.nc-or-title-c {
+  position: relative;
+  margin: 0 auto 34px auto;
+  width: max-content;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 6px rgba(80,245,255,.72),
+    0 0 14px rgba(80,245,255,.28);
+}
+
+/* Decorative corner brackets — shared across all variants */
+.nc-or-title-maxi::before,  .nc-or-title-maxi::after,
+.nc-or-title-mini::before,  .nc-or-title-mini::after,
+.nc-or-title-micro::before, .nc-or-title-micro::after,
+.nc-or-title-b::before,     .nc-or-title-b::after,
+.nc-or-title-c::before,     .nc-or-title-c::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(120,245,255,.85);
+}
+
+.nc-or-title-maxi::before,
+.nc-or-title-mini::before,
+.nc-or-title-micro::before,
+.nc-or-title-b::before,
+.nc-or-title-c::before {
+  left: -40px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.nc-or-title-maxi::after,
+.nc-or-title-mini::after,
+.nc-or-title-micro::after,
+.nc-or-title-b::after,
+.nc-or-title-c::after {
+  right: -40px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+/* ── Per-variant position vars ───────────────────────────────── */
+/* Per-variant position vars (set on WIDGET ROOT via style="").
+   Maxi/micro: screen px. Mini: UNSCALED panel coords (÷ 0.352). */
+.nc-or-title-maxi {
+  top:  var(--nc-title-maxi-top,  0px);
+  left: var(--nc-title-maxi-left, 0px);
+}
+.nc-or-title-mini {
+  top:  var(--nc-title-mini-top,  0px);
+  left: var(--nc-title-mini-left, 0px);
+}
+/* nc-or-title-micro position: see micro-mini state rule below.   */
+
+/* ── HUD-02 button classes (5 independent variants) ──────────── */
+/* All five share an identical base (mirrors nc-or-tb-btn style).
+   Edit the comma block once to change the base for all variants.
+   Add per-variant overrides in the stubs below — no cascade bleed.
+
+   NOTE: nc-or-tb-btn (no suffix) is reserved for object-mode tab buttons.
+   These five use the -maxi / -mini / -micro / -b / -c suffixes to stay clear.
+
+   Variants:
+     nc-or-btn-maxi   — expanded (maxi) panel   [default for html mode]
+     nc-or-btn-mini   — mini thumbnail
+     nc-or-btn-micro  — micro thumbnail
+     nc-or-btn-b      — reserve B
+     nc-or-btn-c      — reserve C                               */
+
+.nc-or-btn-maxi,
+.nc-or-btn-mini,
+.nc-or-btn-micro,
+.nc-or-btn-b,
+.nc-or-btn-c {
+  display: inline-block;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(150,245,255,.75);
+  background: rgba(0,12,26,.80);
+  border: 1px solid rgba(80,220,255,.22);
+  padding: 6px 14px;
+  cursor: pointer;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0% calc(100% - 6px), 0% 6px
+  );
+  transition:
+    border-color .18s ease,
+    color        .18s ease,
+    box-shadow   .18s ease;
+}
+
+.nc-or-btn-maxi:hover,
+.nc-or-btn-mini:hover,
+.nc-or-btn-micro:hover,
+.nc-or-btn-b:hover,
+.nc-or-btn-c:hover {
+  border-color: rgba(80,220,255,.55);
+  color: rgba(150,245,255,.92);
+  text-decoration: none;
+}
+
+.nc-or-btn-maxi:active,
+.nc-or-btn-mini:active,
+.nc-or-btn-micro:active,
+.nc-or-btn-b:active,
+.nc-or-btn-c:active {
+  color: rgba(150,245,255,.95);
+  border-color: rgba(80,220,255,.75);
+  box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
+
+/* ── Per-variant overrides ────────────────────────────────────── */
+/* Add properties here to diverge from the shared base.
+   Same specificity, later source order → always wins over the base block.
+
+.nc-or-btn-maxi   { }
+.nc-or-btn-mini   { }
+.nc-or-btn-micro  { }
+.nc-or-btn-b      { }
+.nc-or-btn-c      { }                                           */
+
+/* ── HTML mode auto-height override (Blogger — content grows panel) */
+
+.nc-hud-02[data-mode="html"] .nc-or-panel {
+  display: block;
+  height: auto;
+  min-height: 420px;
+}
+
+.nc-hud-02[data-mode="html"] .nc-hud-02-html-slot {
+  position: static;
+  inset: unset;
+  overflow: visible;
+  padding: 76px 52px 40px 52px;
+}
+
+/* ── Shared media containers (same classes as HUD-01/HUD-03) ─── */
+/* Includes video embeds and floating images for HTML mode posts. */
+
+.nc-hud-media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+  margin-bottom: 14px;
+}
+
+.nc-hud-media .nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .18em;
+  color: rgba(80,220,255,.5);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nc-hud-media iframe {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.nc-hud-media-vertical   { aspect-ratio: 9/16; }
+.nc-hud-media-horizontal { aspect-ratio: 16/9; }
+
+.nc-hud-float-image {
+  float: right;
+  max-width: 42%;
+  height: auto;
+  margin: 0 0 12px 16px;
+  border: 1px solid rgba(80,220,255,.22);
+  display: block;
+}
+
+/* Prevent non-floated images from overflowing the slot width */
+.nc-hud-02-html-slot img:not(.nc-hud-float-image) {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Mini / Expanded toggle ───────────────────────────────────── */
+
+/* Default (mini) slot — 317×148, scale 0.352 */
+.nc-or-widget.is-mini {
+  max-height: 148px;
+  max-width: 317px;
+  cursor: pointer;
+}
+
+/* ── Mini external button (nc-or-btn-mini) ───────────────────────
+   Placement: direct child of widget AFTER the panel, same pattern as nc-or-btn-micro.
+   The panel's layout height is ~420px (scale shrinks it visually, not in flow), so
+   the button MUST be position:absolute to escape the flow.
+   !important overrides JS widget.style.maxHeight = '148px' and overflow = 'hidden'. */
+.nc-or-widget[data-collapse="mini"].is-mini > .nc-or-btn-mini,
+.nc-or-widget:not([data-collapse]).is-mini > .nc-or-btn-mini {
+  position: absolute !important;
+  top:  var(--nc-btn-mini-top,  152px) !important;  /* thumbnail (148px) + gap (4px) */
+  left: var(--nc-btn-mini-left, 0px)   !important;
+  z-index: 100 !important;
+}
+.nc-or-widget:not(.is-mini) > .nc-or-btn-mini {
+  display: none !important;
+}
+.nc-or-widget[data-collapse="mini"].is-mini:has(> .nc-or-btn-mini),
+.nc-or-widget:not([data-collapse]).is-mini:has(> .nc-or-btn-mini) {
+  max-height: 174px !important;   /* 148px + 4px gap + 22px button */
+  overflow: visible !important;
+}
+
+/* Micro slot — no scale; custom layout: unscaled h2 label above + portrait image slot.
+   JS passes scale=null / panelW=87 / panelH=130 / miniH=149 to NcHudMini by default.
+   Widget overflow:visible lets the outer h2 (direct child, before panel) show above. */
+.nc-or-widget[data-collapse="micro"].is-mini {
+  max-height: calc(var(--nc-micro-h, 130px) + 19px); /* slot + label (~15px) + gap (4px) */
+  max-width: var(--nc-micro-w, 87px);
+  overflow: visible !important;
+}
+
+/* Panel in micro mini: no min-height so panel can be short */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel {
+  min-height: 0 !important;
+}
+
+/* Scale loader bar to fit the portrait slot (original bar is sized for 1200×420 panel) */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-frame-loader {
+  top:    calc(var(--nc-micro-h, 130px) * 0.09);   /* SVG bevel y=38/420 */
+  left:   20%;
+  width:  calc(var(--nc-micro-w, 87px) * 0.72);   /* usable bevel width */
+  height: calc(var(--nc-micro-h, 130px) * 0.055);  /* SVG bevel span 24/420 */
+  padding: 2px;
+  gap: 4px;
+}
+
+/* HTML slot in micro mini — см. blogger-hud02-template.css (micro image slot) */
+
+/* Outer h2 (direct child of widget, before panel):
+   hidden in expanded, shown as label above the slot in micro mini */
+.nc-or-widget[data-collapse="micro"] > .nc-or-title-micro {
+  display: none;
+}
+.nc-or-widget[data-collapse="micro"].is-mini > .nc-or-title-micro {
+  display: block !important;
+  font-size: 11px;
+  letter-spacing: .10em;
+  text-align: center;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: var(--nc-micro-w, 87px);
+  width: auto;
+  top:  var(--nc-title-micro-top,  0px);
+  left: var(--nc-title-micro-left, 0px);
+}
+.nc-or-widget[data-collapse="micro"].is-mini > .nc-or-title-micro::before,
+.nc-or-widget[data-collapse="micro"].is-mini > .nc-or-title-micro::after {
+  display: none;
+}
+
+/* Toggle button in micro mini: scaled down, coords in screen px. */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Micro button: absolute within widget/panel — descendant selector handles any placement */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-btn-micro {
+  position: absolute !important;
+  top:  var(--nc-btn-micro-top,  19px) !important;  /* label (~15px) + gap (4px) */
+  left: var(--nc-btn-micro-left, 0px)  !important;
+  z-index: 9999 !important;
+}
+/* Hidden in expanded state (btn-maxi inside slot handles that) */
+.nc-or-widget[data-collapse="micro"]:not(.is-mini) .nc-or-btn-micro {
+  display: none !important;
+}
+
+/* ── Micro size modifier classes (shared with HUD-01; defined once above) ── */
+/* .nc-micro-s / .nc-micro-l are already declared in the
+   HUD-01 section and apply here too — CSS custom properties cascade normally. */
+
+/* .nc-or-widget.is-mini .nc-or-panel constraints (transform, transformOrigin,
+   width, height, margin, overflow) are applied as inline styles by hud-mini.js.
+   No CSS rule needed — removing avoids duplication and specificity fights. */
+
+/* Toggle button — scoped to nc-or-panel to avoid conflict with nc-ol-panel.
+   Per-mode vars (set on widget root): --nc-toggle-maxi-top/left | --nc-toggle-mini-top/left/scale
+   --nc-toggle-micro-top/left/scale | --nc-toggle-top/left (shared). Old --nc-btn-* = fallback. */
+.nc-or-panel .nc-ol-toggle-btn {
+  position: absolute;
+  top:  var(--nc-toggle-maxi-top,  var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left: var(--nc-toggle-maxi-left, var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  right: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 38px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+  clip-path: polygon(
+    5px 0%, calc(100% - 5px) 0%,
+    100% 5px, 100% calc(100% - 5px),
+    calc(100% - 5px) 100%, 5px 100%,
+    0% calc(100% - 5px), 0% 5px
+  );
+  box-shadow: none;
+  transition: border-color .18s ease, box-shadow .18s ease,
+              color .18s ease, background .18s ease;
+  pointer-events: all;
+}
+
+.nc-or-panel .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  background: transparent;
+  border-color: rgba(80, 220, 255, .75);
+  box-shadow: none;
+}
+
+/* Mini mode: coords in UNSCALED panel space (÷ 0.352). Vars: --nc-toggle-mini-top/left/scale. */
+.nc-or-widget.is-mini .nc-or-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-mini-top,   var(--nc-toggle-top,  var(--nc-btn-top,  -8px)));
+  left:      var(--nc-toggle-mini-left,  var(--nc-toggle-left, var(--nc-btn-left, -5px)));
+  transform: scale(var(--nc-toggle-mini-scale, var(--nc-btn-scale, 1)));
+  transform-origin: top left;
+}
+
+/* Micro mode: duplicate of the rule in the micro layout section above — kept here
+   for cascade legibility. Specificity wins over the base rule and mini rule. */
+.nc-or-widget[data-collapse="micro"].is-mini .nc-or-panel .nc-ol-toggle-btn {
+  top:       var(--nc-toggle-micro-top,   var(--nc-toggle-top,  var(--nc-btn-top,  2px)));
+  left:      var(--nc-toggle-micro-left,  var(--nc-toggle-left, var(--nc-btn-left, 2px)));
+  transform: scale(var(--nc-toggle-micro-scale, var(--nc-btn-scale, 0.35)));
+  transform-origin: top left;
+}
+
+/* Tooltip */
+.nc-or-panel .nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+
+.nc-or-panel .nc-ol-toggle-btn:hover::after { display: block; }
+
+/* ── Contour sweep runner (HUD-02 SVG path) ───────────────────── */
+
+.nc-hud-02 .nc-or-sweep {
+  display: none;
+}
+
+.nc-or-runner-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 40;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.nc-or-runner-tail {
+  fill: none;
+  stroke: rgba(60, 190, 255, .13);
+  stroke-width: 72;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter: blur(32px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+.nc-or-runner-body {
+  fill: none;
+  stroke: rgba(90, 210, 255, .26);
+  stroke-width: 32;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter: blur(16px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+.nc-or-runner-head {
+  fill: none;
+  stroke: rgba(150, 232, 255, .55);
+  stroke-width: 10;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter: blur(3px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+.nc-or-runner-spark {
+  fill: none;
+  stroke: rgba(200, 240, 255, .77);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter:
+    drop-shadow(0 0 3px  rgba(180, 240, 255, .80))
+    drop-shadow(0 0 10px rgba(80,  200, 255, .64));
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+/* ── Row container (for multi-panel rows of HUD02) ───────────── */
+
+.nc-hud-row .nc-or-widget.is-mini {
+  flex: 0 0 auto;
+  width: 317px;
+}
+
+/* Micro mode override: slot width tracks --nc-micro-w (default 130px) */
+.nc-hud-row .nc-or-widget[data-collapse="micro"].is-mini {
+  width: var(--nc-micro-w, 87px);
+}
+
+.nc-hud-row .nc-or-widget:not(.is-mini) {
+  flex: 0 0 100%;
+  order: 99;
+}
+
+/* ── Mobile ───────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .nc-or-widget { padding: 12px; }
+
+  .nc-or-panel {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .nc-or-sweep,
+  .nc-or-frame-svg { display: none; }
+
+  .nc-or-left {
+    min-width: 0;
+    width: 100%;
+    height: 320px;
+  }
+
+  .nc-or-image {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-or-reticle {
+    left: 0; top: 0;
+    width: 100%; height: 320px;
+  }
+
+  .nc-or-right {
+    min-width: 0;
+    height: auto;
+    padding: 28px 22px 30px;
+  }
+
+  .nc-or-title { font-size: 22px; }
+
+  .nc-or-grid {
+    grid-template-columns: 100px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+}
+
+/* ── Keyframes — HUD-02 local ─────────────────────────────────── */
+
+@keyframes ncOrLoader1 {
+  0%           { opacity: 0; }
+  13%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader2 {
+  0%, 6.5%     { opacity: 0; }
+  19.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader3 {
+  0%, 13%      { opacity: 0; }
+  26%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader4 {
+  0%, 19.5%    { opacity: 0; }
+  32.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader5 {
+  0%, 26%      { opacity: 0; }
+  39%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader6 {
+  0%, 32.5%    { opacity: 0; }
+  45.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader7 {
+  0%, 39%      { opacity: 0; }
+  52%          { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+@keyframes ncOrLoader8 {
+  0%, 45.5%    { opacity: 0; }
+  58.5%        { opacity: 1; }
+  82%          { opacity: 1; }
+  82.01%, 100% { opacity: 0; }
+}
+
+@keyframes hudSpinner02 {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ncOrOpenHud {
+  from { width: 120px; opacity: .65; }
+  to   { width: min(1200px, 100%); opacity: 1; }
+}
+
+@keyframes ncOrSweepBar {
+  from { stroke-dashoffset:   0; }
+  to   { stroke-dashoffset: -2871; }
+}
+
+/* ================================================================
+   HUD-03/04 (nc-hp-*) CSS — Hyper Panel
+   ================================================================ */
+/* ================================================================
+   NebulaCast HUD Panel — Blogger Template CSS
+   Version : 1.0  (2026-05-24)
+   Covers  : HUD-03 (text + image)  and  HUD-04 (text + video)
+   Scope   : All nc-hp-* and nc-hud-* classes — safe for Blogger,
+             no global resets, no :root overrides.
+
+   WHERE TO PUT THIS:
+   Blogger → Theme → Edit HTML
+   Paste the <style> block from optional/blogger-template-snippet.txt
+   just before the closing </head> tag.
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+/* ── Box-sizing (scoped — does not touch Blogger theme) ────────── */
+
+.nc-hp-widget,
+.nc-hp-widget * {
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   KEYFRAMES
+   ================================================================ */
+
+/* Panel open: stretches from center on load */
+@keyframes ncHpOpenHud {
+  from { transform: scaleX(.1); opacity: .65; }
+  to   { transform: scaleX(1);  opacity: 1;   }
+}
+
+/* Ambient glow breathing */
+@keyframes hudBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0,220,255,.18),
+      0 0 42px rgba(0,140,255,.10),
+      inset 0 0 28px rgba(0,255,255,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0,240,255,.28),
+      0 0 64px rgba(0,180,255,.16),
+      inset 0 0 42px rgba(0,255,255,.12);
+  }
+}
+
+/* Diagonal light-beam sweep */
+@keyframes hudPanelSweep {
+  0%   { transform: rotate(8deg) translateX(-320%); }
+  100% { transform: rotate(8deg) translateX(900%); }
+}
+
+/* Scrolling ticker: travels left, snaps back */
+@keyframes hudTickerScroll {
+  0%   { transform: translateX(0);                   opacity: 1; }
+  97%  { transform: translateX(calc(-100% - 100vw)); opacity: 1; }
+  98%  { opacity: 0; }
+  100% { transform: translateX(0);                   opacity: 0; }
+}
+
+/* 8-segment sequential loader */
+@keyframes ncHpLoader1 {
+  0%           { opacity: 0; } 13%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader2 {
+  0%, 6.5%     { opacity: 0; } 19.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader3 {
+  0%, 13%      { opacity: 0; } 26%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader4 {
+  0%, 19.5%    { opacity: 0; } 32.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader5 {
+  0%, 26%      { opacity: 0; } 39%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader6 {
+  0%, 32.5%    { opacity: 0; } 45.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader7 {
+  0%, 39%      { opacity: 0; } 52%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes ncHpLoader8 {
+  0%, 45.5%    { opacity: 0; } 58.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+
+/* ================================================================
+   SWEEP BEAM (base — shared by all HUD panels)
+   Future: replace with SVG contour runner per HUD03 spec §10
+   ================================================================ */
+
+.nc-panel-sweep {
+  position: absolute;
+  top: -38%;
+  left: -32%;
+  width: 58%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(80,220,255,0) 8%,
+    rgba(80,220,255,.06) 25%,
+    rgba(180,255,255,.22) 50%,
+    rgba(80,220,255,.08) 75%,
+    transparent 100%
+  );
+  transform: rotate(8deg) translateX(-320%);
+  mix-blend-mode: screen;
+  animation: hudPanelSweep 7s linear infinite;
+}
+
+/* ================================================================
+   MINI / EXPAND TOGGLE
+   NcHudMini.init() (blogger-hud03-template.js) adds
+   .nc-mini-widget and .nc-mini-panel to the DOM.
+   ================================================================ */
+
+.nc-mini-widget {
+  overflow: hidden;
+  transition: max-height 700ms cubic-bezier(.2, .9, .2, 1);
+}
+.nc-mini-widget.is-mini { cursor: pointer; }
+
+.nc-mini-panel {
+  transform-origin: top center;
+  transition: transform 700ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* Toggle button — anchored to top-left of .nc-hp-panel */
+.nc-hp-widget .nc-ol-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  position: absolute;    /* fixed to panel regardless of content height */
+  top:    43px;
+  left:   40px;
+  right:  auto;
+  bottom: auto;
+  z-index: 36;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 24px;
+  line-height: 1;
+  color: rgba(80, 220, 255, .98);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 2px 10px 2px 10px;
+  cursor: pointer;
+  clip-path: none;
+  box-shadow: none;
+  transition: border-color .18s ease, color .18s ease;
+  pointer-events: all;
+}
+.nc-hp-widget .nc-ol-toggle-btn:hover {
+  color: rgba(150, 245, 255, .98);
+  border-color: rgba(80, 220, 255, .75);
+}
+/* HUD tooltip on hover */
+.nc-hp-widget .nc-ol-toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  display: none;
+  white-space: nowrap;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .88);
+  background: rgba(0, 6, 16, .96);
+  border: 1px solid rgba(80, 220, 255, .32);
+  padding: 4px 10px;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px rgba(80, 220, 255, .18);
+}
+.nc-hp-widget .nc-ol-toggle-btn:hover::after { display: block; }
+
+/* ================================================================
+   WIDGET ROOT
+   ================================================================ */
+
+.nc-hp-widget {
+  width: 100%;
+  margin: 0 auto;
+  background: #000;
+  overflow: clip;
+  position: relative;
+}
+
+/* ================================================================
+   MAIN PANEL
+   ================================================================ */
+
+.nc-hp-panel {
+  /* Geometry tokens — adjust here to tune proportions */
+  --loader-left:        28%;
+  --loader-width:       230px;
+  --frame-edge:         26px;
+  --top-line-y:         18px;
+  --top-line-drop:      26px;
+  --top-line-lower-y:   calc(var(--top-line-y) + var(--top-line-drop));
+
+  position: relative;
+  width: min(1200px, 100%);
+  min-height: 520px;
+  margin: 0 auto;
+  padding: 86px 92px;
+  background: #000;
+  overflow: visible;
+  isolation: isolate;
+
+  opacity: .65;
+  animation:
+    ncHpOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards,
+    hudBreath 5s ease-in-out infinite;
+}
+
+/* ================================================================
+   FRAME DECORATIONS
+   Hide on mobile — content remains readable (see @media below)
+   ================================================================ */
+
+/* Outer border with angled clip */
+.nc-hp-frame-shell {
+  position: absolute;
+  inset: 26px;
+  z-index: 1;
+  pointer-events: none;
+  border: 3px solid rgba(80,220,255,.92);
+  clip-path: polygon(
+    0 22%, 0 100%, 96% 100%,
+    100% 72%, 100% 6%,
+    21% 6%, 18% 5%, 12% 5%
+  );
+  filter:
+    drop-shadow(0 0 6px rgba(80,220,255,.9))
+    drop-shadow(0 0 18px rgba(80,220,255,.5));
+}
+
+/* Black masks that cover the frame corners to create the notch effect */
+.nc-hp-frame-mask {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  background: #000;
+}
+.nc-hp-frame-mask-left {
+  top: 24px; left: 118px;
+  width: 170px; height: 34px;
+  transform: skewX(-32deg);
+}
+.nc-hp-frame-mask-right {
+  top: 24px; right: 18px;
+  width: 46px; height: 48px;
+}
+
+/* Inner inset border */
+.nc-hp-frame-inner {
+  position: absolute;
+  inset: 72px 48px 72px 48px;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(145,245,255,.62);
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 96% 100%, 0 100%);
+  filter: drop-shadow(0 0 4px rgba(80,220,255,.7));
+}
+
+/* Top decorative line + angled slope + right drop */
+.nc-hp-frame-topline {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+.nc-hp-frame-topline span {
+  position: absolute;
+  display: block;
+  background: rgba(80,220,255,.95);
+  box-shadow:
+    0 0 8px rgba(80,220,255,.95),
+    0 0 18px rgba(80,220,255,.45);
+}
+.nc-hp-topline-left {
+  top: var(--top-line-y);
+  left: var(--frame-edge);
+  width: calc(var(--loader-left) + var(--loader-width) + 4px - var(--frame-edge));
+  height: 3px;
+}
+.nc-hp-topline-slope {
+  top: var(--top-line-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 4px);
+  width: 34px; height: 3px;
+  transform-origin: left center;
+  transform: rotate(58deg);
+}
+.nc-hp-topline-right {
+  top: var(--top-line-lower-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 22px);
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 22px) - var(--frame-edge));
+  height: 3px;
+}
+.nc-hp-topline-side {
+  top: var(--top-line-lower-y);
+  right: var(--frame-edge);
+  width: 3px; height: 62px;
+}
+
+/* 8-segment skewed loader bar */
+.nc-hp-frame-loader {
+  position: absolute;
+  top: 42px;
+  left: var(--loader-left);
+  width: var(--loader-width);
+  height: 28px;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  transform: skewX(32deg);
+  padding: 3px;
+  border: 1px solid rgba(80,220,255,.45);
+  background: linear-gradient(90deg, rgba(80,220,255,.08), rgba(80,220,255,.02));
+  filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+}
+.nc-hp-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 12px rgba(80,220,255,.85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.nc-hp-frame-loader span:nth-child(1) { animation-name: ncHpLoader1; }
+.nc-hp-frame-loader span:nth-child(2) { animation-name: ncHpLoader2; }
+.nc-hp-frame-loader span:nth-child(3) { animation-name: ncHpLoader3; }
+.nc-hp-frame-loader span:nth-child(4) { animation-name: ncHpLoader4; }
+.nc-hp-frame-loader span:nth-child(5) { animation-name: ncHpLoader5; }
+.nc-hp-frame-loader span:nth-child(6) { animation-name: ncHpLoader6; }
+.nc-hp-frame-loader span:nth-child(7) { animation-name: ncHpLoader7; }
+.nc-hp-frame-loader span:nth-child(8) { animation-name: ncHpLoader8; }
+
+/* Scrolling ticker strip */
+.nc-hp-frame-ticker {
+  position: absolute;
+  top: 50px;
+  right: 54px;
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 74px));
+  height: 32px;
+  overflow: hidden;
+  z-index: 5;
+  pointer-events: none;
+}
+.nc-hp-frame-ticker span {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%; top: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 14px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(120,245,255,.82);
+  text-shadow: 0 0 8px rgba(80,220,255,.55);
+  animation: hudTickerScroll 30s linear infinite;
+}
+
+/* Sweep overlay — ties into .nc-panel-sweep base */
+.nc-hp-sweep {
+  z-index: 2;
+  opacity: .5;
+}
+
+/* ================================================================
+   CONTENT
+   ================================================================ */
+
+.nc-hp-content {
+  position: relative;
+  z-index: 6;
+  color: #cfffff;
+}
+
+/* Row wrapper: button + system label, floats above the inner frame line */
+.nc-hp-system-row {
+  position: absolute;
+  top: -36px; left: -44px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* System label — inline inside .nc-hp-system-row */
+.nc-hp-system {
+  display: inline;
+  vertical-align: middle;
+  position: relative;
+  top: -43px;
+  left: -21px;
+  margin: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: bold;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.72);
+  text-shadow: 0 0 8px rgba(80,220,255,.45);
+}
+
+/* Character / post title */
+.nc-hp-title {
+  margin: 10px 0 34px 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 20px rgba(80,245,255,.45);
+}
+
+/* Body text — supports standard HTML inside */
+.nc-hp-text {
+  max-width: 100%;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.72;
+  letter-spacing: .02em;
+  color: rgba(190,250,255,.84);
+  text-shadow: 0 0 10px rgba(80,220,255,.18);
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  display: flow-root;      /* clears floated media children */
+}
+.nc-hp-text::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* ================================================================
+   MEDIA SLOTS  (public API — use these class names in your posts)
+
+   nc-hud-float-image        → static image, floated left
+   nc-hud-media              → wrapper for any embedded media
+     + nc-hud-media-vertical   → portrait aspect (HeyGen / TikTok / Shorts)
+     + nc-hud-media-horizontal → landscape aspect (YouTube / Vimeo)
+   ================================================================ */
+
+/* --- Static image -------------------------------------------- */
+.nc-hud-float-image {
+  float: left;
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  height: auto;
+  margin: 0 34px 22px 0;
+  object-fit: contain;
+  filter: brightness(.76) contrast(1.14) saturate(.9);
+  border: 1px solid rgba(80,220,255,.36);
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+
+/* --- Embedded media container ------------------------------- */
+.nc-hud-media {
+  float: left;
+  position: relative;
+  top: 0;
+  left: -14px;
+  overflow: hidden;
+  border: 1px solid rgba(80,220,255,.36);
+  background: rgba(0,20,34,.55);
+  box-shadow:
+    0 0 16px rgba(80,220,255,.18),
+    inset 0 0 18px rgba(80,220,255,.08);
+}
+.nc-hud-media-vertical {
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  aspect-ratio: 9 / 16;
+}
+.nc-hud-media-horizontal {
+  width: 42%;
+  min-width: 320px;
+  max-width: 620px;
+  aspect-ratio: 16 / 9;
+}
+.nc-hud-media iframe,
+.nc-hud-media video,
+.nc-hud-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+/* Smooth reveal after src swap */
+.nc-hud-media iframe {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+.nc-hud-media iframe[src="about:blank"] { opacity: 0; }
+
+/* "RECONNECTING…" placeholder — shown while iframe loads */
+.nc-reconnect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.45);
+  text-shadow: 0 0 8px rgba(80,220,255,.3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ================================================================
+   MINI CARD  (shown in collapsed state)
+   ================================================================ */
+
+.nc-hp-mini-card {
+  position: absolute;
+  top: 0; left: 0;
+  transform: none;
+  width: fit-content;
+  min-width: 240px;
+  max-width: min(420px, 90%);
+  height: 148px;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+/* HUD frame border on mini card */
+.nc-hp-mini-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2.5px solid rgba(80,220,255,.92);
+  box-shadow:
+    0 0 8px  rgba(80,220,255,.9),
+    0 0 20px rgba(80,220,255,.4),
+    inset 0 0 12px rgba(80,220,255,.06);
+  pointer-events: none;
+  clip-path: polygon(
+    12% 0, 100% 0, 100% 74%, 96% 100%, 0 100%, 0 22%
+  );
+}
+/* Expand arrow hint */
+.nc-hp-mini-card::after {
+  content: '▼';
+  position: absolute;
+  top: 17px; left: 12px; right: auto;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(80,220,255,.75);
+  text-shadow: 0 0 8px rgba(80,220,255,.6);
+  z-index: 5;
+}
+.nc-mini-widget.is-mini .nc-hp-mini-card {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.nc-mini-widget.is-mini .nc-hp-panel { visibility: hidden; }
+
+/* System label inside mini card */
+.nc-hp-mini-system {
+  position: absolute;
+  top: 18px; left: 24px;
+  margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80,220,255,.65);
+  text-shadow: 0 0 8px rgba(80,220,255,.4);
+  z-index: 4;
+}
+/* Row: thumbnail + name */
+.nc-hp-mini-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 38px 50px 16px 20px;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 3;
+}
+/* Static image thumbnail */
+.nc-hp-mini-thumb {
+  height: 80px; width: auto;
+  max-width: none; min-width: 48px;
+  object-fit: contain;
+  border: 1px solid rgba(80,220,255,.38);
+  flex-shrink: 0;
+  filter: brightness(.82) contrast(1.12) saturate(.9);
+}
+/* Live video thumbnail (scaled-down iframe) */
+.nc-hp-mini-video-wrap {
+  width: 45px;
+  height: 80px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(80,220,255,.38);
+  box-shadow: 0 0 8px rgba(80,220,255,.18);
+}
+.nc-hp-mini-video-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 270px; height: 480px;
+  transform: scale(0.1667);
+  transform-origin: top left;
+  pointer-events: none;
+  border: 0;
+}
+/* Character name in mini card */
+.nc-hp-mini-name {
+  margin: 0;
+  white-space: normal;
+  flex-shrink: 1;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80,245,255,.95),
+    0 0 22px rgba(80,245,255,.42);
+}
+
+/* ================================================================
+   MOBILE  (≤ 900px)
+   Frame decorations hidden; content stays readable; media goes full-width
+   ================================================================ */
+
+@media (max-width: 900px) {
+  .nc-hp-panel {
+    min-height: 0;
+    padding: 48px 24px;
+  }
+
+  /* Hide all decorative frame elements */
+  .nc-hp-frame-shell,
+  .nc-hp-frame-inner,
+  .nc-hp-frame-loader,
+  .nc-hp-frame-topline,
+  .nc-hp-frame-mask,
+  .nc-hp-sweep { display: none; }
+
+  .nc-hp-title {
+    font-size: 30px;
+    margin-bottom: 24px;
+  }
+  .nc-hp-text {
+    font-size: 15px;
+    line-height: 1.72;
+    letter-spacing: .02em;
+  }
+
+  /* Float → block, full width */
+  .nc-hud-float-image {
+    float: none;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 24px 0;
+  }
+  .nc-hud-media {
+    float: none;
+    left: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 24px 0;
+  }
+}
+
+/* ================================================================
+   ROW CONTAINER — HUD-03 / HUD-04 mini-card row
+   ================================================================ */
+
+/* Collapsed slot: fixed width so mini-cards sit side by side */
+.nc-hud-row .nc-hp-widget.is-mini {
+  flex: 0 0 auto;
+  width: 280px;
+}
+
+/* Expanded panel: full width, pushed below the mini-card row */
+.nc-hud-row .nc-hp-widget:not(.is-mini) {
+  flex: 0 0 100%;
+  order: 99;
+}
+/*]]>*/
+</style>
+
+<!-- NebulaCast HUD: Shared JS — NcHudMini (mini/expand toggle) -->
+<script>
+/*<![CDATA[*/
+/* hud-mini.js — generic mini/expand toggle for HUD panels
+   Provides: window.NcHudMini.init(options)
+
+   options = {
+     widget       : HTMLElement   required  widget root
+     panel        : HTMLElement   required  main panel inside widget
+     miniH        : Number        optional  mini height px (default 148)
+     panelW       : Number        optional  panel width in mini state (default 901)
+     panelH       : Number        optional  panel height in mini state; set when panel base
+                                            CSS does not fix height (e.g. html-mode HUD-01)
+     scale        : Number|null   optional  scale factor; null = crop (no transform)
+     expandedMaxH : Number        optional  max-height in expanded state (default 2000)
+     onCollapse   : Function      optional  called immediately on collapse
+     onExpand     : Function      optional  called after expand transition completes
+   }
+
+   Mini-panel constraints (width, height, transformOrigin, margin, overflow) are ALL
+   applied as inline styles by this module — no per-panel CSS rules needed.
+   Button transform in mini state is left entirely to per-panel CSS.
+*/
+'use strict';
+
+(function (global) {
+
+  function init(opts) {
+    var widget       = opts.widget;
+    var panel        = opts.panel;
+    var miniH        = opts.miniH        || 148;
+    var panelW       = opts.panelW       || 901;
+    var panelH       = opts.panelH       || null;
+    var scale        = opts.scale        || null;
+    var expandedMaxH = opts.expandedMaxH || 2000;
+
+    if (!widget || !panel) {
+      console.warn('[NcHudMini] widget or panel not found');
+      return;
+    }
+
+    /* Add transition base classes */
+    widget.classList.add('nc-mini-widget');
+    panel.classList.add('nc-mini-panel');
+
+    /* ── Toggle button ───────────────────────────────────────────── */
+    var btn = document.createElement('button');
+    btn.className = 'nc-ol-toggle-btn';
+    btn.type      = 'button';
+    panel.appendChild(btn);
+
+    function updateBtn() {
+      var mini = widget.classList.contains('is-mini');
+      btn.textContent = mini ? '▼' : '▲';
+      btn.setAttribute('aria-label',    mini ? 'Expand HUD panel'   : 'Collapse HUD panel');
+      btn.setAttribute('aria-expanded', mini ? 'false'              : 'true');
+      btn.setAttribute('data-tooltip',  mini ? 'Развернуть панель'  : 'Свернуть панель');
+    }
+
+    /* ── Mini-panel constraints ──────────────────────────────────── */
+    /* Applied as inline styles — works for any panel type without
+       per-type CSS rules.  Button transform is left to CSS.
+       IMPORTANT: width/maxWidth/height use setProperty('…','important')
+       because CSS animations (e.g. the HUD-02 ncOrOpenHud width animation)
+       have higher cascade priority than normal inline styles but are
+       overridden by !important inline styles. */
+    function applyMiniConstraints() {
+      if (scale) panel.style.transform = 'scale(' + scale + ')';
+      panel.style.transformOrigin = 'top left';
+      panel.style.setProperty('width',     panelW + 'px', 'important');
+      panel.style.setProperty('max-width', 'none',        'important');
+      if (panelH) panel.style.setProperty('height', panelH + 'px', 'important');
+      panel.style.margin   = '0';
+      panel.style.overflow = 'hidden';
+    }
+
+    function clearMiniConstraints() {
+      panel.style.transform       = '';
+      panel.style.transformOrigin = '';
+      panel.style.removeProperty('width');
+      panel.style.removeProperty('max-width');
+      if (panelH) panel.style.removeProperty('height');
+      panel.style.margin   = '';
+      panel.style.overflow = '';
+    }
+
+    /* ── Expand (FLIP) ───────────────────────────────────────────── */
+    /* No opacity trick — the panel stays visible throughout.
+
+       mini (scale≠null) — translate + scale FLIP:
+         FIRST  = mini thumbnail rect.
+         Switch to expanded layout (keep width constraint so LAST has same
+         width as FIRST — only the position delta matters).
+         LAST   = expanded position with same width.
+         INVERT = translate(dx,dy) scale(miniScale) → panel appears at mini spot.
+         PLAY   = animate transform → '' (natural expanded state).
+
+       micro (scale=null) — scale-spread FLIP:
+         FIRST  = micro thumbnail rect.
+         Clear constraints BEFORE measuring LAST so the panel can reach its
+         full natural size.  Scale factor = micro / expanded.
+         INVERT = translate(dx,dy) scale(scaleX,scaleY) with origin top-left
+                  → panel appears shrunken at micro position.
+         PLAY   = animate transform → '' → panel "spreads" outward, no slide. */
+    function expand() {
+      /* FIRST — current mini/micro visual bounding box */
+      var first = panel.getBoundingClientRect();
+
+      /* Allow panel to extend outside widget slot during animation */
+      widget.style.overflow = 'visible';
+
+      /* Switch to expanded layout */
+      widget.classList.remove('is-mini');
+      widget.style.maxHeight = expandedMaxH + 'px';
+      widget.style.cursor    = '';
+      btn.style.transform       = '';
+      btn.style.transformOrigin = '';
+      updateBtn();
+
+      panel.style.transition = 'none';
+
+      if (scale) {
+        /* ── mini: translate + scale FLIP ───────────────────────── */
+        panel.style.setProperty('width', panelW + 'px', 'important');
+        panel.style.margin          = '0';
+        panel.style.transformOrigin = 'top left';
+
+        var last = panel.getBoundingClientRect();
+        var dx   = first.left - last.left;
+        var dy   = first.top  - last.top;
+
+        panel.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + scale + ')';
+        panel.offsetHeight;   /* force reflow — commits inverted state */
+
+        requestAnimationFrame(function () {
+          panel.style.transition = 'transform 600ms cubic-bezier(.2,.9,.2,1)';
+          panel.style.transform  = '';   /* animate to natural expanded state */
+
+          var fired = false;
+          function onExpanded() {
+            if (fired) return;
+            if (widget.classList.contains('is-mini')) return;
+            fired = true;
+            panel.style.transition = '';
+            clearMiniConstraints();
+            widget.style.overflow  = '';
+            if (typeof opts.onExpand === 'function') opts.onExpand();
+          }
+
+          var handled = false;
+          function onTransitionEnd(e) {
+            if (e.propertyName !== 'transform') return;
+            panel.removeEventListener('transitionend', onTransitionEnd);
+            handled = true;
+            onExpanded();
+          }
+          panel.addEventListener('transitionend', onTransitionEnd);
+          setTimeout(function () {
+            if (!handled) {
+              panel.removeEventListener('transitionend', onTransitionEnd);
+              onExpanded();
+            }
+          }, 800);
+        });
+
+      } else {
+        /* ── micro: scale-spread FLIP ───────────────────────────── */
+        /* Clear constraints first so LAST reflects the full expanded size */
+        clearMiniConstraints();
+
+        var last = panel.getBoundingClientRect();
+        var dx   = first.left - last.left;
+        var dy   = first.top  - last.top;
+
+        var scaleX = first.width  / Math.max(last.width,  1);
+        var scaleY = first.height / Math.max(last.height, 1);
+
+        /* Origin top-left → panel spreads rightward + downward from the
+           micro thumbnail's corner instead of sliding in from off-screen */
+        panel.style.transformOrigin = 'top left';
+        panel.style.transform =
+          'translate(' + dx + 'px,' + dy + 'px) scale(' + scaleX + ',' + scaleY + ')';
+        panel.offsetHeight;   /* force reflow */
+
+        requestAnimationFrame(function () {
+          panel.style.transition = 'transform 600ms cubic-bezier(.2,.9,.2,1)';
+          panel.style.transform  = '';   /* animate: spread to natural expanded state */
+
+          var fired = false;
+          function onExpanded() {
+            if (fired) return;
+            if (widget.classList.contains('is-mini')) return;
+            fired = true;
+            panel.style.transition      = '';
+            panel.style.transformOrigin = '';
+            widget.style.overflow       = '';
+            if (typeof opts.onExpand === 'function') opts.onExpand();
+          }
+
+          var handled = false;
+          function onTransitionEnd(e) {
+            if (e.propertyName !== 'transform') return;
+            panel.removeEventListener('transitionend', onTransitionEnd);
+            handled = true;
+            onExpanded();
+          }
+          panel.addEventListener('transitionend', onTransitionEnd);
+          setTimeout(function () {
+            if (!handled) {
+              panel.removeEventListener('transitionend', onTransitionEnd);
+              onExpanded();
+            }
+          }, 800);
+        });
+      }
+    }
+
+    /* ── Collapse (forward-collapse) ────────────────────────────── */
+    /* _instant = true  → sync, no animation (used at init time).
+       _instant = false → forward-collapse:
+         1. Estimate the mini/micro slot position from row siblings.
+         2. Apply panel size constraints (mini only) hidden by opacity:0 — so
+            the scale factor produces the correct thumbnail size throughout.
+         3. Animate the panel from its current expanded position TOWARD the
+            mini/micro slot (translate + scale) while staying in the expanded
+            flex slot.  No layout change during animation, no floating panel,
+            no Blogger-container clipping.
+         4. At transitionend: brief opacity:0 hides the layout snap
+            (widget.classList.add('is-mini') + applyMiniConstraints).
+            Then restore opacity — panel is now in the correct mini/micro state. */
+    function collapse(_instant) {
+      if (!_instant && typeof opts.onCollapse === 'function') opts.onCollapse();
+
+      if (_instant) {
+        widget.classList.add('is-mini');
+        widget.style.maxHeight = miniH + 'px';
+        widget.style.overflow  = 'hidden';
+        widget.style.cursor    = 'pointer';
+        applyMiniConstraints();
+        updateBtn();
+        return;
+      }
+
+      /* ── 1. Estimate mini slot position from flex-row siblings ──── */
+      /* Widget is currently order:99 at the bottom.  Mini position =
+         sum of widths of all is-mini siblings that come before it in
+         DOM order (the row has gap:0 so there is no inter-item gap). */
+      var par     = widget.parentElement;
+      var parRect = par ? par.getBoundingClientRect() : { left: 0, top: 0 };
+      var slotLeft = parRect.left;
+      var slotTop  = parRect.top;
+
+      if (par) {
+        var ch = par.children;
+        /* slotTop: use the first mini sibling's top for pixel accuracy */
+        var firstMini = null;
+        for (var i = 0; i < ch.length; i++) {
+          if (ch[i] !== widget && ch[i].classList.contains('is-mini')) {
+            if (!firstMini) firstMini = ch[i];
+            if (ch[i] === widget) break;
+          }
+          if (ch[i] === widget) break;
+          if (ch[i].classList.contains('is-mini')) {
+            slotLeft += ch[i].getBoundingClientRect().width;
+          }
+        }
+        if (firstMini) slotTop = firstMini.getBoundingClientRect().top;
+      }
+
+      /* ── 2. Capture unconstrained expanded rect ────────────────── */
+      var firstRaw = panel.getBoundingClientRect();
+
+      /* ── 3. Apply size constraints (mini mode only) ────────────── */
+      /* For mini: constrain panel to panelW so scale(miniScale) produces
+         the exact thumbnail size.  Hidden by brief opacity:0. */
+      widget.style.transition = 'none';
+      panel.style.transition  = 'none';
+      widget.style.opacity    = '0';
+      widget.offsetHeight;                   /* reflow — commits opacity:0 */
+
+      if (scale) {
+        panel.style.setProperty('width',     panelW + 'px', 'important');
+        panel.style.setProperty('max-width', 'none',        'important');
+        if (panelH) panel.style.setProperty('height', panelH + 'px', 'important');
+        panel.style.margin = '0';
+      }
+      panel.style.transformOrigin = 'top left';
+      panel.style.overflow        = 'visible';  /* prevent clip during animation */
+      panel.offsetHeight;                    /* reflow — commits constraints */
+
+      var first = panel.getBoundingClientRect();  /* post-constraint expanded position */
+      var dx    = slotLeft - first.left;
+      var dy    = slotTop  - first.top;
+
+      /* Hide expanded-slot background so panel animation is clean */
+      widget.style.background = 'transparent';
+      /* Raise widget above sibling row panels so the shrinking panel
+         is never occluded by the mini-row background during animation */
+      widget.style.zIndex     = '9999';
+
+      /* ── 4. Restore opacity — user sees animation start ─────────── */
+      widget.style.opacity    = '';
+      widget.style.transition = '';
+      /* Allow panel to leave widget's bounds as it flies to the mini slot.
+         Without this the widget's CSS overflow:hidden clips the panel the
+         moment it crosses the widget edge. */
+      widget.style.overflow   = 'visible';
+      panel.style.transition  = 'transform 600ms cubic-bezier(.42,0,.58,1)';
+
+      requestAnimationFrame(function () {
+        if (scale) {
+          /* mini: translate to slot + scale to mini thumbnail */
+          panel.style.transform =
+            'translate(' + dx + 'px,' + dy + 'px) scale(' + scale + ')';
+        } else {
+          /* micro: translate to slot + scale from expanded size to micro crop */
+          var sX = panelW  / Math.max(firstRaw.width,  1);
+          var sY = panelH  / Math.max(firstRaw.height, 1);
+          panel.style.transform =
+            'translate(' + dx + 'px,' + dy + 'px) scale(' + sX + ',' + sY + ')';
+        }
+
+        var colHandled = false;
+
+        function doSnap() {
+          /* Brief opacity:0 hides the layout snap at animation end */
+          widget.style.opacity    = '0';
+          widget.style.transition = 'none';
+          panel.style.transition  = 'none';
+          widget.offsetHeight;
+
+          widget.classList.add('is-mini');
+          widget.style.maxHeight  = miniH + 'px';
+          widget.style.cursor     = 'pointer';
+          widget.style.overflow   = 'hidden';
+          widget.style.background = '';         /* restore widget background */
+          widget.style.zIndex     = '';         /* restore stacking order */
+          applyMiniConstraints();               /* sets correct mini transform */
+          updateBtn();
+          if (!scale) panel.style.transform = '';  /* micro: clear anim transform */
+          panel.offsetHeight;
+
+          widget.style.opacity    = '';
+          widget.style.transition = '';
+          panel.style.transition  = '';
+        }
+
+        function onColEnd(e) {
+          if (e.propertyName !== 'transform') return;
+          panel.removeEventListener('transitionend', onColEnd);
+          colHandled = true;
+          doSnap();
+        }
+        panel.addEventListener('transitionend', onColEnd);
+        setTimeout(function () {
+          if (!colHandled) {
+            panel.removeEventListener('transitionend', onColEnd);
+            doSnap();
+          }
+        }, 800);
+      });
+    }
+
+    /* ── Event listeners ─────────────────────────────────────────── */
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (widget.classList.contains('is-mini')) expand(); else collapse();
+    });
+
+    widget.addEventListener('click', function () {
+      if (widget.classList.contains('is-mini')) expand();
+    });
+
+    /* Start in mini state — instant, no transition.
+       Panels like hud-03/05/06/07 have a scaleX/scaleY opening animation
+       running at DOMContentLoaded time. If we let the CSS transition fire
+       on the initial collapse(), it interpolates from the animation's
+       mid-run scaleX value → produces a visible squish glitch.
+       Disabling transitions for the initial snap fixes that. */
+    widget.style.transition = 'none';
+    panel.style.transition  = 'none';
+    collapse(true);                /* instant — no opacity trick, no rAF */
+    panel.offsetHeight;            /* force reflow — commits the instant mini state */
+    widget.style.transition = '';
+    panel.style.transition  = '';
+  }
+
+  global.NcHudMini = { init: init };
+
+})(window);
+/*]]>*/
+</script>
+
+
+<script>
+/*<![CDATA[*/
+(function (global) {
+  'use strict';
+  function initOne(el) {
+    var panel = el.querySelector('.nc-ol-panel');
+    if (!panel) { console.warn('[NcHud01 lite] .nc-ol-panel not found'); return; }
+    /* data-collapse="micro" → custom micro layout: no scale, image slot sized by CSS vars, label above
+       data-collapse="mini"  → full thumbnail  (317×148, scale 0.352)  [default] */
+    var isMicro = el.getAttribute('data-collapse') === 'micro';
+    var microW = isMicro ? (parseFloat(getComputedStyle(el).getPropertyValue('--nc-micro-w')) || 87) : 901;
+    var microH = isMicro ? (parseFloat(getComputedStyle(el).getPropertyValue('--nc-micro-h')) || 130) : 420;
+    var hasExtBtn = isMicro && !!el.querySelector(':scope > .nc-ol-btn-micro');
+    NcHudMini.init({
+      widget: el, panel: panel,
+      miniH:  isMicro ? Math.round(microH + (hasExtBtn ? 45 : 19)) : 148,
+      scale:  isMicro ? null   : 0.352,
+      panelW: isMicro ? microW : 901,
+      panelH: isMicro ? microH : 420,
+      expandedMaxH: 2000
+    });
+  }
+  global.NcHud01 = { init: function (el) { initOne(el); } };
+})(window);
+
+(function (global) {
+  'use strict';
+  function initOne(el) {
+    var panel = el.querySelector('.nc-or-panel');
+    if (!panel) { console.warn('[NcHud02 lite] .nc-or-panel not found'); return; }
+    /* data-collapse="micro" → custom micro layout: no scale, image slot sized by CSS vars, label above
+       data-collapse="mini"  → full thumbnail  (317×148, scale 0.352)  [default] */
+    var isMicro = el.getAttribute('data-collapse') === 'micro';
+    var microW = isMicro ? (parseFloat(getComputedStyle(el).getPropertyValue('--nc-micro-w')) || 87) : 901;
+    var microH = isMicro ? (parseFloat(getComputedStyle(el).getPropertyValue('--nc-micro-h')) || 130) : 420;
+    var hasExtBtn = isMicro && !!el.querySelector(':scope > .nc-or-btn-micro');
+    NcHudMini.init({
+      widget: el, panel: panel,
+      miniH:  isMicro ? Math.round(microH + (hasExtBtn ? 45 : 19)) : 148,
+      scale:  isMicro ? null   : 0.352,
+      panelW: isMicro ? microW : 901,
+      panelH: isMicro ? microH : 420,
+      expandedMaxH: 2000
+    });
+  }
+  global.NcHud02 = { init: function (el) { initOne(el); } };
+})(window);
+/*]]>*/
+</script>
+
+<!-- NebulaCast HUD: HUD-01 frame adapt (stretches SVG stanchions with content height) -->
+<script>
+/*<![CDATA[*/
+/* hud01-frame-adapt.js — dynamic SVG frame for HUD-01 html-mode panels     */
+/* See standalone file for full comment header.                               */
+/* Key change: adaptSmooth() replaces instant adapt() after expand —          */
+/* stanchions slide to final height over 300ms, no hard snap.                */
+'use strict';
+
+(function (global) {
+
+  var BASE = 420;
+
+  function outerD(H) {
+    return 'M22 42 L112 42 L158 8 L1160 8 L1190 38' +
+           ' L1190 ' + (H - 40)  + ' L1160 ' + (H - 10) +
+           ' L42 '   + (H - 10)  + ' L12 '   + (H - 40) + ' L12 86 Z';
+  }
+
+  function innerD(H) {
+    return 'M36 62 L126 62 L170 26 L1145 26 L1174 54' +
+           ' L1174 ' + (H - 54)  + ' L1145 ' + (H - 26) +
+           ' L60 '   + (H - 26)  + ' L26 '   + (H - 56) + ' L26 96 Z';
+  }
+
+  function adapt(panel, overrideH) {
+    var svg = panel.querySelector('.nc-ol-frame-svg');
+    if (!svg) return;
+    var H = (overrideH !== undefined) ? overrideH : Math.round(panel.offsetHeight);
+    if (!H || H < BASE) H = BASE;
+    var dlt = (H - BASE) / 2;
+    svg.setAttribute('viewBox', '0 0 1200 ' + H);
+    var od = outerD(H);
+    var id = innerD(H);
+    svg.querySelectorAll('path').forEach(function (p) {
+      var c = p.classList;
+      if (c.contains('nc-ol-runner-tail') || c.contains('nc-ol-runner-body') ||
+          c.contains('nc-ol-runner-head') || c.contains('nc-ol-runner-spark') ||
+          (c.contains('nc-ol-frame-line') && !c.contains('nc-ol-frame-inner') &&
+           !c.contains('nc-ol-frame-photo-top') && !c.contains('nc-ol-frame-photo-bottom'))) {
+        p.setAttribute('d', od); return;
+      }
+      if (c.contains('nc-ol-frame-inner')) { p.setAttribute('d', id); return; }
+      if (c.contains('nc-ol-frame-photo-bottom')) {
+        p.setAttribute('d', 'M62 ' + (H - 28) + ' L500 ' + (H - 28)); return;
+      }
+      if (c.contains('nc-ol-frame-tab') && !c.contains('nc-ol-frame-tab-top')) {
+        var d = p.getAttribute('d') || '';
+        if (d.charAt(1) === '0') {
+          p.setAttribute('d', 'M0 ' + (190+dlt) + ' L12 ' + (200+dlt) +
+            ' L12 ' + (250+dlt) + ' L0 ' + (260+dlt) + ' Z');
+        } else {
+          p.setAttribute('d', 'M1200 ' + (178+dlt) + ' L1188 ' + (190+dlt) +
+            ' L1188 ' + (250+dlt) + ' L1200 ' + (262+dlt) + ' Z');
+        }
+      }
+    });
+  }
+
+  function adaptSmooth(panel, duration) {
+    var svg = panel.querySelector('.nc-ol-frame-svg');
+    if (!svg) return;
+    var vb    = svg.getAttribute('viewBox') || '';
+    var fromH = parseInt(vb.split(' ')[3] || '', 10);
+    if (!fromH || fromH < BASE) fromH = BASE;
+    var toH = Math.round(panel.offsetHeight);
+    if (!toH || toH < BASE) toH = BASE;
+    if (fromH === toH) return;
+    var startTime = null;
+    function frame(now) {
+      if (!startTime) startTime = now;
+      var p = (now - startTime) / duration;
+      if (p >= 1) { adapt(panel, toH); return; }
+      var ep = 1 - (1 - p) * (1 - p);   /* ease-out quad */
+      adapt(panel, Math.round(fromH + (toH - fromH) * ep));
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function watch(panel) {
+    var widget = panel.parentElement;
+    var ro = null, fbTimer = null;
+
+    function startRO() {
+      if (ro || typeof ResizeObserver === 'undefined') return;
+      ro = new ResizeObserver(function () { adapt(panel); });
+      ro.observe(panel);
+    }
+    function stopRO() { if (!ro) return; ro.disconnect(); ro = null; }
+
+    function onTransitionEnd(e) {
+      if (e.propertyName !== 'transform') return;
+      panel.removeEventListener('transitionend', onTransitionEnd);
+      clearTimeout(fbTimer);
+      adaptSmooth(panel, 500);
+      startRO();
+    }
+
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(function () {
+        if (widget.classList.contains('is-mini')) {
+          stopRO(); clearTimeout(fbTimer);
+          panel.removeEventListener('transitionend', onTransitionEnd);
+          adapt(panel);
+        } else {
+          panel.addEventListener('transitionend', onTransitionEnd);
+          fbTimer = setTimeout(function () {
+            panel.removeEventListener('transitionend', onTransitionEnd);
+            adaptSmooth(panel, 500);
+            startRO();
+          }, 1200);
+        }
+      }).observe(widget, { attributes: true, attributeFilter: ['class'] });
+    } else {
+      startRO();
+    }
+
+    adapt(panel);
+  }
+
+  function init() {
+    document.querySelectorAll('.nc-hud-01').forEach(function (widget) {
+      var panel = widget.querySelector('.nc-ol-panel');
+      if (panel) watch(panel);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  global.NcHud01FrameAdapt = { adapt: adapt, init: init };
+
+}(window));
+/*]]>*/
+</script>
+
+<!-- NebulaCast HUD: HUD-02 frame adapt (stretches SVG frame with content height) -->
+<script>
+/*<![CDATA[*/
+/* hud02-frame-adapt.js — dynamic SVG frame for HUD-02 html-mode panels
+   Adapts bottom Y coordinates of frame/runner/teeth paths when .nc-or-panel
+   grows taller than 420px (html-mode long content).
+   Original geometry (viewBox 0 0 1200 420, H₀=420):
+     Main:  M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z
+     Inner: M58 76 L1140 76 L1140 316 L1092 366 L58 366 Z
+     Teeth: rects y=382 h=28; box M98 382 L304 382 L304 412 L98 412 Z
+*/
+'use strict';
+
+(function (global) {
+
+  var BASE = 420;
+
+  function mainD(H) {
+    return 'M36 38 L270 38 L298 62 L1160 62' +
+           ' L1160 ' + (H-94) + ' L1106 ' + (H-38) +
+           ' L70 '   + (H-38) + ' L70 160 L36 132 Z';
+  }
+  function innerD(H) {
+    return 'M58 76 L1140 76 L1140 ' + (H-104) +
+           ' L1092 ' + (H-54) + ' L58 ' + (H-54) + ' Z';
+  }
+  function teethBoxD(H) {
+    return 'M98 '+(H-38)+' L304 '+(H-38)+' L304 '+(H-8)+' L98 '+(H-8)+' Z';
+  }
+
+  function adapt(panel, overrideH) {
+    var svgs = panel.querySelectorAll('.nc-or-frame-svg, .nc-or-runner-svg');
+    if (!svgs.length) return;
+    var H = (overrideH !== undefined) ? overrideH : Math.round(panel.offsetHeight);
+    if (!H || H < BASE) H = BASE;
+    var md = mainD(H), id = innerD(H), td = teethBoxD(H);
+    svgs.forEach(function (svg) {
+      svg.setAttribute('viewBox', '0 0 1200 ' + H);
+      svg.querySelectorAll('path, rect').forEach(function (el) {
+        var c = el.classList;
+        if (c.contains('nc-or-frame-main')   || c.contains('nc-or-runner-tail') ||
+            c.contains('nc-or-runner-body')  || c.contains('nc-or-runner-head') ||
+            c.contains('nc-or-runner-spark')) { el.setAttribute('d', md); return; }
+        if (c.contains('nc-or-frame-inner'))    { el.setAttribute('d', id); return; }
+        if (c.contains('nc-or-frame-teeth-box')){ el.setAttribute('d', td); return; }
+        if (el.tagName.toLowerCase() === 'rect' && el.closest('.nc-or-frame-teeth')) {
+          el.setAttribute('y', H-38); el.setAttribute('height', 28);
+        }
+      });
+    });
+  }
+
+  function adaptSmooth(panel, duration) {
+    var svgs = panel.querySelectorAll('.nc-or-frame-svg');
+    if (!svgs.length) return;
+    var vb = svgs[0].getAttribute('viewBox') || '';
+    var fromH = parseInt(vb.split(' ')[3] || '', 10);
+    if (!fromH || fromH < BASE) fromH = BASE;
+    var toH = Math.round(panel.offsetHeight);
+    if (!toH || toH < BASE) toH = BASE;
+    if (fromH === toH) return;
+    var startTime = null;
+    function frame(now) {
+      if (!startTime) startTime = now;
+      var p = (now - startTime) / duration;
+      if (p >= 1) { adapt(panel, toH); return; }
+      var ep = 1 - (1-p)*(1-p);
+      adapt(panel, Math.round(fromH + (toH-fromH)*ep));
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function watch(panel) {
+    var widget = panel.parentElement, ro = null, fbTimer = null;
+    function startRO() {
+      if (ro || typeof ResizeObserver === 'undefined') return;
+      ro = new ResizeObserver(function () { adapt(panel); });
+      ro.observe(panel);
+    }
+    function stopRO() { if (ro) { ro.disconnect(); ro = null; } }
+    function onTransEnd(e) {
+      if (e.propertyName !== 'transform') return;
+      panel.removeEventListener('transitionend', onTransEnd);
+      clearTimeout(fbTimer);
+      adaptSmooth(panel, 500); startRO();
+    }
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(function () {
+        if (widget.classList.contains('is-mini')) {
+          stopRO(); clearTimeout(fbTimer);
+          panel.removeEventListener('transitionend', onTransEnd);
+          adapt(panel);
+        } else {
+          panel.addEventListener('transitionend', onTransEnd);
+          fbTimer = setTimeout(function () {
+            panel.removeEventListener('transitionend', onTransEnd);
+            adaptSmooth(panel, 500); startRO();
+          }, 1200);
+        }
+      }).observe(widget, { attributes: true, attributeFilter: ['class'] });
+    } else { startRO(); }
+    adapt(panel);
+  }
+
+  function init() {
+    document.querySelectorAll('.nc-hud-02').forEach(function (widget) {
+      var panel = widget.querySelector('.nc-or-panel');
+      if (panel) watch(panel);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+
+  global.NcHud02FrameAdapt = { adapt: adapt, init: init };
+
+}(window));
+/*]]>*/
+</script>

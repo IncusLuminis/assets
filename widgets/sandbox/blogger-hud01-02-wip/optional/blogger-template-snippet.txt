@@ -229,6 +229,51 @@ a.nc-hud-paper-title:hover {
 .nc-hud-media-vertical   { aspect-ratio: 9/16; position: relative; overflow: hidden; }
 .nc-hud-media-horizontal { aspect-ratio: 16/9; position: relative; overflow: hidden; }
 
+/* Raw HTML5 video pasted into HUD-01/02 HTML content.
+   In mini mode the html slot already describes the frame's inner opening.
+   Make the pasted wrapper fill that opening, then contain the video inside it
+   without letting its own aspect-ratio resize the HUD panel. */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) {
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video) > :has(video),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) > :has(video) {
+  position: absolute !important;
+  inset: 24px 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot video,
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot video {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+
+/* Mini is a media preview: keep accompanying copy for expanded/maxi view. */
+.nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video) > :not(:has(video)):not(style),
+.nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) > :not(:has(video)):not(style) {
+  display: none !important;
+}
+
 /* ── Micro-mode poster overlay (static frame + play icon) ────────
    For media types without a click-to-load facade (HeyGen currently —
    YouTube/TikTok already replace themselves with the real iframe on
@@ -1742,7 +1787,12 @@ a.nc-hud-paper-title:hover {
    existed. Inline max-width (when present) always wins regardless of
    specificity, so this is a no-op on freshly-regenerated posts. */
 .nc-ol-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
-  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
+  --nc-text-maxi-effective-left: max(
+    calc(var(--nc-inner-left, 52px) + 14px + var(--nc-text-left, 320px)),
+    var(--nc-image-text-clearance, 0px)
+  );
+  left: var(--nc-text-maxi-effective-left) !important;
+  max-width: calc(100% - var(--nc-inner-right, 52px) - 14px - var(--nc-text-maxi-effective-left)) !important;
 }
 
 /* Compatibility for snippets generated while `auto` was the maxi default. */
@@ -2591,6 +2641,13 @@ a.nc-hud-paper-title:hover {
   }
 
   .nc-ol-value { white-space: normal; }
+}
+
+/* Mini raw <video>: the slot itself is the HUD frame's inner opening. */
+.nc-hud-01[data-mode="html"].nc-ol-widget[data-collapse="mini"].is-mini .nc-hud-01-html-slot:has(video) {
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
 }
 /*]]>*/
 </style>
@@ -4060,7 +4117,12 @@ a.nc-hud-paper-title:hover {
    their own --nc-text-mini-* / micro vars at a different panel scale, where
    this maxi-width-based formula wouldn't apply. */
 .nc-or-widget[data-content="image"]:not(.is-mini) .nc-hud-text {
-  max-width: calc(100% - var(--nc-inner-right, 52px) - var(--nc-inner-left, 52px) - 28px - var(--nc-text-left, 320px));
+  --nc-text-maxi-effective-left: max(
+    calc(var(--nc-inner-left, 52px) + 14px + var(--nc-text-left, 320px)),
+    var(--nc-image-text-clearance, 0px)
+  );
+  left: var(--nc-text-maxi-effective-left) !important;
+  max-width: calc(100% - var(--nc-inner-right, 52px) - 14px - var(--nc-text-maxi-effective-left)) !important;
 }
 
 /* Compatibility for snippets generated while `auto` was the maxi default. */
@@ -4793,6 +4855,13 @@ a.nc-hud-paper-title:hover {
 @keyframes ncOrSweepBar {
   from { stroke-dashoffset: 0; }
   to   { stroke-dashoffset: calc(-1 * var(--nc-or-runner-p, 2871px)); }
+}
+
+/* Mini raw <video>: the slot itself is the HUD frame's inner opening. */
+.nc-hud-02[data-mode="html"].nc-or-widget[data-collapse="mini"].is-mini .nc-hud-02-html-slot:has(video) {
+  padding: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
 }
 /*]]>*/
 </style>
@@ -8565,6 +8634,23 @@ a.nc-hud-paper-title:hover {
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
   }
 
+  /* Keep absolutely-positioned maxi copy clear of the image at every
+     viewport width. The image is percentage/intrinsic sized while older
+     snippets use a fixed --nc-text-left, so their edges can cross after a
+     responsive resize. Publish the image's real right edge for CSS max(). */
+  function setImageTextClearance(panel) {
+    var widget = panel.parentElement;
+    if (!widget || widget.getAttribute('data-content') !== 'image') return;
+    var image = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (!image) return;
+    var panelRect = panel.getBoundingClientRect();
+    var imageRect = image.getBoundingClientRect();
+    var clearance = imageRect.right - panelRect.left + 14;
+    if (clearance > 14) {
+      widget.style.setProperty('--nc-image-text-clearance', clearance.toFixed(1) + 'px');
+    }
+  }
+
   /* Image content type: see the equivalent function in
      blogger-hud02-template.css's hud02-frame-adapt.js for the full
      explanation — .nc-hud-text is position:absolute, so the panel's
@@ -8588,6 +8674,7 @@ a.nc-hud-paper-title:hover {
 
   function adapt(panel, overrideH) {
     setInnerInsetVars(panel);
+    setImageTextClearance(panel);
 
     var svg = panel.querySelector('.nc-ol-frame-svg');
     if (!svg) return;
@@ -8750,6 +8837,14 @@ a.nc-hud-paper-title:hover {
         new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
       }
     }
+
+    var imageEl = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (imageEl) {
+      imageEl.addEventListener('load', function () { setImageTextClearance(panel); });
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { setImageTextClearance(panel); }).observe(imageEl);
+      }
+    }
   }
 
   /* ── Entry point ──────────────────────────────────────────────── */
@@ -8849,6 +8944,20 @@ a.nc-hud-paper-title:hover {
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
   }
 
+  /* Real rendered image edge for responsive maxi image+text layout. */
+  function setImageTextClearance(panel) {
+    var widget = panel.parentElement;
+    if (!widget || widget.getAttribute('data-content') !== 'image') return;
+    var image = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (!image) return;
+    var panelRect = panel.getBoundingClientRect();
+    var imageRect = image.getBoundingClientRect();
+    var clearance = imageRect.right - panelRect.left + 14;
+    if (clearance > 14) {
+      widget.style.setProperty('--nc-image-text-clearance', clearance.toFixed(1) + 'px');
+    }
+  }
+
   /* Image content type: .nc-hud-text is position:absolute (the only way to
      place text at an exact px offset from the portrait image), so it's out
      of normal flow and panel height:auto has no idea how tall it really is
@@ -8879,6 +8988,7 @@ a.nc-hud-paper-title:hover {
 
   function adapt(panel, overrideH) {
     setInnerInsetVars(panel);
+    setImageTextClearance(panel);
 
     /* Try both SVG elements used in HUD-02 (frame + runner) */
     var svgs = panel.querySelectorAll('.nc-or-frame-svg, .nc-or-runner-svg');
@@ -9019,6 +9129,14 @@ a.nc-hud-paper-title:hover {
       growPanelForAbsoluteText(panel);
       if (typeof ResizeObserver !== 'undefined') {
         new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
+      }
+    }
+
+    var imageEl = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (imageEl) {
+      imageEl.addEventListener('load', function () { setImageTextClearance(panel); });
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { setImageTextClearance(panel); }).observe(imageEl);
       }
     }
   }

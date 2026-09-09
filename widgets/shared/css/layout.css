@@ -1,0 +1,193 @@
+/* layout.css — structural layout helpers for HUD widget composition */
+
+/* ── Viewport fills ─────────────────────────────────────────────────── */
+
+.nc-stage {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hud-bg);
+}
+
+.nc-stage--padded {
+  padding: var(--hud-space-xl);
+}
+
+/* ── Grid layouts ───────────────────────────────────────────────────── */
+
+/* Auto-fill responsive grid */
+.nc-grid {
+  display: grid;
+  gap: var(--hud-space-md);
+}
+
+.nc-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.nc-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.nc-grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+.nc-grid--auto-sm { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.nc-grid--auto-md { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.nc-grid--auto-lg { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+
+/* Span helpers */
+.nc-col-span-2 { grid-column: span 2; }
+.nc-col-span-3 { grid-column: span 3; }
+.nc-col-full   { grid-column: 1 / -1; }
+
+/* ── Flex helpers ───────────────────────────────────────────────────── */
+
+.nc-flex        { display: flex; }
+.nc-flex--row   { display: flex; flex-direction: row; }
+.nc-flex--col   { display: flex; flex-direction: column; }
+
+.nc-flex--center  { align-items: center; justify-content: center; }
+.nc-flex--between { align-items: center; justify-content: space-between; }
+.nc-flex--start   { align-items: flex-start; }
+.nc-flex--end     { align-items: flex-end; }
+
+.nc-flex--wrap  { flex-wrap: wrap; }
+.nc-flex--gap-xs { gap: var(--hud-space-xs); }
+.nc-flex--gap-sm { gap: var(--hud-space-sm); }
+.nc-flex--gap-md { gap: var(--hud-space-md); }
+.nc-flex--gap-lg { gap: var(--hud-space-lg); }
+
+.nc-flex-1 { flex: 1; }
+.nc-flex-0 { flex: 0 0 auto; }
+
+/* ── Overlay / absolute positioning ────────────────────────────────── */
+
+.nc-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.nc-overlay--center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ── Sidebar + main two-column layout ──────────────────────────────── */
+
+.nc-layout-sidebar {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--hud-space-lg);
+  height: 100%;
+}
+
+.nc-layout-sidebar--right {
+  grid-template-columns: 1fr 240px;
+}
+
+/* ── HUD corner anchors ─────────────────────────────────────────────── */
+
+.nc-anchor {
+  position: fixed;
+}
+.nc-anchor--tl { top: var(--hud-space-md); left:  var(--hud-space-md); }
+.nc-anchor--tr { top: var(--hud-space-md); right: var(--hud-space-md); }
+.nc-anchor--bl { bottom: var(--hud-space-md); left:  var(--hud-space-md); }
+.nc-anchor--br { bottom: var(--hud-space-md); right: var(--hud-space-md); }
+
+/* ── Dividers ───────────────────────────────────────────────────────── */
+
+.nc-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(0, 255, 231, 0.2);
+  margin: var(--hud-space-md) 0;
+}
+
+.nc-divider--glow {
+  background: var(--hud-line);
+  box-shadow: 0 0 6px var(--hud-glow);
+}
+
+.nc-divider--v {
+  width: 1px;
+  height: 100%;
+  background: rgba(0, 255, 231, 0.2);
+  margin: 0 var(--hud-space-md);
+}
+
+/* ── Scroll container ───────────────────────────────────────────────── */
+
+.nc-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hud-line) transparent;
+}
+
+.nc-scroll::-webkit-scrollbar        { width: 4px; }
+.nc-scroll::-webkit-scrollbar-track  { background: transparent; }
+.nc-scroll::-webkit-scrollbar-thumb  { background: var(--hud-line); border-radius: 2px; }
+
+/* ── Widget infrastructure classes ─────────────────────────────────── */
+
+/* Full-viewport stage — root wrapper for any standalone widget */
+.nc-widget-stage {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--hud-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hud-space-lg);
+}
+
+/* Widget shell — standardised panel wrapper used by every widget */
+.nc-widget-shell {
+  position: relative;
+  background: var(--hud-panel);
+  border: 1px solid var(--hud-line);
+  border-radius: var(--hud-radius);
+  padding: var(--hud-space-md);
+  overflow: hidden;
+}
+
+/* Layout grid — used by playground and gallery pages */
+.nc-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--hud-space-lg);
+  width: 100%;
+}
+
+/* Panel stack — vertical list of panels */
+.nc-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hud-space-md);
+}
+
+/* Center utility */
+.nc-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fullscreen cover */
+.nc-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Overlay layer — non-interactive absolute cover, z-index aware */
+.nc-overlay-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--hud-z-overlay);
+}

@@ -74,6 +74,23 @@
     widget.style.setProperty('--nc-inner-right', right.toFixed(1) + 'px');
   }
 
+  /* Keep absolutely-positioned maxi copy clear of the image at every
+     viewport width. The image is percentage/intrinsic sized while older
+     snippets use a fixed --nc-text-left, so their edges can cross after a
+     responsive resize. Publish the image's real right edge for CSS max(). */
+  function setImageTextClearance(panel) {
+    var widget = panel.parentElement;
+    if (!widget || widget.getAttribute('data-content') !== 'image') return;
+    var image = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (!image) return;
+    var panelRect = panel.getBoundingClientRect();
+    var imageRect = image.getBoundingClientRect();
+    var clearance = imageRect.right - panelRect.left + 14;
+    if (clearance > 14) {
+      widget.style.setProperty('--nc-image-text-clearance', clearance.toFixed(1) + 'px');
+    }
+  }
+
   /* Image content type: see the equivalent function in
      blogger-hud02-template.css's hud02-frame-adapt.js for the full
      explanation — .nc-hud-text is position:absolute, so the panel's
@@ -97,6 +114,7 @@
 
   function adapt(panel, overrideH) {
     setInnerInsetVars(panel);
+    setImageTextClearance(panel);
 
     var svg = panel.querySelector('.nc-ol-frame-svg');
     if (!svg) return;
@@ -257,6 +275,14 @@
       growPanelForAbsoluteText(panel);
       if (typeof ResizeObserver !== 'undefined') {
         new ResizeObserver(function () { growPanelForAbsoluteText(panel); }).observe(textEl);
+      }
+    }
+
+    var imageEl = panel.querySelector('.nc-hud-float-image, .nc-hud-slot-image');
+    if (imageEl) {
+      imageEl.addEventListener('load', function () { setImageTextClearance(panel); });
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function () { setImageTextClearance(panel); }).observe(imageEl);
       }
     }
   }

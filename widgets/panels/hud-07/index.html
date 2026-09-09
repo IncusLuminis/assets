@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUD-07 Wide HTML panel — NebulaCast</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+
+  <!-- Shared layer -->
+  <link rel="stylesheet" href="../../shared/css/reset.css">
+  <link rel="stylesheet" href="../../shared/css/tokens.css">
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../../shared/css/animations.css">
+  <link rel="stylesheet" href="../../shared/css/typography.css">
+  <link rel="stylesheet" href="../../shared/css/layout.css">
+  <link rel="stylesheet" href="../../shared/css/effects.css">
+
+  <!-- Mini/expand toggle (shared) -->
+  <link rel="stylesheet" href="../../shared/css/mini-toggle.css">
+
+  <!-- Widget -->
+  <link rel="stylesheet" href="./hud-07.css">
+</head>
+<body>
+
+  <main class="nc-hud07-stage">
+
+    <div class="nc-hw-widget">
+      <div class="nc-hw-panel">
+
+        <!-- ═══ CSS FRAME ════════════════════════════════════════════════
+             Outer shell + inner border both use clip-path polygon.
+             inset: 26px matches the HUD-03/04 frame inset geometry.
+        ════════════════════════════════════════════════════════════════ -->
+        <div class="nc-frame-shell" aria-hidden="true"></div>
+        <div class="nc-frame-inner" aria-hidden="true"></div>
+
+        <!-- Animated loader bar — 8 segments, sequential opacity -->
+        <div class="nc-hw-frame-loader" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+
+        <!-- Ticker -->
+        <div class="nc-hw-frame-ticker" aria-hidden="true">
+          <span>JWST / PROTOPLANETARY DISK SURVEY / MHD WINDS DETECTED / MASS LOSS RATE ANALYSIS / TARGET CLASSIFICATION UPDATED</span>
+        </div>
+
+        <!-- Light sweep -->
+        <div class="nc-hw-sweep nc-panel-sweep"></div>
+
+        <!-- ═══ CONTENT SLOT ══════════════════════════════════════════
+             Paste any HTML here. OUTPOST 32 label always rendered.
+             Content div has padding aligned with the inner frame edges.
+        ══════════════════════════════════════════════════════════════ -->
+        <div class="nc-hw-content">
+
+          <p class="nc-hw-system">OUTPOST 32</p>
+
+          <!-- ▼ PASTE HTML HERE ▼ -->
+
+          <h2 style="margin:0 0 28px;font-family:'Share Tech Mono',monospace;font-size:30px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#8ff6ff;text-shadow:0 0 8px rgba(80,245,255,.95),0 0 20px rgba(80,245,255,.45);">КОМАНДОР КЕЛЛАН</h2>
+
+          <p style="font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.72;letter-spacing:.02em;color:rgba(190,250,255,.84);text-shadow:0 0 10px rgba(80,220,255,.18);text-align:justify;hyphens:auto;margin:0 0 18px;">Знаете, меня всегда забавляло, насколько романтично люди представляют рождение планет. Все эти красивые картинки: сияющий диск, спирали пыли, юные миры, возникающие вокруг молодой звезды… Очень поэтично. Но реальность, как обычно, куда менее сентиментальна.</p>
+
+          <p style="font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.72;letter-spacing:.02em;color:rgba(190,250,255,.84);text-shadow:0 0 10px rgba(80,220,255,.18);text-align:justify;hyphens:auto;margin:0 0 18px;">Эта работа JWST показывает не процесс рождения, а процесс утраты. Диск не просто формирует планеты — он одновременно медленно умирает. И, возможно, именно это определяет судьбу всей системы.</p>
+
+          <p style="font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.72;letter-spacing:.02em;color:rgba(190,250,255,.84);text-shadow:0 0 10px rgba(80,220,255,.18);text-align:justify;hyphens:auto;margin:0;">Самое важное здесь — даже не сами ветры. Мы подозревали их существование давно. Важнее другое: впервые появляется статистика. Не единичный экзотический объект. Не edge-on красавец для пресс-релиза. А десятки обычных протопланетных дисков. И оказывается, что молекулярные ветры — повсюду.</p>
+
+          <!-- ▲ END HTML ▲ -->
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script src="../../shared/js/hud-mini.js?v=3"></script>
+  <script src="./hud-07.js?v=2"></script>
+</body>
+</html>

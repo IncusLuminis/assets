@@ -1,0 +1,205 @@
+<!--
+  NebulaCast HUD Panel — EXAMPLE: Multi-panel Row Container
+  ==========================================================
+  Ready to paste into a Blogger post (HTML mode).
+  Global CSS and JS must already be in the Blogger template.
+
+  Behaviour:
+  - All mini-cards always visible in one horizontal row
+  - Click a mini-card → its full panel opens BELOW the row
+  - Click another mini-card → previous panel collapses, new one opens
+  - Click the same mini-card (or ▲ button) → collapses back to row
+
+  To add a 3rd (or more) panel: copy any widget+script block and
+  paste inside .nc-hud-row before the closing </div>.
+
+  Tune width of collapsed mini-slots: change the 280px value in
+  .nc-hud-row .nc-mini-widget.is-mini below.
+-->
+
+<style>
+.nc-hp-mini-card {
+  left: 0;
+  transform: none;
+}
+
+
+
+.nc-hp-mini-thumb {
+  object-fit: contain;
+  max-width: none;
+}
+
+.nc-hp-mini-name {
+  font-size: 16px;
+  letter-spacing: .08em;
+  white-space: normal;
+  flex-shrink: 1;
+}
+
+/* ── Row container ───────────────────────────────────────────── */
+.nc-hud-row {
+  display: flex;
+  flex-wrap: wrap;        /* expanded panel wraps to its own row  */
+  gap: 0;
+  align-items: flex-start;
+  background: #000;
+}
+
+/* Collapsed slot — fixed width so mini-cards sit tight together  */
+.nc-hud-row .nc-hp-widget.is-mini {
+  flex: 0 0 auto;
+  width: 280px;           /* adjust to match your mini-card width */
+}
+
+/* Expanded panel — full width, pushed below the mini-card row   */
+.nc-hud-row .nc-hp-widget:not(.is-mini) {
+  flex: 0 0 100%;
+  order: 99;
+}
+</style>
+
+<div class="nc-hud-row">
+
+  <!-- ═══════════════ PANEL 1 ═══════════════ -->
+  <div class="nc-hp-widget">
+
+    <!-- Mini card — visible when panel is collapsed -->
+    <div class="nc-hp-mini-card" aria-hidden="true">
+      <p class="nc-hp-mini-system">SYSTEM_LABEL</p>
+      <div class="nc-hp-mini-body">
+        <img class="nc-hp-mini-thumb" src="THUMB_URL_1" alt="">
+        <h2 class="nc-hp-mini-name">CHARACTER_NAME_1</h2>
+      </div>
+    </div>
+
+    <!-- Main panel -->
+    <div class="nc-hp-panel">
+      <div class="nc-hp-frame-shell"></div>
+      <div class="nc-hp-frame-mask nc-hp-frame-mask-left"></div>
+      <div class="nc-hp-frame-mask nc-hp-frame-mask-right"></div>
+      <div class="nc-hp-frame-topline">
+        <span class="nc-hp-topline-left"></span>
+        <span class="nc-hp-topline-slope"></span>
+        <span class="nc-hp-topline-right"></span>
+        <span class="nc-hp-topline-side"></span>
+      </div>
+      <div class="nc-hp-frame-inner"></div>
+      <div class="nc-hp-frame-loader">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="nc-hp-frame-ticker">
+        <span>TICKER_TEXT / MORE DATA /</span>
+      </div>
+      <div class="nc-hp-sweep nc-panel-sweep"></div>
+      <div class="nc-hp-content">
+        <div class="nc-hp-system">SYSTEM_LABEL</div>
+        <h2 class="nc-hp-title">CHARACTER_NAME_1</h2>
+        <div class="nc-hp-text">
+          <img class="nc-hud-float-image" src="IMAGE_URL_1" alt="">
+          <p>BODY_TEXT_1</p>
+        </div>
+      </div>
+    </div><!-- .nc-hp-panel -->
+  </div><!-- .nc-hp-widget -->
+
+  <script>
+  (function () {
+    var all    = document.querySelectorAll('.nc-hp-widget:not([data-hud-init])');
+    var widget = all[all.length - 1];
+    if (!widget) return;
+    widget.setAttribute('data-hud-init', '1');
+    var panel = widget.querySelector('.nc-hp-panel');
+    NcHudMini.init({
+      widget      : widget,
+      panel       : panel,
+      miniH       : 148,
+      scale       : null,
+      expandedMaxH: 2000,
+      onExpand    : function () {
+        /* Collapse every other expanded panel in the same row */
+        var row = widget.closest('.nc-hud-row');
+        if (!row) return;
+        row.querySelectorAll('.nc-hp-widget[data-hud-init]').forEach(function (w) {
+          if (w !== widget && !w.classList.contains('is-mini')) {
+            var btn = w.querySelector('.nc-ol-toggle-btn');
+            if (btn) btn.click();
+          }
+        });
+      }
+    });
+  })();
+  </script>
+
+  <!-- ═══════════════ PANEL 2 ═══════════════ -->
+  <div class="nc-hp-widget">
+
+    <!-- Mini card — visible when panel is collapsed -->
+    <div class="nc-hp-mini-card" aria-hidden="true">
+      <p class="nc-hp-mini-system">SYSTEM_LABEL</p>
+      <div class="nc-hp-mini-body">
+        <img class="nc-hp-mini-thumb" src="THUMB_URL_2" alt="">
+        <h2 class="nc-hp-mini-name">CHARACTER_NAME_2</h2>
+      </div>
+    </div>
+
+    <!-- Main panel -->
+    <div class="nc-hp-panel">
+      <div class="nc-hp-frame-shell"></div>
+      <div class="nc-hp-frame-mask nc-hp-frame-mask-left"></div>
+      <div class="nc-hp-frame-mask nc-hp-frame-mask-right"></div>
+      <div class="nc-hp-frame-topline">
+        <span class="nc-hp-topline-left"></span>
+        <span class="nc-hp-topline-slope"></span>
+        <span class="nc-hp-topline-right"></span>
+        <span class="nc-hp-topline-side"></span>
+      </div>
+      <div class="nc-hp-frame-inner"></div>
+      <div class="nc-hp-frame-loader">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="nc-hp-frame-ticker">
+        <span>TICKER_TEXT / MORE DATA /</span>
+      </div>
+      <div class="nc-hp-sweep nc-panel-sweep"></div>
+      <div class="nc-hp-content">
+        <div class="nc-hp-system">SYSTEM_LABEL</div>
+        <h2 class="nc-hp-title">CHARACTER_NAME_2</h2>
+        <div class="nc-hp-text">
+          <img class="nc-hud-float-image" src="IMAGE_URL_2" alt="">
+          <p>BODY_TEXT_2</p>
+        </div>
+      </div>
+    </div><!-- .nc-hp-panel -->
+  </div><!-- .nc-hp-widget -->
+
+  <script>
+  (function () {
+    var all    = document.querySelectorAll('.nc-hp-widget:not([data-hud-init])');
+    var widget = all[all.length - 1];
+    if (!widget) return;
+    widget.setAttribute('data-hud-init', '1');
+    var panel = widget.querySelector('.nc-hp-panel');
+    NcHudMini.init({
+      widget      : widget,
+      panel       : panel,
+      miniH       : 148,
+      scale       : null,
+      expandedMaxH: 2000,
+      onExpand    : function () {
+        var row = widget.closest('.nc-hud-row');
+        if (!row) return;
+        row.querySelectorAll('.nc-hp-widget[data-hud-init]').forEach(function (w) {
+          if (w !== widget && !w.classList.contains('is-mini')) {
+            var btn = w.querySelector('.nc-ol-toggle-btn');
+            if (btn) btn.click();
+          }
+        });
+      }
+    });
+  })();
+  </script>
+
+</div><!-- .nc-hud-row -->
