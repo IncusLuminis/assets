@@ -222,6 +222,34 @@ Platform 0.1 success criterion (Arch §50, Vision §20):
 5. **`micro` variant** — none of HUD-01…04 has one today. 0.1 requires only `mini`+`maxi` (Arch §13). Confirm `micro` stays out of 0.1 entirely. *Recommendation stands; owner has not objected.*
 6. **Integration-branch strategy** (§6) — one long-lived `feature/hud-platform-0.1` with child branches, reviewed at phase gates? Or per-epic feature branches? *Proceeding with one long-lived `feature/hud-platform-0.1` + per-story child branches merged into it, reviewed at phase gates.*
 
+### Inventory-driven decisions (owner, 2026-09-09; from Story #2 / PR #25)
+
+The HUD inventory (`HUD_Platform_Inventory_0.1.md`) surfaced further decisions the
+Contract (#4) depends on. Owner answers:
+
+- **A — Source lineage:** the 0.1 Themes are cut from the **blogger-template lineage**
+  (`widgets/sandbox/blogger-hud01-02-wip/`, `widgets/releases/blogger-pilot-*`,
+  `widgets/panels/hud-10/` + `widgets/shared/`) — the lineage HUD Playground actually
+  loads, already carrying `data-collapse=maxi|mini|micro` semantics. **Not**
+  `widgets/panels/hud-0N/`. #4/#11–#15 target this lineage.
+- **B — Migration input under version control:** done — the `widgets/` text tree is
+  committed to `feature/hud-platform-0.1` (`aa13591`; ~30 dated Blogger
+  theme-export backups excluded as noise).
+- **C — HUD-01/02 `mini`:** keep the current `transform: scale()` mini for 0.1
+  (`knownDeviations` in the manifest). The hard requirement: **a `mini` composition
+  exists in both a horizontal (16:9) and a vertical (9:16) form** — the two
+  thumbnail shapes. Pixel-exactness of the scaled mini is explicitly not a concern.
+- **D — `9:16` (maxi):** **deferred.** 0.1 Themes declare full portrait `maxi`
+  compositions as unsupported; add later per Arch §31. (Note the tension with C: a
+  vertical *mini* is still required — the deferral is only the full portrait maxi.)
+- **E — HUD-01/02 object-viewer vs html-frame:** **one Theme** with a capability /
+  flag, not two Themes.
+- **F — HUD-01/02 astronomy data:** the Theme keeps fetching its own data (SIMBAD/
+  VizieR/ADS/Aladin) — modelled as a **`dataSource` capability** in the Contract
+  with a fixed endpoint allowlist, *not* a "consumer passes rows" refactor. Keeps
+  HUD-01/02 working as-is; the semantic-slot contract still applies to the
+  non-astronomy content.
+
 ---
 
 ## 8. What the Product Owner should do next
