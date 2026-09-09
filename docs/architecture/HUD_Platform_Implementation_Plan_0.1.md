@@ -210,12 +210,17 @@ Platform 0.1 success criterion (Arch §50, Vision §20):
 
 ## 7. Open questions for the owner
 
-1. **Cloudflare target for `assets.nebulacast.app`** — new dedicated Pages project (recommended, mirrors `gadgets-media`), or attach to an existing Nebulacast project/Worker? Who provisions the DNS + `wrangler` token (DevOps story under #7)?
-2. **External-consumer target for #17** — `nebulacast-site` (Blogger case, the original motivation) or `stellar-attractor-site` (parked Phase 2 HUD work)? Affects #17 scope and which repo gets touched.
-3. **Baseline branch** — `agent/mini-raw-video` is ahead of `main` with unrelated HUD fixes and the arch docs are un-committed there. Confirm the platform work should branch from `origin/main` (as this plan's branch does) and that the in-flight `agent/*` HUD tweaks land separately.
-4. **HUD-01/02 external CDN deps** (Aladin Lite, SIMBAD/VizieR/ADS, Google Fonts) — keep as-is inside the Theme (lazy-loaded, as today), or does the Contract's JavaScript policy (Arch §43, §53.3) need these allowlisted explicitly? Recommend: allowlist in the manifest, keep lazy loading.
-5. **`micro` variant** — none of HUD-01…04 has one today. 0.1 requires only `mini`+`maxi` (Arch §13). Confirm `micro` stays out of 0.1 entirely.
-6. **Integration-branch strategy** (§6) — one long-lived `feature/hud-platform-0.1` with child branches, reviewed at phase gates? Or per-epic feature branches?
+### Resolved (owner, 2026-09-09)
+
+1. **Cloudflare target for the Registry/CDN** — **RESOLVED:** deploy to the **existing `assets-4gy` Cloudflare Pages project** (`https://assets-4gy.pages.dev/`). The work under #7 is (a) a publish directory the site is deployed from — the plan's `dist/` — and (b) `wrangler` configuration. `wrangler` is assumed already authenticated on the owner's machine (consistent with `scripts/deploy_gadgets_media.sh`). The `assets.nebulacast.app` custom domain is a later DNS concern and does **not** block #6/#7; the `.pages.dev` URL is the 0.1 target. → Q1 hold lifted on #7 and #6 (they remain behind the Contract-frozen gate, Role: DevOps).
+2. **External-consumer target for #17** — **RESOLVED:** **`IncusLuminis/stellar-attractor-site`**. Its Phase 2 HUD work is parked and this is the first real consumer. → Q2 hold lifted on #17 (remains behind the #6/#16 gate).
+4. **HUD-01/02 external CDN deps** (Aladin Lite, SIMBAD/VizieR/ADS, Google Fonts) — **RESOLVED:** **keep as-is** — lazy-loaded inside the Theme, not refactored. The manifest schema (#3) keeps the optional external-resource allowlist *field*, but declaring it is not mandatory for HUD-01/02 in 0.1; #4's JS/external-resource policy documents that Registry-loaded Themes may lazy-load from a fixed set of known hosts (Aladin CDS, SIMBAD/VizieR/ADS, Google Fonts) without per-Theme allowlisting in 0.1.
+
+### Still open (not blocking; proceeding on the noted assumption)
+
+3. **Baseline branch** — `agent/mini-raw-video` is ahead of `main` with unrelated HUD fixes and the arch docs are un-committed there. Confirm the platform work should branch from `origin/main` (as this plan's branch does) and that the in-flight `agent/*` HUD tweaks land separately. *Treated as confirmed unless the owner objects — this plan's branch already cut from `origin/main`.*
+5. **`micro` variant** — none of HUD-01…04 has one today. 0.1 requires only `mini`+`maxi` (Arch §13). Confirm `micro` stays out of 0.1 entirely. *Recommendation stands; owner has not objected.*
+6. **Integration-branch strategy** (§6) — one long-lived `feature/hud-platform-0.1` with child branches, reviewed at phase gates? Or per-epic feature branches? *Proceeding with one long-lived `feature/hud-platform-0.1` + per-story child branches merged into it, reviewed at phase gates.*
 
 ---
 
