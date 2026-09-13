@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "hud-01",
+  "name": "Object Lock",
+  "version": "1.0.0",
+  "engine": "svg",
+  "baseVersion": "^1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "portrait-maxi-deferred-1.0" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": ["title"],
+    "optional": ["subtitle", "media", "visualization", "primary", "secondary",
+                 "status", "controls", "content", "footer"]
+  },
+  "customSlots": [
+    { "name": "objectName", "kind": "text", "required": false,
+      "description": "Astronomical target name; drives the sky viewer and data fetch" }
+  ],
+  "capabilities": {
+    "animation": true,
+    "interactive": true,
+    "htmlSlot": true,
+    "multiInstance": true,
+    "modes": { "values": ["object", "html"], "default": "object", "config": "mode" },
+    "skyViewer": true,
+    "dataSource": {
+      "providers": ["simbad", "vizier", "ads"],
+      "hosts": ["simbad.cds.unistra.fr", "vizier.cds.unistra.fr", "ui.adsabs.harvard.edu"],
+      "input": "objectName"
+    }
+  },
+  "entrypoints": {
+    "maxi:landscape":  { "styles": ["styles/shared.css", "maxi/landscape/hud.css"],  "markup": "maxi/landscape/hud.html",  "scripts": ["scripts/hud-01.js"] },
+    "mini:landscape":  { "styles": ["styles/shared.css", "mini/landscape/hud.css"],  "markup": "mini/landscape/hud.html",  "scripts": ["scripts/hud-01.js"] },
+    "micro:portrait":  { "styles": ["styles/shared.css", "micro/portrait/hud.css"],  "markup": "micro/portrait/hud.html",  "scripts": ["scripts/hud-01.js"] }
+  },
+  "externalResources": [
+    { "host": "fonts.googleapis.com", "kind": "style", "timing": "page-load", "required": false },
+    { "host": "fonts.gstatic.com",   "kind": "font",  "timing": "page-load", "required": false },
+    { "host": "simbad.cds.unistra.fr", "kind": "fetch", "timing": "page-load", "required": false },
+    { "host": "aladin.cds.unistra.fr", "kind": "script", "timing": "lazy", "required": false },
+    { "host": "vizier.cds.unistra.fr", "kind": "fetch", "timing": "lazy", "required": false }
+  ],
+  "animations": ["hudBreath", "hudPanelSweep", "hudRotate", "hudPulseOuter", "hudPulseInner"],
+  "isolation": "scoped-root",
+  "overflowVisible": true,
+  "knownDeviations": [
+    { "code": "no-maxi-portrait",     "scope": "maxi:portrait", "clause": "8.3",  "note": "portrait full maxi deferred (owner D)" },
+    { "code": "external-io-on-mount", "scope": "all",           "clause": "16.3", "note": "Google Fonts + SIMBAD fetch during mount (owner F)" }
+  ]
+}

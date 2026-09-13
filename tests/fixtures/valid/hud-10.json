@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "hud-10",
+  "name": "Field Dispatch",
+  "version": "1.0.0",
+  "engine": "svg",
+  "baseVersion": "^1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "dir": "maxi/portrait",   "supported": true },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "dir": "mini/portrait",   "supported": true },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait",  "supported": true }
+  },
+  "slots": {
+    "required": ["title"],
+    "optional": ["subtitle", "media", "content", "footer"]
+  },
+  "capabilities": {
+    "animation": true,
+    "htmlSlot": true,
+    "multiInstance": true
+  },
+  "entrypoints": {
+    "maxi:landscape":  { "styles": ["styles/shared.css", "maxi/landscape/hud.css"],  "markup": "maxi/landscape/hud.html",  "scripts": ["scripts/hud-10.js"] },
+    "maxi:portrait":   { "styles": ["styles/shared.css", "maxi/portrait/hud.css"],   "markup": "maxi/portrait/hud.html",   "scripts": ["scripts/hud-10.js"] },
+    "mini:landscape":  { "styles": ["styles/shared.css", "mini/landscape/hud.css"],  "markup": "mini/landscape/hud.html",  "scripts": ["scripts/hud-10.js"] },
+    "mini:portrait":   { "styles": ["styles/shared.css", "mini/portrait/hud.css"],   "markup": "mini/portrait/hud.html",   "scripts": ["scripts/hud-10.js"] },
+    "micro:portrait":  { "styles": ["styles/shared.css", "micro/portrait/hud.css"],  "markup": "micro/portrait/hud.html",  "scripts": ["scripts/hud-10.js"] }
+  },
+  "animations": ["hudBreath"],
+  "isolation": "scoped-root",
+  "overflowVisible": true
+}
