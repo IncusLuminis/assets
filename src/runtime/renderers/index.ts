@@ -4,3 +4,19 @@ export { ReservedEngineRenderer } from "./ReservedEngineRenderer.js";
 export { VideoRenderer } from "./VideoRenderer.js";
 export { StaticRenderer } from "./StaticRenderer.js";
 export { GadgetRenderer } from "./GadgetRenderer.js";
+// Story #9 -- the real `engine: "svg"` renderer. Not auto-registered
+// anywhere (see SvgRenderer.ts's docstring); a consumer/bootstrap calls
+// `registry.register("svg", () => new SvgRenderer())` explicitly.
+export {
+  SvgRenderer,
+  DomExternalResourceLoader
+} from "./SvgRenderer.js";
+export type {
+  ResourceTextLoader,
+  ThemeScriptHandle,
+  ThemeScriptApi,
+  LazyResourceKind,
+  LazyResourceRequest,
+  ExternalResourceLoader,
+  SvgRendererOptions
+} from "./SvgRenderer.js";
