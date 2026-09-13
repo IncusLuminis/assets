@@ -1,0 +1,11 @@
+/* micro:portrait -- title only; not a real HUD-03 composition (the baseline has no micro density), just proving the 1.0-required composition set (Contract §2.2/§8.2). */
+.fixture-css-hud--micro {
+  padding: 8px 12px;
+  width: 160px;
+  min-height: 90px;
+}
+
+.fixture-css-hud--micro .fixture-css-hud__title {
+  font-size: 0.85rem;
+  margin: 0;
+}

@@ -1,0 +1,4 @@
+/* maxi:landscape -- composition-specific tweaks layered after styles/shared.css (Contract §3.10: array order significant). */
+.fixture-css-hud--maxi {
+  min-height: 420px;
+}

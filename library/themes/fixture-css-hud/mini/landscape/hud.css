@@ -1,0 +1,22 @@
+/*
+ * mini:landscape -- a genuinely distinct, lower-density composition (not a
+ * scaled clone of maxi), matching the real HUD-03's `.nc-hp-mini-card`
+ * pattern (Inventory §1.26: "this one is genuinely a distinct lower-density
+ * composition already ... adopt near-as-is").
+ */
+.fixture-css-hud--mini {
+  padding: 16px 20px;
+  width: 320px;
+}
+
+.fixture-css-hud--mini .fixture-css-hud__media {
+  float: none;
+  width: 56px;
+  height: 84px;
+  margin: 0 0 8px;
+}
+
+.fixture-css-hud--mini .fixture-css-hud__title {
+  font-size: 1.05rem;
+  margin-bottom: 0;
+}
