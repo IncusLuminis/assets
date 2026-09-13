@@ -2,11 +2,15 @@
  * Runtime package entry point, bundled by `scripts/build/build.mjs` into
  * `dist/runtime/index.js` (Plan §2 decision 1, §3).
  *
- * Story #5 scaffolds the build pipeline only. The real Runtime
- * (`src/runtime/core/`, `registry/`, `contract/`) does not exist yet (#8),
- * so this entry re-exports only what Story #5 itself ships: the renderer
- * lifecycle contract and the reserved-engine stubs. As #8/#9/#10 land, their
- * exports are added here -- the bundler wiring itself does not need to
- * change.
+ * Story #5 scaffolded the build pipeline and the renderer lifecycle contract
+ * + reserved-engine stubs. Story #8 adds the real Runtime: the TS mirror of
+ * the Contract (`contract/`) and the consumer-facing `Hud` class + Theme
+ * resolution (`core/`). `registry/` (a Registry/CDN-backed `ThemeSource`) is
+ * #1/#16's job and stays unexported until it lands -- swapping one in needs
+ * no change here. As #9/#10 land, they register their renderers on a
+ * `RendererRegistry` (see `core/RendererRegistry.ts`) rather than adding new
+ * exports to this file.
  */
 export * from "./renderers/index.js";
+export * from "./contract/index.js";
+export * from "./core/index.js";
