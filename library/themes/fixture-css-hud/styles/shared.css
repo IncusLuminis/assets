@@ -1,0 +1,132 @@
+/*
+ * fixture-css-hud -- shared frame styles (Contract §3.10 "styles" array,
+ * loaded before each composition's own <variant>/<orientation>/hud.css).
+ *
+ * Isolation (Contract §15.1/§15.4): every selector below is nested under
+ * `.fixture-css-hud` (the scoped-root class CssRenderer's fallback path
+ * guarantees on its wrapper, per manifest.id -- see CssRenderer.ts's
+ * docstring) or lives inside the Shadow DOM CssRenderer normally uses for
+ * this Theme (isolation: "shadow-dom-preferred"). No bare `body`/`html`/
+ * `:root`/`*` selector appears anywhere in this file -- both isolation
+ * strategies rely on that (`tests/unit/css-renderer.test.js` asserts it
+ * statically, and functionally, on both mount paths).
+ *
+ * Frame mechanism loosely modelled on the real HUD-03/04 (`widgets/panels/
+ * hud-03/hud-03.css`, `widgets/panels/hud-04/hud-04.css`) -- simplified:
+ * one clip-path frame layer instead of shell+inner+mask+topline, no
+ * animation, no ticker/loader. Full packaging is #13/#15's job.
+ */
+
+.fixture-css-hud {
+  position: relative;
+  isolation: isolate; /* Contract §15.7 -- own stacking context */
+  overflow: visible;  /* Contract §15.5 -- overflowVisible: true; the frame's drop-shadow paints outside the box */
+  box-sizing: border-box;
+  background: #050608;
+  color: #d8f6ff;
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  padding: 48px 56px;
+  width: min(1200px, 100%);
+}
+
+.fixture-css-hud *,
+.fixture-css-hud *::before,
+.fixture-css-hud *::after {
+  box-sizing: inherit;
+}
+
+/* The clip-path frame + drop-shadow glow (Inventory §1.21 `.nc-hp-frame-shell`, simplified to one layer). */
+.fixture-css-hud__frame {
+  position: absolute;
+  inset: 14px;
+  border: 2px solid rgba(80, 220, 255, 0.92);
+  clip-path: polygon(0 18%, 0 100%, 96% 100%, 100% 78%, 100% 8%, 22% 8%, 18% 4%, 10% 4%);
+  filter: drop-shadow(0 0 6px rgba(80, 220, 255, 0.55)) drop-shadow(0 0 16px rgba(80, 220, 255, 0.3));
+  box-shadow: 0 0 18px rgba(80, 220, 255, 0.25) inset;
+  pointer-events: none;
+}
+
+.fixture-css-hud__content {
+  position: relative;
+  z-index: 1;
+}
+
+.fixture-css-hud__subtitle {
+  margin: 0 0 4px;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.fixture-css-hud__title {
+  margin: 0 0 12px;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+}
+
+/* The media slot -- a plain float image (HUD-03) unless capabilities.mediaEmbed
+   is declared, in which case CssRenderer mounts a validated-host <iframe>
+   inside it (Contract §10.5). float:left + the body text wrapping around it
+   is the HUD-03/04 float-layout mechanism (Inventory §1.21, §1.28, §1.31). */
+.fixture-css-hud__media {
+  float: left;
+  width: 28%;
+  min-width: 140px;
+  max-width: 240px;
+  aspect-ratio: 9 / 16;
+  margin: 0 20px 12px 0;
+  position: relative;
+  background: #000;
+  border: 1px solid rgba(80, 220, 255, 0.5);
+  overflow: hidden; /* the media slot itself IS meant to clip its own iframe/image -- distinct from the panel-level overflow:visible above, which is only about the frame's drop-shadow */
+}
+
+.fixture-css-hud__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fixture-css-hud__media iframe.hud-media-embed-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Contract §10.5 "src-swap": parked at about:blank while collapsed/mini -- CssRenderer's MutationObserver keeps this in sync with data-hud-variant. */
+.fixture-css-hud__media iframe.hud-media-embed-iframe[src="about:blank"] {
+  opacity: 0;
+}
+
+.fixture-css-hud__media-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.fixture-css-hud__body {
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.fixture-css-hud__footer {
+  clear: both;
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(80, 220, 255, 0.25);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}

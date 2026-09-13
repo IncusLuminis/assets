@@ -4,3 +4,5 @@ export { ReservedEngineRenderer } from "./ReservedEngineRenderer.js";
 export { VideoRenderer } from "./VideoRenderer.js";
 export { StaticRenderer } from "./StaticRenderer.js";
 export { GadgetRenderer } from "./GadgetRenderer.js";
+export { CssRenderer } from "./CssRenderer.js";
+export type { CssRendererDependencies, CssResourceFetcher, CssIsolationOutcome } from "./CssRenderer.js";
