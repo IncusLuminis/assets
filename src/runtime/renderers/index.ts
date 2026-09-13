@@ -20,3 +20,7 @@ export type {
   ExternalResourceLoader,
   SvgRendererOptions
 } from "./SvgRenderer.js";
+// Story #10 -- the real `engine: "css"` renderer. Likewise not
+// auto-registered; call `registry.register("css", () => new CssRenderer())`.
+export { CssRenderer } from "./CssRenderer.js";
+export type { CssRendererDependencies, CssResourceFetcher, CssIsolationOutcome } from "./CssRenderer.js";

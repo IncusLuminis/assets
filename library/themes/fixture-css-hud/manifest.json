@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "fixture-css-hud",
+  "name": "Fixture CSS HUD",
+  "version": "0.1.0",
+  "description": "Schema-valid engine:\"css\" fixture proving CssRenderer (Story #10): clip-path/drop-shadow/float layout modelled loosely on HUD-03/04, data-slot injection, a mediaEmbed extension point. Not a real HUD.",
+  "engine": "css",
+  "baseVersion": "1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "not-authored" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": ["title"],
+    "optional": ["subtitle", "media", "content", "footer"]
+  },
+  "capabilities": {
+    "htmlSlot": true,
+    "mediaEmbed": { "hosts": ["app.heygen.com"], "lifecycle": "src-swap" }
+  },
+  "entrypoints": {
+    "maxi:landscape":  { "styles": ["styles/shared.css", "maxi/landscape/hud.css"],  "markup": "maxi/landscape/hud.html",  "scripts": [] },
+    "mini:landscape":  { "styles": ["styles/shared.css", "mini/landscape/hud.css"],  "markup": "mini/landscape/hud.html",  "scripts": [] },
+    "micro:portrait":  { "styles": ["styles/shared.css", "micro/portrait/hud.css"],  "markup": "micro/portrait/hud.html",  "scripts": [] }
+  },
+  "isolation": "shadow-dom-preferred",
+  "overflowVisible": true,
+  "knownDeviations": [
+    { "code": "no-maxi-portrait", "scope": "maxi:portrait", "clause": "8.3", "note": "fixture theme; full portrait maxi not authored" }
+  ]
+}
