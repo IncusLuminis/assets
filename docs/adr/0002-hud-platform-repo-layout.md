@@ -84,8 +84,13 @@ bootstrap, not to replace it.
    tear down. (An earlier draft of this Story had `destroy()` throw
    unconditionally like the other four methods; Validator review on PR #28
    caught the §6.6 violation before merge — corrected here so #9/#10 don't
-   copy the wrong lifecycle shape from these stubs.) A minimal
-   `RendererInterface.ts` (type-only, no logic) gives the stubs — and
+   copy the wrong lifecycle shape from these stubs.) The three stubs'
+   identical behaviour is factored into a shared `ReservedEngineRenderer`
+   abstract base (Validator review nit, applied as a quick win); each of
+   `VideoRenderer`/`StaticRenderer`/`GadgetRenderer` is now a one-line
+   subclass naming its `engine` value, so the throw/no-op behaviour and the
+   §6.6 fix above live in exactly one place. A minimal
+   `RendererInterface.ts` (type-only, no logic) gives that base — and
    the real `SvgRenderer`/`CssRenderer` landing in #9/#10 — a single shared
    shape to compile against. `SvgRenderer.ts`/`CssRenderer.ts` are
    deliberately **not** stubbed or scaffolded beyond a `README.md` note:

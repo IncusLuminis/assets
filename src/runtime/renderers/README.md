@@ -10,13 +10,17 @@ manifest schema's closed enum (HUD Theme Contract 1.0 §5.1).
   no logic.
 - `RendererUnsupportedError.ts` — the typed error (`RendererUnsupported`,
   Contract §20.1) the reserved-engine stubs throw.
-- `VideoRenderer.ts`, `StaticRenderer.ts`, `GadgetRenderer.ts` — stubs for the
-  three **reserved-but-unsupported** `engine` values (Contract §5.2). Every
-  lifecycle method that does work (`mount`, `setData`, `resize`,
-  `setVariant`) throws `RendererUnsupportedError` unconditionally —
-  **`destroy()` is the one exception and is a non-throwing no-op**, per
-  Contract §6.6 ("`destroy()` MUST NOT throw, even if `mount` never
-  completed or failed"). These stubs exist so a manifest declaring
+- `ReservedEngineRenderer.ts` — shared abstract base for the three
+  reserved-but-unsupported stubs: every lifecycle method that does work
+  (`mount`, `setData`, `resize`, `setVariant`) throws
+  `RendererUnsupportedError` unconditionally — **`destroy()` is the one
+  exception and is a non-throwing, idempotent no-op**, per Contract §6.6
+  ("`destroy()` MUST NOT throw, even if `mount` never completed or
+  failed"). Factored out once rather than duplicated three times, so the
+  three stubs can't drift out of sync with each other or with §6.6.
+- `VideoRenderer.ts`, `StaticRenderer.ts`, `GadgetRenderer.ts` — one-line
+  subclasses of `ReservedEngineRenderer` naming which `engine` value each
+  represents (Contract §5.2). These exist so a manifest declaring
   `engine: "video"|"static"|"gadget"` is schema-valid and Registry-listable
   ahead of Runtime support — not because Platform 0.1 renders them.
 
