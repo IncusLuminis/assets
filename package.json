@@ -1,0 +1,19 @@
+{
+  "name": "@incus/assets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "IncusLuminis Shared Asset Repository -- HUD Platform 0.1 manifest schema (Story #3). Minimal bootstrap: schema + fixture tests only. Full repo layout (Plan §3/§7) lands with Story #5.",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "vitest": "^5.0.0"
+  }
+}
