@@ -1,0 +1,1288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://assets-4gy.pages.dev/registry/schemas/1.0/manifest.schema.json",
+  "title": "HUD Theme Manifest",
+  "description": "Machine-readable descriptor for a HUD Theme, per HUD Theme Contract 1.0 \u00a73 and \u00a727 (docs/architecture/HUD_Theme_Contract_1.0.md). This schema encodes the prose Contract; where the two disagree, the Contract wins until this schema is revised (Contract \u00a73).",
+  "type": "object",
+  "$defs": {
+    "relPath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Package-relative path: no leading '/', no '../' traversal, no scheme (external hosts are declared separately via externalResources / capabilities.*.hosts, Contract \u00a72.2 rule 5, \u00a711.3).",
+      "pattern": "^(?!/)(?!.*\\.\\./)(?![A-Za-z][A-Za-z0-9+.\\-]*://).+$"
+    },
+    "bareHostname": {
+      "type": "string",
+      "description": "Bare hostname, no scheme, no path, no port (Contract \u00a73.13, \u00a727.6).",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+    },
+    "standardSlotName": {
+      "type": "string",
+      "enum": [
+        "title",
+        "subtitle",
+        "status",
+        "primary",
+        "secondary",
+        "media",
+        "visualization",
+        "controls",
+        "content",
+        "footer"
+      ]
+    },
+    "compositionKey": {
+      "type": "string",
+      "enum": [
+        "maxi:landscape",
+        "maxi:portrait",
+        "mini:landscape",
+        "mini:portrait",
+        "micro:landscape",
+        "micro:portrait"
+      ]
+    },
+    "dataSourceHost": {
+      "type": "string",
+      "enum": [
+        "simbad.cds.unistra.fr",
+        "vizier.cds.unistra.fr",
+        "ui.adsabs.harvard.edu"
+      ]
+    },
+    "mediaEmbedHost": {
+      "type": "string",
+      "enum": [
+        "app.heygen.com",
+        "www.youtube.com",
+        "player.vimeo.com"
+      ]
+    },
+    "compositionObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "supported"
+      ],
+      "properties": {
+        "dir": {
+          "$ref": "#/$defs/relPath"
+        },
+        "supported": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "supported": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "required": [
+              "dir"
+            ]
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "supported": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "required": [
+              "reason"
+            ]
+          }
+        }
+      ]
+    },
+    "entrypointObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "styles",
+        "markup",
+        "scripts"
+      ],
+      "properties": {
+        "styles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relPath"
+          }
+        },
+        "markup": {
+          "$ref": "#/$defs/relPath"
+        },
+        "scripts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relPath"
+          }
+        }
+      }
+    },
+    "customSlotObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind",
+        "description"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "not": {
+            "$ref": "#/$defs/standardSlotName"
+          }
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "text",
+            "html",
+            "url",
+            "ref",
+            "config"
+          ]
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "externalResourceObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host",
+        "kind",
+        "timing"
+      ],
+      "properties": {
+        "host": {
+          "$ref": "#/$defs/bareHostname"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "script",
+            "style",
+            "font",
+            "fetch",
+            "iframe"
+          ]
+        },
+        "timing": {
+          "type": "string",
+          "enum": [
+            "page-load",
+            "lazy"
+          ]
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "knownDeviationObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "scope",
+        "note"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "no-maxi-portrait",
+            "no-maxi-landscape",
+            "external-io-on-mount",
+            "shadow-dom-fallback",
+            "shared-base-host-selectors-stripped"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "clause": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plannedResolution": {
+          "type": "string"
+        }
+      }
+    },
+    "dataSourceObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providers",
+        "hosts",
+        "input"
+      ],
+      "properties": {
+        "providers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "simbad",
+              "vizier",
+              "ads"
+            ]
+          }
+        },
+        "hosts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/dataSourceHost"
+          }
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timing": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "page-load",
+              "lazy"
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "simbad",
+              "vizier",
+              "ads"
+            ]
+          }
+        }
+      }
+    },
+    "mediaEmbedObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hosts",
+        "lifecycle"
+      ],
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mediaEmbedHost"
+          }
+        },
+        "lifecycle": {
+          "type": "string",
+          "enum": [
+            "src-swap",
+            "static"
+          ]
+        }
+      }
+    },
+    "modesObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "values",
+        "default",
+        "config"
+      ],
+      "properties": {
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "default": {
+          "type": "string",
+          "minLength": 1
+        },
+        "config": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "capabilitiesObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "animation": {
+          "type": "boolean"
+        },
+        "interactive": {
+          "type": "boolean"
+        },
+        "background": {
+          "type": "boolean"
+        },
+        "htmlSlot": {
+          "type": "boolean"
+        },
+        "multiInstance": {
+          "type": "boolean"
+        },
+        "skyViewer": {
+          "type": "boolean"
+        },
+        "dataSource": {
+          "$ref": "#/$defs/dataSourceObject"
+        },
+        "mediaEmbed": {
+          "$ref": "#/$defs/mediaEmbedObject"
+        },
+        "modes": {
+          "$ref": "#/$defs/modesObject"
+        }
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "contractVersion",
+    "id",
+    "name",
+    "version",
+    "engine",
+    "baseVersion",
+    "variants",
+    "orientations",
+    "compositions",
+    "slots",
+    "capabilities",
+    "entrypoints",
+    "isolation"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Version of this manifest.schema.json the manifest conforms to. Independent of contractVersion and version (Contract \u00a73.2, Arch \u00a730)."
+    },
+    "contractVersion": {
+      "type": "string",
+      "pattern": "^1\\.\\d+$",
+      "description": "HUD Theme Contract major version targeted. Fixed to major 1 by this 1.0 schema (Contract \u00a727.8 rule 13); a Runtime rejects a major it does not implement with ContractUnsupported."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 40
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Strict SemVer 2.0.0 MAJOR.MINOR.PATCH; no pre-release or build metadata in 1.0 (Contract \u00a73.6)."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "engine": {
+      "type": "string",
+      "enum": [
+        "svg",
+        "css",
+        "video",
+        "static",
+        "gadget"
+      ],
+      "description": "svg | css are supported and buildable in 1.0. video | static | gadget are reserved-but-unsupported enum values (Contract \u00a75.1-\u00a75.2): schema-valid so Themes may be authored ahead of Runtime support, but no 1.0 Runtime can mount them and publication/validation tooling MUST warn (Contract \u00a719.1). This is NOT a schema-level rejection -- see this repo's registry/schemas/README.md for why."
+    },
+    "baseVersion": {
+      "type": "string",
+      "pattern": "^(\\d+\\.\\d+\\.\\d+|\\^\\d+\\.\\d+\\.\\d+)$",
+      "description": "Exact SemVer or a caret range only. No tilde, no other range operator (Contract \u00a73.8, \u00a727.1)."
+    },
+    "variants": {
+      "type": "array",
+      "description": "1.0 MUST equal the full set {maxi, mini, micro} (Contract \u00a77.1, owner 2026-09-09).",
+      "items": {
+        "type": "string",
+        "enum": [
+          "maxi",
+          "mini",
+          "micro"
+        ]
+      },
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "allOf": [
+        {
+          "contains": {
+            "const": "maxi"
+          }
+        },
+        {
+          "contains": {
+            "const": "mini"
+          }
+        },
+        {
+          "contains": {
+            "const": "micro"
+          }
+        }
+      ]
+    },
+    "orientations": {
+      "type": "array",
+      "description": "1.0 MUST equal the full set {landscape, portrait} (Contract \u00a78.2, owner 2026-09-09). No aspect-ratio field exists any more -- see the removed 'ratios' / 'aspectRatios' rejection below.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "landscape",
+          "portrait"
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "allOf": [
+        {
+          "contains": {
+            "const": "landscape"
+          }
+        },
+        {
+          "contains": {
+            "const": "portrait"
+          }
+        }
+      ]
+    },
+    "compositions": {
+      "type": "object",
+      "description": "Exactly one entry per variant x orientation (6 in 1.0, Contract \u00a73.9, \u00a727.1 rule 3). maxi:landscape, mini:landscape, micro:portrait MUST be supported:true (Contract \u00a78.2). maxi:portrait MUST be supported:true OR carry a knownDeviations 'no-maxi-portrait' entry (Contract \u00a78.3) -- enforced below.",
+      "additionalProperties": false,
+      "required": [
+        "maxi:landscape",
+        "maxi:portrait",
+        "mini:landscape",
+        "mini:portrait",
+        "micro:landscape",
+        "micro:portrait"
+      ],
+      "properties": {
+        "maxi:landscape": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/compositionObject"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "supported": {
+                  "const": true
+                }
+              }
+            }
+          ]
+        },
+        "mini:landscape": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/compositionObject"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "supported": {
+                  "const": true
+                }
+              }
+            }
+          ]
+        },
+        "micro:portrait": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/compositionObject"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "supported": {
+                  "const": true
+                }
+              }
+            }
+          ]
+        },
+        "maxi:portrait": {
+          "$ref": "#/$defs/compositionObject"
+        },
+        "mini:portrait": {
+          "$ref": "#/$defs/compositionObject"
+        },
+        "micro:landscape": {
+          "$ref": "#/$defs/compositionObject"
+        }
+      }
+    },
+    "slots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "optional"
+      ],
+      "description": "Contract \u00a79.5; disjointness of required/optional and cross-reference against customSlots names are cross-field rules validated by this repo's test suite, not by this schema alone (Contract \u00a727.8 rule 7).",
+      "properties": {
+        "required": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/standardSlotName"
+              },
+              {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*$"
+              }
+            ]
+          }
+        },
+        "optional": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/standardSlotName"
+              },
+              {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "customSlots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/customSlotObject"
+      }
+    },
+    "capabilities": {
+      "$ref": "#/$defs/capabilitiesObject"
+    },
+    "entrypoints": {
+      "type": "object",
+      "description": "Keys MUST equal exactly the set of composition keys with supported:true -- enforced below per fixed composition key (Contract \u00a73.10, \u00a727.8 rule 6).",
+      "additionalProperties": false,
+      "properties": {
+        "maxi:landscape": {
+          "$ref": "#/$defs/entrypointObject"
+        },
+        "maxi:portrait": {
+          "$ref": "#/$defs/entrypointObject"
+        },
+        "mini:landscape": {
+          "$ref": "#/$defs/entrypointObject"
+        },
+        "mini:portrait": {
+          "$ref": "#/$defs/entrypointObject"
+        },
+        "micro:landscape": {
+          "$ref": "#/$defs/entrypointObject"
+        },
+        "micro:portrait": {
+          "$ref": "#/$defs/entrypointObject"
+        }
+      }
+    },
+    "externalResources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/externalResourceObject"
+      }
+    },
+    "animations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+      }
+    },
+    "isolation": {
+      "type": "string",
+      "enum": [
+        "scoped-root",
+        "shadow-dom",
+        "shadow-dom-preferred",
+        "iframe"
+      ]
+    },
+    "overflowVisible": {
+      "type": "boolean",
+      "default": false
+    },
+    "knownDeviations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/knownDeviationObject"
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxi:landscape": {
+          "$ref": "#/$defs/relPath"
+        },
+        "maxi:portrait": {
+          "$ref": "#/$defs/relPath"
+        },
+        "mini:landscape": {
+          "$ref": "#/$defs/relPath"
+        },
+        "mini:portrait": {
+          "$ref": "#/$defs/relPath"
+        },
+        "micro:landscape": {
+          "$ref": "#/$defs/relPath"
+        },
+        "micro:portrait": {
+          "$ref": "#/$defs/relPath"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "Contract \u00a727.8 rule 5: maxi:portrait must be supported:true OR a knownDeviations 'no-maxi-portrait' entry must exist.",
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "maxi:portrait": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "maxi:portrait"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "required": [
+          "knownDeviations"
+        ],
+        "properties": {
+          "knownDeviations": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "const": "no-maxi-portrait"
+                }
+              },
+              "required": [
+                "code"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Contract \u00a727.8 rule 6 (half 1 of 6): every composition marked supported:true MUST have a matching entrypoints entry.",
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "maxi:landscape": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": true
+                  }
+                }
+              }
+            },
+            "required": [
+              "maxi:landscape"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "type": "object",
+            "required": [
+              "maxi:landscape"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "maxi:landscape": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "maxi:landscape"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "not": {
+              "type": "object",
+              "required": [
+                "maxi:landscape"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "maxi:portrait": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": true
+                  }
+                }
+              }
+            },
+            "required": [
+              "maxi:portrait"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "type": "object",
+            "required": [
+              "maxi:portrait"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "maxi:portrait": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "maxi:portrait"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "not": {
+              "type": "object",
+              "required": [
+                "maxi:portrait"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "mini:landscape": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": true
+                  }
+                }
+              }
+            },
+            "required": [
+              "mini:landscape"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "type": "object",
+            "required": [
+              "mini:landscape"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "mini:landscape": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "mini:landscape"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "not": {
+              "type": "object",
+              "required": [
+                "mini:landscape"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "mini:portrait": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": true
+                  }
+                }
+              }
+            },
+            "required": [
+              "mini:portrait"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "type": "object",
+            "required": [
+              "mini:portrait"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "mini:portrait": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "mini:portrait"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "not": {
+              "type": "object",
+              "required": [
+                "mini:portrait"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "micro:landscape": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": true
+                  }
+                }
+              }
+            },
+            "required": [
+              "micro:landscape"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "type": "object",
+            "required": [
+              "micro:landscape"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "micro:landscape": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "micro:landscape"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "not": {
+              "type": "object",
+              "required": [
+                "micro:landscape"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "micro:portrait": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": true
+                  }
+                }
+              }
+            },
+            "required": [
+              "micro:portrait"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "type": "object",
+            "required": [
+              "micro:portrait"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "compositions": {
+            "type": "object",
+            "properties": {
+              "micro:portrait": {
+                "type": "object",
+                "properties": {
+                  "supported": {
+                    "const": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "micro:portrait"
+            ]
+          }
+        },
+        "required": [
+          "compositions"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "entrypoints": {
+            "not": {
+              "type": "object",
+              "required": [
+                "micro:portrait"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Contract \u00a727.8 rule 9: engine svg + (skyViewer or dataSource) => isolation scoped-root.",
+      "if": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "engine": {
+                "const": "svg"
+              }
+            },
+            "required": [
+              "engine"
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "capabilities": {
+                    "type": "object",
+                    "properties": {
+                      "skyViewer": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "skyViewer"
+                    ]
+                  }
+                },
+                "required": [
+                  "capabilities"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "capabilities": {
+                    "type": "object",
+                    "required": [
+                      "dataSource"
+                    ]
+                  }
+                },
+                "required": [
+                  "capabilities"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "isolation": {
+            "const": "scoped-root"
+          }
+        }
+      }
+    }
+  ]
+}
