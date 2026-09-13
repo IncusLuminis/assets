@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "fixture-svg-hud",
+  "name": "Fixture SVG HUD",
+  "version": "0.1.0",
+  "description": "Minimal schema-valid engine:svg fixture Theme (Story #9) proving SvgRenderer end-to-end. Not a real HUD -- modelled loosely on HUD-01/HUD-02, not a template to copy verbatim.",
+  "engine": "svg",
+  "baseVersion": "1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "not-authored" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": [],
+    "optional": ["title", "subtitle", "status", "content", "footer", "objectName"]
+  },
+  "customSlots": [
+    {
+      "name": "objectName",
+      "kind": "text",
+      "required": false,
+      "description": "Astronomical target name; drives the lazy sky-viewer hook (fixture: a fake/no-op provider, not real Aladin -- Contract example custom slot, §9.4)."
+    }
+  ],
+  "capabilities": {
+    "htmlSlot": true,
+    "skyViewer": true,
+    "dataSource": {
+      "providers": ["simbad"],
+      "hosts": ["simbad.cds.unistra.fr"],
+      "input": "objectName",
+      "timing": { "simbad": "lazy" }
+    }
+  },
+  "entrypoints": {
+    "maxi:landscape":  { "styles": ["maxi/landscape/hud.css"], "markup": "maxi/landscape/hud.html", "scripts": ["maxi/landscape/hud.js"] },
+    "mini:landscape":  { "styles": [], "markup": "mini/landscape/hud.html", "scripts": [] },
+    "micro:portrait":  { "styles": [], "markup": "micro/portrait/hud.html", "scripts": [] }
+  },
+  "isolation": "scoped-root",
+  "overflowVisible": true,
+  "animations": ["fixtureSvgGlow"],
+  "knownDeviations": [
+    { "code": "no-maxi-portrait", "scope": "maxi:portrait", "clause": "8.3", "note": "fixture theme; full portrait maxi not authored" }
+  ]
+}

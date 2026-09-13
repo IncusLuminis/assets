@@ -1,14 +1,17 @@
 import { defineConfig } from "@playwright/test";
 
 /**
- * First Playwright use in this repo (Story #10 AC: "Playwright headless
- * test: mount / setData / resize / destroy on the fixture CSS Theme"). A
- * parallel Coder (#9) is also adding Playwright in a sibling worktree --
- * kept minimal/additive on purpose so a merge between the two doesn't
- * fight over config shape; see `tests/e2e/README` note in
- * `docs/adr/0003-css-renderer-isolation.md`'s neighbourhood for the
- * decision this Story made (real Chromium, not a jsdom-only fallback --
- * Chromium was already available in this environment).
+ * First Playwright use in this repo -- added independently by two parallel
+ * Stories (#9 SVG renderer, #10 CSS renderer) that both needed a headless
+ * real-browser isolation/lifecycle check. Minimal config on purpose so the
+ * merge between them stays trivial: headless Chromium only, no `webServer`
+ * -- each spec intercepts its own requests via `page.route` and serves the
+ * repo's own `dist/`/`library/` files from disk, so no real HTTP server or
+ * open port is needed (see `tests/e2e/svg-renderer.spec.ts` and
+ * `tests/e2e/css-renderer.spec.ts`).
+ *
+ * Requires `npm run build` first (the harness pages import the real built
+ * `dist/runtime/index.js`); run via `npm run test:e2e`.
  */
 export default defineConfig({
   testDir: "./tests/e2e",
