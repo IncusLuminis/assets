@@ -1,0 +1,129 @@
+<!--
+  hud-01 -- maxi:landscape ("Object Lock", full presentation, Contract §7.2:
+  an authored composition, no collapse/is-mini state).
+
+  Migrated from widgets/sandbox/blogger-hud01-02-wip/examples/hud01-object.html
+  (frame polygon + 4-layer contour-glow runner paths are copied verbatim --
+  Inv §1.7 "the heaviest panel"). `data-slot="..."` attributes map the
+  Contract §9.2 / §27.9 standard slot vocabulary onto this Theme's own
+  internal `nc-ol-*` structure -- entirely internal to this package;
+  SvgRenderer's setData() is the only thing that reads them (Contract §9.1).
+  scripts/hud-01.js drives everything else (toolbar, Aladin, SIMBAD/VizieR
+  fetch) via `root.querySelector`, scoped to this mounted composition root.
+-->
+<div class="nc-ol-widget"
+     data-mode="object"
+     data-target-lock="on"
+     data-reticle="on"
+     data-aladdin="on"
+     data-info-mode="data">
+  <div class="nc-ol-panel">
+
+    <!-- 4-layer contour-glow runner + polygon frame (Inv §1.7). overflow:visible
+         end to end -- see hud.css; manifest overflowVisible:true. -->
+    <svg class="nc-ol-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-ol-frame-line"
+        d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+      <path class="nc-ol-frame-line nc-ol-frame-inner"
+        d="M36 62 L126 62 L170 26 L1145 26 L1174 54 L1174 366 L1145 394 L60 394 L26 364 L26 96 Z" />
+      <path class="nc-ol-frame-line nc-ol-frame-photo-top"
+        d="M132 58 L548 58 L586 12 L708 12" />
+      <path class="nc-ol-frame-line nc-ol-frame-photo-bottom"
+        d="M62 392 L500 392" />
+      <rect class="nc-ol-frame-tab nc-ol-frame-tab-top" x="770" y="10" width="285" height="14" rx="3" />
+      <path class="nc-ol-frame-tab" d="M0 190 L12 200 L12 250 L0 260 Z" />
+      <path class="nc-ol-frame-tab" d="M1200 178 L1188 190 L1188 250 L1200 262 Z" />
+      <path class="nc-ol-runner-tail"
+        d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+      <path class="nc-ol-runner-body"
+        d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+      <path class="nc-ol-runner-head"
+        d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+      <path class="nc-ol-runner-spark"
+        d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+    </svg>
+
+    <div class="nc-ol-progress" aria-hidden="true">
+      <div class="nc-ol-progress__fill"></div>
+    </div>
+
+    <!-- Hidden config inputs: no DOM presentation of their own, just a
+         setData() target so scripts/hud-01.js's own setData handle (merged
+         by SvgRenderer, Contract §17.1) learns objectName/mode changes even
+         though these customSlots (Contract §9.4) aren't consumer-visible
+         chrome. See README "How mode/objectName reach the script". -->
+    <span data-slot="objectName" hidden aria-hidden="true"></span>
+    <span data-slot="mode" hidden aria-hidden="true"></span>
+
+    <!-- Object-mode content: left column (photo + Aladin + reticle) -->
+    <div class="nc-ol-left">
+      <img class="nc-ol-image" data-slot="media" alt="" />
+
+      <div class="nc-hud-01-aladdin" data-slot="visualization">
+        <div></div><!-- Aladin viewer target -- unique id assigned by hud-01.js -->
+        <div class="nc-hud-01-aladdin__placeholder" aria-hidden="true">
+          <span class="nc-hud-01-aladdin__label">ALADIN LAYER STANDBY</span>
+          <span class="nc-hud-01-aladdin__sub">INTEGRATION PENDING</span>
+        </div>
+      </div>
+
+      <div class="nc-ol-reticle">
+        <div class="nc-ol-ring nc-ol-ring-1"></div>
+        <div class="nc-ol-ring nc-ol-ring-2"></div>
+        <div class="nc-ol-ring nc-ol-ring-3"></div>
+        <div class="nc-ol-cross"></div>
+        <div class="nc-ol-lock-box">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="nc-ol-corner nc-ol-corner-tl"></div>
+        <div class="nc-ol-corner nc-ol-corner-tr"></div>
+        <div class="nc-ol-corner nc-ol-corner-bl"></div>
+        <div class="nc-ol-corner nc-ol-corner-br"></div>
+        <div class="nc-ol-center-dot"></div>
+        <div class="nc-ol-target-lock" data-slot="status">TARGET LOCK</div>
+      </div>
+    </div>
+
+    <!-- Right column: title + object-mode data panels -->
+    <div class="nc-ol-right">
+      <h2 class="nc-ol-title" data-slot="title"></h2>
+      <div class="nc-ol-subtitle" data-slot="subtitle"></div>
+      <div class="nc-ol-title-brackets"></div>
+
+      <div class="nc-ol-info-panel nc-ol-info-panel--data nc-ol-grid" id="nc-hud01-data-panel" data-slot="primary">
+        <div class="nc-ol-data-status nc-ol-data-status--loading">
+          <div class="nc-ol-spinner"></div>
+          <span>QUERYING SIMBAD…</span>
+        </div>
+      </div>
+
+      <div data-slot="secondary">
+        <div class="nc-ol-info-panel nc-ol-info-panel--catalog">
+          <span class="nc-ol-info-placeholder">VIZIER CATALOG MODULE STANDBY</span>
+        </div>
+        <div class="nc-ol-info-panel nc-ol-info-panel--papers">
+          <span class="nc-ol-info-placeholder">ADS PAPERS MODULE STANDBY</span>
+        </div>
+      </div>
+
+      <div class="nc-ol-footer" data-slot="footer"></div>
+    </div>
+
+    <!-- Toolbar -- Theme-owned chrome, never consumer content (Contract §9.2) -->
+    <div class="nc-ol-toolbar" role="toolbar" aria-label="HUD-01 overlay controls" data-slot="controls">
+      <div class="nc-ol-tb-group" role="group" aria-label="View overlays">
+        <button class="nc-ol-tb-btn" type="button" data-action="reticle" aria-pressed="true">⊕ RETICLE</button>
+      </div>
+      <div class="nc-ol-tb-sep" aria-hidden="true"></div>
+      <div class="nc-ol-tb-group" role="group" aria-label="Object information">
+        <button class="nc-ol-tb-btn" type="button" data-action="data"    aria-pressed="true">≡ DATA</button>
+        <button class="nc-ol-tb-btn" type="button" data-action="papers"  aria-pressed="false">◎ PAPERS</button>
+        <button class="nc-ol-tb-btn" type="button" data-action="catalog" aria-pressed="false">▦ CATALOGS</button>
+      </div>
+    </div>
+
+    <!-- HTML slot -- htmlSlot capability, hidden while data-mode="object" (hud.css) -->
+    <div class="nc-hud-01-html-slot" data-slot="content" aria-hidden="true"></div>
+
+  </div>
+</div>

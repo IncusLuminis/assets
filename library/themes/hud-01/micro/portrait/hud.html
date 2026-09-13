@@ -1,0 +1,21 @@
+<!--
+  hud-01 -- micro:portrait. Contract §7.3 option (b): a genuine distinct
+  lower-density composition, NOT a transform:scale() crop -- matching the
+  real baseline exactly (blogger-hud01-template.css "Micro slot -- no
+  scale; custom layout: unscaled h2 label above + portrait image slot",
+  `--nc-micro-w:87px` / `--nc-micro-h:130px`, taller than wide -- genuinely
+  portrait, Inv §1.9). The same frame <svg> is reused (`preserveAspectRatio
+  ="none"` lets it stretch into the portrait box, Contract §8.1) but the
+  contour-glow runner layers are omitted at this density -- see README.md
+  "mini/micro simplifications".
+-->
+<div class="nc-ol-widget nc-ol-widget--micro">
+  <div class="nc-ol-title-micro" data-slot="title"></div>
+  <div class="nc-ol-panel">
+    <svg class="nc-ol-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-ol-frame-line"
+        d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+    </svg>
+    <img class="nc-ol-image" data-slot="media" alt="" />
+  </div>
+</div>

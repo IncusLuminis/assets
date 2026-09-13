@@ -1,0 +1,299 @@
+/*
+ * hud-01 -- maxi:landscape styles. Ported (trimmed) from
+ * widgets/sandbox/blogger-hud01-02-wip/blogger-hud01-template.css.
+ *
+ * Scoped by class-name discipline (all rules under .nc-ol-widget /
+ * .nc-hud-01-*) -- no bare body / html / '*' / `:root` rules (Contract §15.4). This
+ * package has no build-time selector-scoping tool in 0.1 (same approach as
+ * `library/themes/fixture-svg-hud`, Story #9).
+ *
+ * Trimmed from the real hud01 CSS (2188 lines): the exhaustive
+ * `--nc-image-*` float/position variable system, the Blogger `.separator`
+ * overrides, and the YouTube/HeyGen/TikTok facade rules are omitted --
+ * hud-01 does not declare `capabilities.mediaEmbed` (Contract §25.1's
+ * cross-check row; that is HUD-04's territory). The `content` slot here
+ * gets a plain, self-contained typography pass instead. See README.md
+ * "Behavioural differences from the real baseline".
+ */
+
+.nc-ol-widget, .nc-ol-widget * { box-sizing: border-box; }
+
+.nc-ol-widget {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  isolation: isolate; /* Contract §15.7 -- own stacking context */
+}
+
+.nc-ol-panel {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  display: grid;
+  grid-template-columns: 520px 1fr;
+  overflow: visible; /* Contract §15.5 -- glow runner paints outside the box */
+  background:
+    linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)),
+    rgba(0,8,16,.95);
+  animation: ncOlOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards, hudBreath 5s ease-in-out infinite;
+}
+
+/* ── SVG frame + 4-layer contour-glow runner (Inv §1.7) ─────────── */
+
+.nc-ol-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 30;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.nc-ol-frame-line {
+  fill: none;
+  stroke: rgba(80,220,255,.88);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+}
+.nc-ol-frame-inner { stroke: rgba(150,245,255,.62); stroke-width: 1.2; }
+.nc-ol-frame-photo-top, .nc-ol-frame-photo-bottom { stroke: rgba(100,235,255,.72); stroke-width: 1.4; }
+.nc-ol-frame-tab { fill: rgba(70,200,255,.90); filter: drop-shadow(0 0 10px rgba(80,220,255,.9)); }
+.nc-ol-frame-tab-top { animation: ncOlTopSvgSlider 5s ease-in-out infinite; }
+
+.nc-ol-runner-tail {
+  fill: none; stroke: rgba(60, 190, 255, .13); stroke-width: 72;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2956; filter: blur(32px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+.nc-ol-runner-body {
+  fill: none; stroke: rgba(90, 210, 255, .26); stroke-width: 32;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2956; filter: blur(16px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+.nc-ol-runner-head {
+  fill: none; stroke: rgba(150, 232, 255, .55); stroke-width: 10;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2956; filter: blur(3px);
+  animation: ncOlSweepBar 22s linear infinite;
+}
+.nc-ol-runner-spark {
+  fill: none; stroke: rgba(200, 240, 255, .77); stroke-width: 2;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2956;
+  filter: drop-shadow(0 0 3px rgba(180, 240, 255, .80)) drop-shadow(0 0 10px rgba(80, 200, 255, .64));
+  animation: ncOlSweepBar 22s linear infinite;
+}
+
+.nc-ol-progress {
+  position: absolute;
+  top: 33px; left: 14%; width: 31.5%; height: 24px;
+  z-index: 25;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, rgba(80,220,255,.10) 0px, rgba(80,220,255,.10) 13px, rgba(0,10,30,.55) 13px, rgba(0,10,30,.55) 14px);
+  box-shadow: 0 0 4px rgba(80,220,255,.20), inset 0 0 4px rgba(0,0,0,.40);
+}
+.nc-ol-progress__fill {
+  position: absolute; inset: 0; width: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(80,220,255,.08) 25%, rgba(80,240,255,.65) 50%, rgba(80,220,255,.08) 75%, transparent 100%);
+  filter: blur(1px);
+  animation: hudProgressScan 3s linear infinite;
+}
+
+/* ── Left column: photo + Aladin + reticle ──────────────────────── */
+
+.nc-ol-left { position: relative; min-width: 520px; width: 520px; height: 420px; overflow: hidden; background: #000; z-index: 1; }
+
+.nc-ol-image {
+  position: absolute; left: 42px; top: 34px; width: 445px; height: 352px;
+  display: block; object-fit: cover;
+  filter: brightness(.72) contrast(1.18) saturate(.85);
+  background: #05070c; /* visible even with no media slot value set */
+}
+
+.nc-hud-01-aladdin {
+  position: absolute; left: 42px; top: 34px; width: 445px; height: 352px;
+  z-index: 2; overflow: hidden; background: #000814;
+}
+.nc-hud-01-aladdin > div:first-child { position: absolute; inset: 0; }
+.nc-hud-01-aladdin__placeholder {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: rgba(0,8,20,.92);
+  font-family: "Share Tech Mono", monospace; letter-spacing: .12em; text-transform: uppercase;
+}
+.nc-hud-01-aladdin--ready .nc-hud-01-aladdin__placeholder { display: none; }
+.nc-hud-01-aladdin__label { font-size: 12px; color: rgba(80,220,255,.85); }
+.nc-hud-01-aladdin__sub { font-size: 9px; color: rgba(80,220,255,.45); }
+.nc-ol-widget[data-aladdin="off"] .nc-hud-01-aladdin { display: none; }
+
+.nc-ol-reticle {
+  position: absolute; left: 42px; top: 34px; width: 445px; height: 352px;
+  z-index: 4; display: flex; align-items: center; justify-content: center;
+  pointer-events: none; transition: opacity .3s ease;
+}
+.nc-ol-widget[data-target-lock="off"] .nc-ol-reticle,
+.nc-ol-widget[data-reticle="off"] .nc-ol-reticle { opacity: 0; }
+
+.nc-ol-ring { position: absolute; border-radius: 50%; }
+.nc-ol-ring-1 { width: 270px; height: 270px; border: 2px solid rgba(80,245,255,.75); box-shadow: 0 0 18px rgba(80,245,255,.5); animation: hudPulseOuter 4s ease-in-out infinite; }
+.nc-ol-ring-2 { width: 210px; height: 210px; border: 2px dashed rgba(80,245,255,.82); animation: hudRotate 10s linear infinite; }
+.nc-ol-ring-3 { width: 120px; height: 120px; border: 1px solid rgba(170,255,255,.88); opacity: .65; animation: hudPulseInner 2.5s ease-in-out infinite; }
+
+.nc-ol-cross { position: absolute; width: 220px; height: 220px; }
+.nc-ol-cross::before, .nc-ol-cross::after { content: ""; position: absolute; background: rgba(120,255,255,.85); box-shadow: 0 0 10px rgba(80,245,255,.72); }
+.nc-ol-cross::before { width: 100%; height: 1px; top: 50%; left: 0; }
+.nc-ol-cross::after { width: 1px; height: 100%; left: 50%; top: 0; }
+
+.nc-ol-lock-box { position: absolute; width: 150px; height: 150px; animation: hudLockBoxPulse 3.2s ease-in-out infinite; }
+.nc-ol-lock-box span { position: absolute; display: block; width: 34px; height: 34px; filter: drop-shadow(0 0 8px rgba(80,245,255,.9)); }
+.nc-ol-lock-box span::before, .nc-ol-lock-box span::after { content: ""; position: absolute; background: rgba(150,255,255,.95); box-shadow: 0 0 10px rgba(80,245,255,.75); }
+.nc-ol-lock-box span::before { width: 34px; height: 3px; }
+.nc-ol-lock-box span::after { width: 3px; height: 34px; }
+.nc-ol-lock-box span:nth-child(1) { top: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(2) { top: 0; right: 0; }
+.nc-ol-lock-box span:nth-child(3) { bottom: 0; left: 0; }
+.nc-ol-lock-box span:nth-child(4) { bottom: 0; right: 0; }
+
+.nc-ol-corner { position: absolute; width: 38px; height: 38px; border-color: rgba(210,255,255,.95); }
+.nc-ol-corner-tl { top: 46px; left: 46px; border-top: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-tr { top: 46px; right: 46px; border-top: 2px solid; border-right: 2px solid; }
+.nc-ol-corner-bl { bottom: 46px; left: 46px; border-bottom: 2px solid; border-left: 2px solid; }
+.nc-ol-corner-br { bottom: 46px; right: 46px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.nc-ol-center-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,.92); box-shadow: 0 0 18px rgba(80,245,255,.95); }
+
+.nc-ol-target-lock {
+  position: absolute; bottom: 30px;
+  font-family: "Share Tech Mono", monospace; font-size: 13px; letter-spacing: .26em;
+  color: #d8ffff; text-shadow: 0 0 12px rgba(80,245,255,.95);
+  animation: hudBlinkSoft 1.4s ease-in-out infinite;
+}
+
+/* ── Right column: title + data panels ──────────────────────────── */
+
+.nc-ol-right {
+  position: relative; z-index: 2; min-width: 0; height: 420px;
+  padding: 40px 40px 24px 24px; color: #cfffff;
+  background: linear-gradient(90deg, rgba(0,18,32,.97), rgba(0,12,26,.99));
+  text-shadow: 0 0 8px rgba(80,245,255,.55);
+  overflow: hidden auto;
+}
+.nc-ol-right > * { position: relative; z-index: 4; }
+
+.nc-ol-title {
+  margin: 0 0 4px 0;
+  font-size: 28px; line-height: 1.1; font-weight: 400; letter-spacing: .14em;
+  text-transform: uppercase; color: #8ff6ff;
+  text-shadow: 0 0 6px rgba(80,245,255,.72), 0 0 14px rgba(80,245,255,.28);
+}
+.nc-ol-title:empty::before { content: "\2014"; opacity: .35; } /* placeholder em-dash before setData({title}) */
+
+.nc-ol-subtitle {
+  margin: 0 0 20px 0; font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(80,220,255,.55);
+}
+.nc-ol-subtitle:empty { display: none; }
+
+.nc-ol-title-brackets {
+  height: 1px; margin: 0 0 20px 0;
+  background: linear-gradient(90deg, rgba(80,245,255,.75), transparent);
+  box-shadow: 0 0 10px rgba(80,245,255,.8);
+}
+
+.nc-ol-grid {
+  display: grid; grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 10px;
+  font-size: 12px; line-height: 1.05; letter-spacing: .05em;
+}
+.nc-ol-label, .nc-ol-value { padding-bottom: 4px; border-bottom: 1px solid rgba(80,220,255,.26); }
+.nc-ol-label { font-weight: 400; color: #dfffff; white-space: nowrap; }
+.nc-ol-value { color: #9ffcff; text-align: right; overflow-wrap: anywhere; }
+.nc-ol-data-note { grid-column: 1 / -1; font-size: 10px; letter-spacing: .1em; color: rgba(80,220,255,.45); padding-top: 4px; text-align: center; }
+
+.nc-ol-data-status { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .08em; }
+.nc-ol-data-status--loading { color: rgba(80, 220, 255, 0.65); }
+.nc-ol-data-status--error { color: rgba(255, 140, 140, .75); }
+.nc-ol-spinner {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid rgba(80,220,255,.25); border-top-color: rgba(80,220,255,.85);
+  animation: hudSpinner .8s linear infinite;
+}
+
+.nc-ol-info-panel { margin-top: 16px; font-size: 11px; max-height: 150px; overflow: auto; }
+.nc-ol-widget[data-info-mode="data"] .nc-ol-info-panel--data { display: grid; }
+.nc-ol-widget:not([data-info-mode="data"]) .nc-ol-info-panel--data { display: none; }
+.nc-ol-widget[data-info-mode="catalog"] .nc-ol-info-panel--catalog { display: block; }
+.nc-ol-widget:not([data-info-mode="catalog"]) .nc-ol-info-panel--catalog { display: none; }
+.nc-ol-widget[data-info-mode="papers"] .nc-ol-info-panel--papers { display: block; }
+.nc-ol-widget:not([data-info-mode="papers"]) .nc-ol-info-panel--papers { display: none; }
+.nc-ol-info-placeholder { color: rgba(80,220,255,.4); font-size: 11px; }
+
+.nc-ol-paper-card { padding: 6px 0; border-bottom: 1px solid rgba(80,220,255,.08); }
+.nc-ol-paper-card:last-child { border-bottom: none; }
+.nc-ol-paper-title { display: block; font-size: 12px; color: rgba(80,220,255,.9); text-decoration: none; }
+.nc-ol-paper-title:hover { text-decoration: underline; }
+.nc-ol-paper-meta { font-size: 10px; letter-spacing: .05em; color: rgba(80,220,255,.45); margin-top: 2px; }
+.nc-ol-paper-abstract { font-size: 10px; color: rgba(80,220,255,.55); margin-top: 3px; line-height: 1.4; }
+
+.nc-ol-footer {
+  margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(80,220,255,.12);
+  font-size: 10px; letter-spacing: .1em; color: rgba(80,220,255,.4);
+}
+.nc-ol-footer:empty { display: none; }
+
+/* ── Toolbar ─────────────────────────────────────────────────────── */
+
+.nc-ol-toolbar {
+  position: absolute; left: 0; right: 0; bottom: -42px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; z-index: 40;
+}
+.nc-ol-tb-group { display: flex; gap: 6px; }
+.nc-ol-tb-sep { width: 1px; height: 18px; background: rgba(80,220,255,.25); }
+.nc-ol-tb-btn {
+  font-family: "Share Tech Mono", monospace; font-size: 10px; letter-spacing: .1em;
+  background: rgba(0,10,20,.7); color: rgba(80,220,255,.7);
+  border: 1px solid rgba(80,220,255,.35); border-radius: 2px;
+  padding: 4px 8px; cursor: pointer;
+}
+.nc-ol-tb-btn:hover { color: rgba(140,235,255,.95); border-color: rgba(140,235,255,.6); }
+.nc-ol-tb-btn[aria-pressed="true"] { color: #d8ffff; background: rgba(80,220,255,.18); border-color: rgba(80,220,255,.75); box-shadow: 0 0 8px rgba(80,220,255,.35); }
+
+/* ── Object mode vs. html mode ───────────────────────────────────── */
+
+.nc-ol-widget[data-mode="object"] .nc-hud-01-html-slot { display: none; }
+.nc-ol-widget[data-mode="html"] .nc-ol-left,
+.nc-ol-widget[data-mode="html"] .nc-ol-right,
+.nc-ol-widget[data-mode="html"] .nc-ol-toolbar { display: none; }
+.nc-ol-widget[data-mode="html"] .nc-ol-panel { grid-template-columns: 1fr; }
+
+.nc-hud-01-html-slot { padding: 40px 48px; color: #cfffff; overflow: auto; }
+.nc-hud-01-html-slot h1, .nc-hud-01-html-slot h2, .nc-hud-01-html-slot h3 {
+  font-family: "Share Tech Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: #8ff6ff;
+}
+.nc-hud-01-html-slot p { font-size: 14px; line-height: 1.6; color: rgba(207,255,255,.85); }
+.nc-hud-01-html-slot a { color: rgba(80,220,255,.9); }
+.nc-hud-01-html-slot img { max-width: 100%; display: block; }
+
+/* ── Local keyframes (Theme-specific; not in styles/shared.css) ──── */
+
+@keyframes hudSpinner { to { transform: rotate(360deg); } }
+@keyframes ncOlOpenHud { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ncOlTopSvgSlider { 0%, 100% { transform: translateX(-70px); opacity: .65; } 50% { transform: translateX(70px); opacity: 1; } }
+@keyframes ncOlSweepBar { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -3076px; } }
+
+@media (max-width: 900px) {
+  .nc-ol-panel { height: auto; grid-template-columns: 1fr; }
+  .nc-ol-frame-svg { display: none; }
+  .nc-ol-left { min-width: 0; width: 100%; height: 280px; }
+  .nc-ol-image, .nc-hud-01-aladdin, .nc-ol-reticle { left: 0; top: 0; width: 100%; height: 280px; }
+  .nc-ol-right { height: auto; padding: 20px; }
+}

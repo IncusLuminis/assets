@@ -1,0 +1,51 @@
+/*
+ * hud-01 -- mini:landscape styles. 317x148 thumbnail, matching the real
+ * baseline's `NcHudMini` mini geometry (Inv §1.9, blogger-hud01-template.js
+ * `scale: 0.352`, blogger-hud-shared.css `.nc-hud-row .nc-ol-widget.is-mini
+ * { width: 317px }`). 901x420 is the natural width NcHudMini scales FROM
+ * (`panelW` default) -- 901 * 0.352 ≈ 317, 420 * 0.352 ≈ 148.
+ */
+
+.nc-ol-widget, .nc-ol-widget * { box-sizing: border-box; }
+
+.nc-ol-widget--mini {
+  position: relative;
+  width: 317px;
+  height: 148px;
+  overflow: hidden; /* crops the scaled 901x420 panel down to the thumbnail */
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  isolation: isolate;
+}
+
+.nc-ol-mini-scale {
+  width: 901px;
+  height: 420px;
+  transform: scale(0.352);
+  transform-origin: top left;
+}
+
+.nc-ol-panel {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: visible; /* glow/frame may bleed past the panel edge before the crop above */
+  background: linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)), rgba(0,8,16,.95);
+}
+
+.nc-ol-frame-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.nc-ol-frame-line { fill: none; stroke: rgba(80,220,255,.88); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.nc-ol-frame-inner { stroke: rgba(150,245,255,.62); stroke-width: 2.2; } /* widened at mini scale -- real baseline does the same, see hud01 CSS comment "reads as missing next to the much bolder outer line" */
+
+.nc-ol-image {
+  position: absolute; left: 42px; top: 34px; width: 445px; height: 352px;
+  object-fit: cover; filter: brightness(.72) contrast(1.18) saturate(.85);
+  background: #05070c;
+}
+
+.nc-ol-mini-text {
+  position: absolute; left: 560px; top: 40px; right: 30px;
+  color: #cfffff; text-shadow: 0 0 8px rgba(80,245,255,.55);
+}
+.nc-ol-title { font-size: 30px; letter-spacing: .14em; text-transform: uppercase; color: #8ff6ff; margin: 0 0 10px 0; }
+.nc-ol-target-lock { font-size: 13px; letter-spacing: .2em; color: #d8ffff; }
