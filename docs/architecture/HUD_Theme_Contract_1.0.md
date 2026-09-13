@@ -1,6 +1,6 @@
 # HUD Theme Contract 1.0
 
-**Status:** Draft — awaiting owner freeze (see §0)
+**Status:** **FROZEN** (see §0)
 **Contract version:** `1.0`
 **Document type:** Normative specification
 **Depends on:** HUD Platform Vision 0.3, HUD Platform Architecture 0.3, HUD Platform 0.1 Implementation Plan 0.1, HUD Platform 0.1 Existing HUD Implementation Inventory (Story #2)
@@ -15,8 +15,8 @@ Contract 1.0 is a **Plan §5 hard gate 1**. No implementation Story in Epics #20
 
 ```
 [x]  HUD Theme Contract 1.0 is FROZEN.
-     Owner: ____________________    Date: ____________
-     Co-frozen with: registry/schemas/manifest.schema.json  version ______
+     Owner: IncusLuminis project owner    Date: 2026-09-13
+     Co-frozen with: registry/schemas/manifest.schema.json  version 1.0
 ```
 
 All items previously logged in §26 "Open for owner" were resolved by owner decisions dated 2026-09-09 (see §26). The freeze box above is the only outstanding owner action.
