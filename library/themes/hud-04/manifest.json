@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "hud-04",
+  "name": "HUD Post — Media Embed",
+  "version": "1.0.0",
+  "description": "Editorial character-post HUD with a vertical HeyGen video embed and a RECONNECTING pause overlay; shares HUD-03's clip-path frame (Contract §25.4).",
+  "engine": "css",
+  "baseVersion": "^1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "portrait-maxi-deferred-1.0" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": ["title"],
+    "optional": ["subtitle", "media", "content", "footer"]
+  },
+  "capabilities": {
+    "animation": true,
+    "htmlSlot": true,
+    "mediaEmbed": { "hosts": ["app.heygen.com"], "lifecycle": "src-swap" }
+  },
+  "entrypoints": {
+    "maxi:landscape":  { "styles": ["styles/shared.css", "maxi/landscape/hud.css"],  "markup": "maxi/landscape/hud.html",  "scripts": [] },
+    "mini:landscape":  { "styles": ["styles/shared.css", "mini/landscape/hud.css"],  "markup": "mini/landscape/hud.html",  "scripts": [] },
+    "micro:portrait":  { "styles": ["styles/shared.css", "micro/portrait/hud.css"],  "markup": "micro/portrait/hud.html",  "scripts": [] }
+  },
+  "isolation": "shadow-dom-preferred",
+  "overflowVisible": true,
+  "knownDeviations": [
+    {
+      "code": "no-maxi-portrait",
+      "scope": "maxi:portrait",
+      "clause": "8.3",
+      "note": "Full portrait maxi not authored -- the real widgets/panels/hud-04/ baseline is one fluid landscape-ish editorial composition with no portrait maxi (Inventory §1.34). micro:portrait covers the required vertical thumbnail form using the baseline's existing @media(max-width:900px) reflow, promoted to a first-class composition (Inventory §1.34, §5) -- not a new 9:16 redraw.",
+      "plannedResolution": "Contract 1.1 / Platform 0.2, if the owner wants a fully authored portrait maxi"
+    }
+  ]
+}

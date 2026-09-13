@@ -1,0 +1,21 @@
+/*
+ * micro:portrait -- the vertical thumbnail form (Contract §7.1, §8.2).
+ *
+ * The real widgets/panels/hud-04/ baseline has no authored 9:16/portrait
+ * composition (Inventory §1.34 "no `micro`"; §5 "None of HUD-01…04 has a
+ * distinct 9:16 composition"). It does, however, already ship a reduced
+ * reflow of the same maxi editorial layout for narrow viewports --
+ * `@media (max-width: 900px)` in hud-04.css: frame ornaments hidden, media
+ * block stacked full-width above the text instead of floated. This
+ * composition promotes that existing reflow (see the
+ * `.hud-04.hud-04--micro …` rules in ../../styles/shared.css) to a
+ * first-class, always-applied composition instead of a breakpoint --
+ * `orientations` has no exact-ratio requirement (Contract §8.1: "`@media`
+ * reflow … are all conformant") and this is the Contract-minimum vertical
+ * thumbnail, not a new 9:16 art direction. See README "micro:portrait".
+ */
+
+.hud-04--micro {
+  width: min(420px, 100%);
+  margin: 0 auto;
+}

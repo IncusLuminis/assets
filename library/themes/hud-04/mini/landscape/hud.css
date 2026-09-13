@@ -1,0 +1,13 @@
+/*
+ * mini:landscape -- the real HUD-04's `.nc-hp-mini-card` is already a
+ * genuinely distinct, lower-density composition (Contract §7.3(b), Inventory
+ * §1.34/§4 item 3: "genuine distinct composition (adopt)"), not a scaled
+ * clone of maxi -- migrated near-as-is. `.nc-hp-mini-card` itself + its
+ * children are already fully styled in styles/shared.css; nothing further
+ * is needed here beyond sizing this composition's root to the card.
+ */
+
+.hud-04--mini {
+  width: fit-content;
+  max-width: 100%;
+}
