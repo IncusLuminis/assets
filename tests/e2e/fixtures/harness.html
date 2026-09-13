@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>SvgRenderer Playwright harness</title>
+</head>
+<body>
+  <!--
+    Story #9 Playwright harness. NOT part of the published Theme library or
+    the Runtime bundle -- a bare page, served only to Playwright's own
+    browser via route interception (tests/e2e/svg-renderer.spec.ts), that
+    exercises the real built `dist/runtime/index.js` against the real
+    `fixture-svg-hud` package on disk, end to end, the way a real consumer
+    page would (Contract §14.1's example: `new Hud({...}) ; hud.mount(el)`).
+  -->
+  <div id="host" style="width: 640px;"></div>
+  <script type="module">
+    import { Hud, createDefaultRendererRegistry, SvgRenderer } from "/dist/runtime/index.js";
+
+    /**
+     * A trivial HTTP `ThemeSource` -- the Registry/CDN-backed client is
+     * #1/#16's job; this is the harness-local equivalent of this repo's own
+     * `tests/helpers/file-system-theme-source.js`, just over `fetch` against
+     * this same intercepted origin instead of `node:fs`.
+     */
+    class HttpThemeSource {
+      constructor(base) {
+        this.base = base;
+      }
+      async resolveVersion(themeId, requested) {
+        const manifest = await this.#manifest(themeId);
+        if (requested === "latest") return manifest.version;
+        if (requested !== manifest.version) throw new Error(`version not found: ${requested}`);
+        return manifest.version;
+      }
+      async loadManifest(themeId) {
+        return this.#manifest(themeId);
+      }
+      assetBaseUrl(themeId) {
+        return `${this.base}/library/themes/${themeId}/`;
+      }
+      async #manifest(themeId) {
+        const res = await fetch(`${this.base}/library/themes/${themeId}/manifest.json`);
+        if (!res.ok) throw new Error(`manifest fetch failed: ${res.status}`);
+        return res.json();
+      }
+    }
+
+    const themeSource = new HttpThemeSource(location.origin);
+    const rendererRegistry = createDefaultRendererRegistry();
+    // The #8 extension point, exercised for real in a browser -- Hud.ts /
+    // ThemeResolver.ts need no change.
+    rendererRegistry.register("svg", () => new SvgRenderer());
+
+    let hud;
+
+    window.__hudHarness = {
+      async mount(options) {
+        hud = new Hud(options, { themeSource, rendererRegistry });
+        const host = document.getElementById("host");
+        await hud.mount(host);
+      },
+      setData(data) {
+        hud.setData(data);
+      },
+      resize(viewport) {
+        hud.resize(viewport);
+      },
+      async setVariant(variant) {
+        await hud.setVariant(variant);
+      },
+      destroy() {
+        hud?.destroy();
+      },
+      clickControl(selector) {
+        document.querySelector(selector)?.click();
+      }
+    };
+  </script>
+</body>
+</html>
