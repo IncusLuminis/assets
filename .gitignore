@@ -15,8 +15,12 @@ venv/
 node_modules/
 
 # Build
-build/
-dist/
+# Anchored to repo root (not `build/`/`dist/` unanchored) so these don't
+# accidentally also match source directories that happen to be named
+# "build" or "dist" elsewhere in the tree -- e.g. this repo's own
+# scripts/build/ (Plan §3 layout), which is committed tooling, not output.
+/build/
+/dist/
 
 # Logs
 *.log
