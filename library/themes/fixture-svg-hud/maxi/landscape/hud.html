@@ -1,0 +1,41 @@
+<div class="fx-svg-hud fx-svg-hud--maxi fx-svg-hud--landscape">
+  <!--
+    Fixture composition (Story #9). Loosely models HUD-01/HUD-02's structure
+    (Inv §1.5, §1.14): an inline <svg> polygon-frame layer (with a coincident
+    multi-path "glow runner" needing overflow:visible, Inv §1.7) plus a
+    sibling HTML/CSS content layer in the SAME document (Contract §5.3 point
+    2) -- not a real HUD-01/02, not a template to copy verbatim (#11/#12's
+    job). `data-slot="..."` attributes below are entirely internal to this
+    Theme package; SvgRenderer maps Contract §9.2 slot names onto them, and
+    the consumer never sees them (only ever calls `hud.setData({ title })`).
+  -->
+  <svg class="fx-svg-hud__frame" viewBox="0 0 640 360" preserveAspectRatio="none" aria-hidden="true">
+    <!-- 4-layer contour-glow runner: coincident polygon copies, wide-blur to sharp centre line (Inv §1.7 "Contour-glow runner"). Requires overflow:visible on this <svg> -- see hud.css. -->
+    <path class="fx-svg-hud__glow fx-svg-hud__glow--wide"  d="M12 12 L628 12 L628 348 L12 348 Z" />
+    <path class="fx-svg-hud__glow fx-svg-hud__glow--mid"   d="M12 12 L628 12 L628 348 L12 348 Z" />
+    <path class="fx-svg-hud__glow fx-svg-hud__glow--inner" d="M12 12 L628 12 L628 348 L12 348 Z" />
+    <path class="fx-svg-hud__frame-line" d="M12 12 L628 12 L628 348 L12 348 Z" />
+  </svg>
+
+  <div class="fx-svg-hud__content">
+    <h2 class="fx-svg-hud__title" data-slot="title"></h2>
+    <div class="fx-svg-hud__subtitle" data-slot="subtitle"></div>
+    <div class="fx-svg-hud__status" data-slot="status"></div>
+    <div class="fx-svg-hud__html-slot" data-slot="content"></div>
+    <div class="fx-svg-hud__footer" data-slot="footer"></div>
+
+    <div class="fx-svg-hud__controls" data-slot="controls">
+      <!--
+        Theme-owned chrome (Contract §9.2 -- "controls" is never consumer
+        content). `hud.js` wires this button to the lazy skyViewer/dataSource
+        extension point (SvgRenderer#requestExternalResource) so the
+        capability-declared external resource loads on demand, not at mount
+        (Contract §10.4, §16.2-§16.3) -- NOT a real Aladin embed (fixture
+        only; #11/#12's job).
+      -->
+      <button type="button" class="fx-svg-hud__control-btn" data-hud-control="load-sky-viewer">
+        SKY VIEWER
+      </button>
+    </div>
+  </div>
+</div>

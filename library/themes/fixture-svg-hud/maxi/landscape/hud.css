@@ -1,0 +1,76 @@
+/*
+ * Fixture composition styles (Story #9). Scoped by class-name discipline
+ * (".fx-svg-hud__*", no bare `body`/`html`/`*`/`:root` rules) per Contract
+ * §15.4 -- 0.1 has no build-time selector-scoping tool yet (same approach as
+ * `library/themes/fixture-hud`, Story #5). SvgRenderer injects this as a
+ * <style> element inside the mounted composition root, not document.head.
+ */
+
+.fx-svg-hud {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
+  background: #06070a;
+  color: #cfe8ff;
+  font-family: monospace;
+  /* Contract §15.7: establish a stacking context so this Theme's z-index
+     cannot collide with host stacking (Hud.ts already does this on the
+     outer scoped-root; this is belt-and-braces at the composition level). */
+  isolation: isolate;
+}
+
+/* Contract §15.5 / §5.3 point 3: the frame SVG paints its glow runner
+   outside its own box -- overflow MUST stay visible, never hidden/clipped,
+   here or on any ancestor this Theme's own markup owns. */
+.fx-svg-hud__frame {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fx-svg-hud__frame-line {
+  fill: none;
+  stroke: #6fd8ff;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.fx-svg-hud__glow {
+  fill: none;
+  stroke: #6fd8ff;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 60 1400;
+  animation: fixtureSvgGlow 6s linear infinite;
+}
+.fx-svg-hud__glow--wide  { stroke-width: 18; opacity: 0.18; filter: blur(6px); }
+.fx-svg-hud__glow--mid   { stroke-width: 8;  opacity: 0.35; filter: blur(2px); }
+.fx-svg-hud__glow--inner { stroke-width: 3;  opacity: 0.6; }
+
+@keyframes fixtureSvgGlow {
+  to { stroke-dashoffset: -1460; }
+}
+
+.fx-svg-hud__content {
+  position: relative;
+  z-index: 2;
+  padding: 24px 32px;
+  display: grid;
+  gap: 8px;
+}
+
+.fx-svg-hud__title { margin: 0; font-size: 1.4em; letter-spacing: 0.08em; }
+.fx-svg-hud__subtitle { opacity: 0.75; }
+.fx-svg-hud__status { font-size: 0.85em; opacity: 0.6; }
+.fx-svg-hud__footer { font-size: 0.8em; opacity: 0.5; }
+
+.fx-svg-hud__control-btn {
+  background: transparent;
+  border: 1px solid #6fd8ff;
+  color: #6fd8ff;
+  padding: 4px 10px;
+  cursor: pointer;
+  font: inherit;
+}
