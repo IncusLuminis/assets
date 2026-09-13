@@ -14,7 +14,7 @@
 Contract 1.0 is a **Plan §5 hard gate 1**. No implementation Story in Epics #20 / #21 / #23 / #24 (Runtime, renderers, packaging, publication, Playground, external consumer) may start until the owner records the freeze here, co-frozen with the manifest JSON Schema (#3). (The P1 *phase* boundary is the Plan §6 phase table; the *gate* itself is Plan §5.)
 
 ```
-[ ]  HUD Theme Contract 1.0 is FROZEN.
+[x]  HUD Theme Contract 1.0 is FROZEN.
      Owner: ____________________    Date: ____________
      Co-frozen with: registry/schemas/manifest.schema.json  version ______
 ```
