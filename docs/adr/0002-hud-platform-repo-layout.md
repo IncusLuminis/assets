@@ -74,11 +74,18 @@ bootstrap, not to replace it.
 
 6. **Reserved-engine renderer stubs implement enough of the Contract's
    renderer shape to compile, and throw `RendererUnsupportedError` (code
-   `RendererUnsupported`, Contract §20.1) unconditionally from every
-   lifecycle method** (`mount`, `setData`, `resize`, `setVariant`,
-   `destroy`) — per Contract §5.2: a 1.0 Runtime asked to mount `video`,
-   `static`, or `gadget` MUST fail this way and MUST NOT fall back. A
-   minimal `RendererInterface.ts` (type-only, no logic) gives the stubs — and
+   `RendererUnsupported`, Contract §20.1) from every lifecycle method that
+   does work** (`mount`, `setData`, `resize`, `setVariant`) — per Contract
+   §5.2: a 1.0 Runtime asked to mount `video`, `static`, or `gadget` MUST
+   fail this way and MUST NOT fall back. **`destroy()` is the one exception:
+   it is a non-throwing, idempotent no-op**, because Contract §6.6 is
+   explicit that `destroy()` MUST NOT throw, even if `mount` never completed
+   or failed — a stub that never mounted anything correctly has nothing to
+   tear down. (An earlier draft of this Story had `destroy()` throw
+   unconditionally like the other four methods; Validator review on PR #28
+   caught the §6.6 violation before merge — corrected here so #9/#10 don't
+   copy the wrong lifecycle shape from these stubs.) A minimal
+   `RendererInterface.ts` (type-only, no logic) gives the stubs — and
    the real `SvgRenderer`/`CssRenderer` landing in #9/#10 — a single shared
    shape to compile against. `SvgRenderer.ts`/`CssRenderer.ts` are
    deliberately **not** stubbed or scaffolded beyond a `README.md` note:

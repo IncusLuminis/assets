@@ -4,8 +4,9 @@ import { RendererUnsupportedError } from "./RendererUnsupportedError.js";
 /**
  * `engine: "gadget"` is a reserved-but-unsupported enum value in Platform 0.1
  * (HUD Theme Contract 1.0 §5.1-§5.2). See VideoRenderer.ts for the full
- * rationale -- identical here. Every lifecycle method throws
- * `RendererUnsupportedError` ("RendererUnsupported", §20.1).
+ * rationale -- identical here. Every lifecycle method that does work throws
+ * `RendererUnsupportedError` ("RendererUnsupported", §20.1) -- **except**
+ * `destroy()`, which Contract §6.6 requires MUST NOT throw.
  */
 export class GadgetRenderer implements RendererLifecycle {
   async mount(_container: HTMLElement, _context: MountContext): Promise<void> {
@@ -24,7 +25,13 @@ export class GadgetRenderer implements RendererLifecycle {
     throw new RendererUnsupportedError("GadgetRenderer");
   }
 
+  /**
+   * Contract §6.6: `destroy()` MUST NOT throw, even if `mount` never
+   * completed or failed, and MUST be safe to call idempotently. Since this
+   * renderer never mounted anything, there is nothing to tear down -- a
+   * no-op is the correct, conformant implementation.
+   */
   destroy(): void {
-    throw new RendererUnsupportedError("GadgetRenderer");
+    // Intentionally a no-op -- see docstring above.
   }
 }

@@ -56,16 +56,22 @@ describe("reserved-engine renderer stubs (Contract §5.2, §20.1 RendererUnsuppo
         await expect(renderer.setVariant("mini")).rejects.toThrow(RendererUnsupportedError);
       });
 
-      it("destroy() throws RendererUnsupportedError", () => {
+      it("destroy() does NOT throw, even though mount never succeeded (Contract §6.6)", () => {
         const renderer = new Renderer();
-        expect(() => renderer.destroy()).toThrow(RendererUnsupportedError);
+        expect(() => renderer.destroy()).not.toThrow();
+      });
+
+      it("destroy() is safe to call repeatedly (idempotent, Contract §6.6)", () => {
+        const renderer = new Renderer();
+        renderer.destroy();
+        expect(() => renderer.destroy()).not.toThrow();
       });
 
       it("the thrown error carries code \"RendererUnsupported\" (Contract §20.1 error code)", () => {
         const renderer = new Renderer();
         try {
-          renderer.destroy();
-          throw new Error("expected destroy() to throw");
+          renderer.setData({});
+          throw new Error("expected setData() to throw");
         } catch (err) {
           expect(err).toBeInstanceOf(RendererUnsupportedError);
           expect(err.code).toBe("RendererUnsupported");
