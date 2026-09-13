@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "hud-future",
+  "name": "Future Broadcast",
+  "version": "0.1.0",
+  "engine": "video",
+  "baseVersion": "1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "not-authored" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": [],
+    "optional": ["title"]
+  },
+  "capabilities": {},
+  "entrypoints": {
+    "maxi:landscape":  { "styles": [], "markup": "maxi/landscape/hud.mp4", "scripts": [] },
+    "mini:landscape":  { "styles": [], "markup": "mini/landscape/hud.mp4", "scripts": [] },
+    "micro:portrait":  { "styles": [], "markup": "micro/portrait/hud.mp4", "scripts": [] }
+  },
+  "isolation": "scoped-root",
+  "knownDeviations": [
+    { "code": "no-maxi-portrait", "scope": "maxi:portrait", "note": "not authored yet" }
+  ]
+}

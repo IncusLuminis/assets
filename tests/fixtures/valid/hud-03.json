@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "hud-03",
+  "name": "HUD Post",
+  "version": "1.0.0",
+  "engine": "css",
+  "baseVersion": "^1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "portrait-maxi-deferred-1.0" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": ["title"],
+    "optional": ["subtitle", "media", "content", "footer", "status"]
+  },
+  "capabilities": {
+    "animation": true,
+    "htmlSlot": true,
+    "interactive": true
+  },
+  "entrypoints": {
+    "maxi:landscape":  { "styles": ["styles/shared.css", "maxi/landscape/hud.css"],  "markup": "maxi/landscape/hud.html",  "scripts": ["scripts/hud-mini.js"] },
+    "mini:landscape":  { "styles": ["styles/shared.css", "mini/landscape/hud.css"],  "markup": "mini/landscape/hud.html",  "scripts": ["scripts/hud-mini.js"] },
+    "micro:portrait":  { "styles": ["styles/shared.css", "micro/portrait/hud.css"],  "markup": "micro/portrait/hud.html",  "scripts": ["scripts/hud-mini.js"] }
+  },
+  "animations": ["hudPanelSweep"],
+  "isolation": "shadow-dom-preferred",
+  "overflowVisible": true,
+  "knownDeviations": [
+    { "code": "no-maxi-portrait", "scope": "maxi:portrait", "clause": "8.3",
+      "note": "portrait full maxi deferred; HUD-10 is the future portrait editorial start point" }
+  ]
+}
