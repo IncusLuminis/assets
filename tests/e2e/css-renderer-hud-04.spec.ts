@@ -11,13 +11,15 @@ import { test, expect } from "@playwright/test";
  * this), that HUD-04's *own* CSS mechanisms -- `clip-path` (frame-shell /
  * frame-inner / mini-card cut corners), `filter: drop-shadow()` (frame
  * glow), `transform: skewX()` (the frame-loader's skewed segments),
- * `transform: scale()` (the mini-card's scaled-down video preview,
- * Inventory §1.34) and `float: left` (media/text wrap) -- all survive
- * `CssRenderer`'s Shadow DOM mount, and that the `mediaEmbed` `src-swap`
- * lifecycle (which drives the RECONNECTING… overlay, Contract §10.5) behaves
- * exactly as the real `widgets/panels/hud-04/hud-04.css:608-635` mechanism:
- * CSS keyed off `iframe[src="about:blank"]`, not a fabricated `load` event
- * (README "Correction to the issue's / audit's ... claim").
+ * `transform: scale()` (the mini-card's scaled-down video preview) and
+ * `float: left` (media/text wrap) -- all survive `CssRenderer`'s Shadow DOM
+ * mount, and that the `mediaEmbed` `src-swap` lifecycle (which drives the
+ * RECONNECTING… overlay, Contract §10.5) behaves exactly as the real
+ * `widgets/releases/blogger-pilot-hud03/blogger-hud03-template.css:599-605`
+ * mechanism: CSS keyed off `iframe[src="about:blank"]`, not a fabricated
+ * `load` event (README "Correction to the issue's / audit's ... claim").
+ * Also stubs the real `@import`'d Google Font (README "Behavioral diffs"
+ * item 8) so no real network call reaches fonts.googleapis.com/gstatic.com.
  *
  * `CssRenderer.ts` is bundled directly with esbuild, mirroring
  * `tests/e2e/css-renderer.spec.ts` (#10) exactly -- this Story does not
@@ -52,6 +54,20 @@ function contentTypeFor(filePath: string): string {
   return "application/octet-stream";
 }
 
+/**
+ * styles/shared.css `@import`s the real source's Google Font verbatim
+ * (README "Behavioral diffs" item 8, Contract §16.3 `external-io-on-mount`).
+ * Stub both hosts so this suite never makes a real network call to them.
+ */
+async function stubGoogleFonts(page: import("@playwright/test").Page): Promise<void> {
+  await page.route("https://fonts.googleapis.com/**", async (route) => {
+    await route.fulfill({ status: 200, contentType: "text/css", body: "/* stubbed -- no real font fetch in tests */" });
+  });
+  await page.route("https://fonts.gstatic.com/**", async (route) => {
+    await route.fulfill({ status: 200, contentType: "font/woff2", body: Buffer.from([]) });
+  });
+}
+
 test.describe("CssRenderer -- real browser (Playwright): hud-04", () => {
   test("maxi: mount -> setData -> mediaEmbed live -> destroy: Shadow DOM held, clip-path/drop-shadow/skewX/float survive, host page unaffected", async ({
     page
@@ -80,6 +96,7 @@ test.describe("CssRenderer -- real browser (Playwright): hud-04", () => {
     await page.route("https://app.heygen.com/**", async (route) => {
       await route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>hud-04 media stub</title>" });
     });
+    await stubGoogleFonts(page);
 
     await page.goto("about:blank");
     await page.addScriptTag({ content: bundle });
@@ -248,6 +265,7 @@ test.describe("CssRenderer -- real browser (Playwright): hud-04", () => {
     await page.route("https://app.heygen.com/**", async (route) => {
       await route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>hud-04 media stub</title>" });
     });
+    await stubGoogleFonts(page);
 
     await page.goto("about:blank");
     await page.addScriptTag({ content: bundle });

@@ -170,4 +170,18 @@ describe("library/themes/hud-04 -- HUD-04 packaged as a CSS-engine Theme (issue 
     const manifest = loadManifest();
     expect(manifest.animations).toBeUndefined();
   });
+
+  it("carries an external-io-on-mount knownDeviations entry + externalResources for the real @import'd Google Font (Contract §16.3, Behavioral diff 8)", () => {
+    const manifest = loadManifest();
+    const codes = (manifest.knownDeviations ?? []).map((d) => d.code);
+    expect(codes).toContain("external-io-on-mount");
+    const hosts = (manifest.externalResources ?? []).map((r) => r.host);
+    expect(hosts).toContain("fonts.googleapis.com");
+    expect(hosts).toContain("fonts.gstatic.com");
+  });
+
+  it("styles/shared.css actually @imports the real source's Google Font, ported verbatim (Behavioral diff 8)", () => {
+    const sharedCss = fs.readFileSync(path.join(themeDir, "styles", "shared.css"), "utf8");
+    expect(sharedCss).toMatch(/@import url\('https:\/\/fonts\.googleapis\.com\/css2\?family=Share\+Tech\+Mono&display=swap'\);/);
+  });
 });
