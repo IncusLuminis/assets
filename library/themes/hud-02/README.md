@@ -167,6 +167,17 @@ documents. **Flagged for the same human/owner call** hud-01's README flags,
 if the `MountContext` gap is worth closing before Story #14 wires the
 Playground.
 
+**Story #36 correction:** same correction as hud-01's README -- the `mode`
+customSlot's manifest description ("html" mode is "plain content slot, no
+network") was not accurate for a consumer intending `html` mode from the
+very first mount (`hud.setData({ mode: "html" })` queued before `mount()`
+resolves, Contract §6.3); that consumer still pays for the same
+object-mode SIMBAD fetch + Aladin CDN load described above, for the same
+`MountContext` gap reason. `manifest.json`'s `knownDeviations` now carries
+an honest `external-io-on-mount` entry scoped `html-mode-initial-mount`
+documenting this, instead of leaving the customSlot description as an
+unqualified "no network" claim for that case.
+
 ## `dataSource` / `skyViewer` lazy loading (no real network in tests)
 
 Every external call is gated through `SvgRenderer`'s

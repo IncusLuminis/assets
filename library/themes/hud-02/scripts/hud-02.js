@@ -68,12 +68,44 @@ return (function () {
   var controllers = []; // AbortController instances -- aborted on destroy()
 
   var currentTarget = DEFAULT_TARGET;
-  var simbadLoaded = false, simbadBusy = false;
+  // `simbadPendingTarget`/`papersPendingTarget`: Story #36 fix -- see
+  // loadSimbadData()/loadPapers() below ("queue-behind" race fix).
+  // `simbadInFlightTarget`/`papersInFlightTarget`: the target the CURRENT
+  // in-flight fetch was actually started for (not the latest-requested
+  // target). Needed to tell an A->B->A reversion (the pending target
+  // reverts to the one already in flight -- nothing new to fetch) apart
+  // from a genuine A->B->C supersession (Story #36 follow-up fix).
+  // `simbadRequestedTarget`/`papersRequestedTarget`: Story #36 second
+  // follow-up fix -- each panel's OWN independently-tracked "last target
+  // the consumer actually requested", used for THAT panel's staleness
+  // checks instead of the shared `currentTarget`. Both are written
+  // together, unconditionally, by every accepted setData({objectName})
+  // call below regardless of which tab is active -- so a target requested
+  // while (say) the PAPERS tab is active is never invisible to the DATA
+  // panel's own bookkeeping, and vice versa. `currentTarget` itself is no
+  // longer written by loadSimbadData/loadPapers (only by setData/mount's
+  // initial call) -- it was loadSimbadData writing it on every fetch IT
+  // started (including drain-fired ones, for a target the DATA panel
+  // cared about) that let a same-tick DATA-panel drain silently revert
+  // `currentTarget` out from under an in-flight PAPERS fetch for a
+  // DIFFERENT, newer target, making that PAPERS fetch's own genuinely
+  // current response look "stale" and get dropped when it resolved.
+  // `currentTarget` remains the widget's single "what am I conceptually
+  // showing" value (title/Aladin/initial-tab-switch reads), but no fetch
+  // pipeline's correctness depends on it any more.
+  var simbadLoaded = false, simbadBusy = false, simbadPendingTarget = null, simbadInFlightTarget = null, simbadRequestedTarget = DEFAULT_TARGET;
   var vizierCache = {}, vizierBusy = false;
-  var papersLoaded = false, papersBusy = false;
+  var papersLoaded = false, papersBusy = false, papersPendingTarget = null, papersInFlightTarget = null, papersRequestedTarget = DEFAULT_TARGET;
 
   var aladinReady = false, aladinBusy = false, aladinInstance = null;
   var aladinViewerId = "nc-hud02-aladin-" + Math.random().toString(36).slice(2, 10);
+
+  // Story #36 follow-up fix: set true by destroy() so a drain call
+  // scheduled by an in-flight fetch that settles AFTER destroy() (aborting
+  // its controller does not stop its own .then()/.catch() from running)
+  // is a guaranteed no-op instead of starting a brand-new, untracked fetch
+  // from a torn-down instance (Contract §17.1).
+  var destroyed = false;
 
   function q(sel) { return root.querySelector(sel); }
   function qa(sel) { return root.querySelectorAll(sel); }
@@ -160,18 +192,56 @@ return (function () {
     }
   }
 
+  // Story #36 fix (Aladin fallback hidden): failure states use a distinct
+  // "error" value, NOT "off". `[data-aladdin="off"] .nc-hud-02-aladdin` is
+  // a `display:none` rule in hud.css that hides the WHOLE container --
+  // including `.nc-hud-02-aladdin__placeholder`/`__label`, the very element
+  // this function is about to write the fallback message into. Reusing
+  // "off" for an error made the message unconditionally invisible on every
+  // failure path. Nothing in this Theme sets "off" any more (reserved for
+  // a future explicit hide, should one ever be added) -- hud.css has no
+  // `[data-aladdin="error"]` display rule, so the placeholder (and the
+  // message written into it) stays visible, which is exactly what an error
+  // state needs.
   function showAladinFallback(msg) {
     var widget = root;
-    widget.setAttribute("data-aladdin", "off");
+    widget.setAttribute("data-aladdin", "error");
     var label = q(".nc-hud-02-aladdin__label");
     if (label) label.textContent = msg;
   }
 
   // ── SIMBAD (DATA tab) ────────────────────────────────────────────────
 
+  // Story #36 fix (SIMBAD data race): loadSimbadData stays single-flight
+  // (the `simbadBusy` guard is kept -- exactly one SIMBAD fetch in flight
+  // at a time, so two overlapping requests never both render into the
+  // shared DATA panel), but a call that arrives while a fetch is already
+  // in flight for a *different* target no longer silently no-ops. It
+  // queues its target in `simbadPendingTarget` (overwriting any earlier
+  // queued target, so only the LAST-requested target is ever retained),
+  // and once the in-flight fetch settles it is drained via
+  // drainSimbadQueue(). The in-flight fetch's own resolution also checks
+  // `target !== simbadRequestedTarget` before rendering -- if a newer
+  // request superseded it while it was in flight, its response is
+  // discarded, not painted over the newer target's (already-queued) data.
+  // `simbadRequestedTarget` (NOT the shared `currentTarget` -- see the
+  // state-var block above for why) is what this staleness check compares
+  // against. This is the "queue-behind" choice (vs. cancel-in-flight/
+  // AbortController): the stale network call is still allowed to
+  // complete, its result is just never rendered, and the queued target's
+  // own fetch starts right after.
   function loadSimbadData(target) {
-    if (simbadBusy) return;
-    simbadBusy = true; simbadLoaded = false; currentTarget = target;
+    if (simbadBusy) {
+      // A->B->A reversion: if the newly-requested target is the SAME one
+      // already in flight, there is nothing new to fetch -- clear any
+      // queued target instead of leaving a stale one that would otherwise
+      // fire a redundant, UI-clobbering re-fetch once the in-flight
+      // request (for this same target) resolves and renders correctly.
+      simbadPendingTarget = (target === simbadInFlightTarget) ? null : target;
+      return;
+    }
+    simbadPendingTarget = null;
+    simbadBusy = true; simbadLoaded = false; simbadInFlightTarget = target;
     setDataStatus("QUERYING SIMBAD…", "loading");
 
     var query = [
@@ -186,13 +256,35 @@ return (function () {
     hud.loadExternalResource("simbad").then(function () { return simbadFetch(url); }, function () { return simbadFetch(url); })
       .then(function (json) {
         simbadBusy = false;
-        if (!json || !json.data || json.data.length === 0) { renderFallback(target); return; }
+        // Discard a response for a target that's no longer current -- a
+        // newer setData({objectName}) call superseded it while this fetch
+        // was in flight (queued above; drained below either way).
+        if (target !== simbadRequestedTarget) { drainSimbadQueue(); return; }
+        if (!json || !json.data || json.data.length === 0) { renderFallback(); drainSimbadQueue(); return; }
         var row = {};
         json.metadata.forEach(function (col, i) { row[col.name] = json.data[0][i]; });
         renderSimbadData(row, target);
         simbadLoaded = true;
+        drainSimbadQueue();
       })
-      .catch(function () { simbadBusy = false; renderFallback(target); });
+      .catch(function () {
+        simbadBusy = false;
+        if (target === simbadRequestedTarget) renderFallback();
+        drainSimbadQueue();
+      });
+  }
+
+  function drainSimbadQueue() {
+    // Story #36 follow-up fix: an in-flight fetch's .then()/.catch() can
+    // still run after destroy() (abort() rejects the fetch, it does not
+    // silence its own continuation) -- guard here too, on top of destroy()
+    // clearing simbadPendingTarget itself, so a scheduled drain can never
+    // start a new, untracked fetch from a torn-down instance.
+    if (destroyed) return;
+    if (simbadPendingTarget === null) return;
+    var next = simbadPendingTarget;
+    simbadPendingTarget = null;
+    loadSimbadData(next);
   }
 
   function simbadFetch(url) {
@@ -219,9 +311,14 @@ return (function () {
     injectDataRows(rows, false);
   }
 
-  function renderFallback(target) {
-    if (target === DEFAULT_TARGET || target === currentTarget) injectDataRows(NGC1300_FALLBACK, true);
-    else setDataStatus("SIMBAD DATA UNAVAILABLE", "error");
+  // Story #36 cleanup: both call sites already gate on `target ===
+  // simbadRequestedTarget` (the staleness check) before calling this, so
+  // the "not current" half of the old condition here -- and the
+  // "SIMBAD DATA UNAVAILABLE" branch it guarded -- could never be reached.
+  // Simplified to what's actually reachable: always render the NGC 1300
+  // fallback rows for the (guaranteed-current) target.
+  function renderFallback() {
+    injectDataRows(NGC1300_FALLBACK, true);
   }
 
   function injectDataRows(pairs, isFallback) {
@@ -346,8 +443,24 @@ return (function () {
   //    "ads | ui.adsabs.harvard.edu | fetch + link target" row) -- IDENTICAL
   //    query shape to hud-01's own port of the same shared module. ────────
 
+  // Story #36 fix (papersBusy missing reentrancy guard): loadPapers
+  // previously set `papersBusy = true` with no `if (papersBusy) return;`
+  // guard at all -- unlike loadVizierReferences/loadSimbadData, which are
+  // both internally guarded -- so two rapid setData({objectName}) calls
+  // while the PAPERS tab was active could fire overlapping SIMBAD TAP
+  // queries that both rendered into the same shared panel node. Guarded
+  // here the same way loadSimbadData now is (queue-behind + a
+  // target-staleness check on resolution), so the panel ends up showing
+  // the LAST-requested target's papers regardless of fetch arrival order.
   function loadPapers(target) {
-    papersBusy = true;
+    if (papersBusy) {
+      // A->B->A reversion (same fix as loadSimbadData's): nothing new to
+      // fetch if the newly-requested target is the one already in flight.
+      papersPendingTarget = (target === papersInFlightTarget) ? null : target;
+      return;
+    }
+    papersPendingTarget = null;
+    papersBusy = true; papersInFlightTarget = target;
     setPanelStatus(".nc-or-info-panel--papers", "QUERYING SCIENTIFIC ARCHIVE…", "loading");
 
     var query = "SELECT TOP " + vizierLimit + ' r.title, r."year", r.bibcode, r.journal ' +
@@ -357,15 +470,35 @@ return (function () {
 
     hud.loadExternalResource("simbad").catch(function () {}).then(function () { return simbadFetch(url); })
       .then(function (json) {
-        papersBusy = false; papersLoaded = true;
+        papersBusy = false;
+        // Story #36 second follow-up fix: compares against
+        // `papersRequestedTarget` (this panel's own tracker), not the
+        // shared `currentTarget` -- a target requested while a DIFFERENT
+        // tab was active (so this panel's own load wasn't the one that
+        // fired) must still count as superseding this response.
+        if (target !== papersRequestedTarget) { drainPapersQueue(); return; }
+        papersLoaded = true;
         var idx = {};
         (json.metadata || []).forEach(function (col, i) { idx[col.name] = i; });
         var papers = (json.data || []).map(function (row) {
           return { title: row[idx.title] || "", year: row[idx.year] || null, bibcode: row[idx.bibcode] || "", journal: row[idx.journal] || "" };
         });
         renderPapers(papers);
+        drainPapersQueue();
       })
-      .catch(function () { papersBusy = false; setPanelStatus(".nc-or-info-panel--papers", "ARCHIVE UNAVAILABLE", "error"); });
+      .catch(function () {
+        papersBusy = false;
+        if (target === papersRequestedTarget) setPanelStatus(".nc-or-info-panel--papers", "ARCHIVE UNAVAILABLE", "error");
+        drainPapersQueue();
+      });
+  }
+
+  function drainPapersQueue() {
+    if (destroyed) return; // Story #36 follow-up fix -- see drainSimbadQueue()
+    if (papersPendingTarget === null) return;
+    var next = papersPendingTarget;
+    papersPendingTarget = null;
+    loadPapers(next);
   }
 
   function renderPapers(papers) {
@@ -416,6 +549,22 @@ return (function () {
   //    mode with the default target (matches the real baseline's own
   //    `cfg.target || 'NGC 1300'` default -- Contract §16.3 "network during
   //    mount is permitted", knownDeviations "external-io-on-mount"). ─────
+  //
+  //    Story #36: this unconditionally starts object-mode network I/O
+  //    (loadSimbadData/initAladin) even for a consumer whose intended
+  //    starting mode is "html" -- e.g. `hud.setData({ mode: "html", ... })`
+  //    queued before mount() resolves (Contract §6.3). The Runtime's
+  //    `MountContext` (RendererInterface.ts) carries no `config`/initial-
+  //    mode field this script could read synchronously here, so there is
+  //    no way for this Theme script to know the intended mode before this
+  //    init sequence runs (the whole script body is `mount()`, so it runs
+  //    to completion, network calls included, before any queued setData
+  //    can be replayed). Not fixable within this Theme's own script
+  //    without an out-of-scope Runtime/MountContext change (README "How
+  //    mode/objectName reach the script"; tracked honestly as the
+  //    `external-io-on-mount` deviation's `html-mode-initial-mount` scope
+  //    in manifest.json, not left as an inaccurate "no network in html
+  //    mode" claim).
 
   var aladinDiv = q(".nc-hud-02-aladdin > div:first-child");
   if (aladinDiv && !aladinDiv.id) aladinDiv.id = aladinViewerId;
@@ -433,6 +582,16 @@ return (function () {
       if (typeof data.objectName === "string" && data.objectName.trim() && data.objectName.trim() !== currentTarget) {
         var target = data.objectName.trim();
         currentTarget = target;
+        // Story #36 second follow-up fix: update BOTH panels' own
+        // requested-target trackers here, unconditionally, regardless of
+        // which tab is active below -- a target requested while the
+        // PAPERS tab is active must still be visible to the DATA panel's
+        // own staleness check (and vice versa), so a sibling panel's own
+        // queue-drain (for a target requested earlier, on a different
+        // tab) can never make an unrelated, still-current fetch look
+        // stale (or a stale one look current) by surprise.
+        simbadRequestedTarget = target;
+        papersRequestedTarget = target;
         simbadLoaded = false; papersLoaded = false;
         var mode = root.getAttribute("data-info-mode") || "data";
         if (mode === "data") loadSimbadData(target);
@@ -449,6 +608,19 @@ return (function () {
     // correctness this package adds on top of the migrated behaviour, not
     // a port (identical rationale to hud-01's).
     destroy: function () {
+      // Story #36 follow-up fix: aborting an in-flight fetch's controller
+      // (below) makes it reject -- it does NOT stop its own .then()/
+      // .catch() continuation from running afterward. That continuation
+      // unconditionally called drainSimbadQueue()/drainPapersQueue(),
+      // which -- if a target was queued -- started a BRAND-NEW fetch from
+      // this now-destroyed instance, whose own AbortController lands in
+      // the fresh `controllers` array below and can therefore never be
+      // aborted (Contract §17.1 violation). Setting `destroyed` (checked
+      // by both drain functions) and clearing both pending targets here
+      // makes any already-scheduled drain call a guaranteed no-op.
+      destroyed = true;
+      simbadPendingTarget = null;
+      papersPendingTarget = null;
       listeners.forEach(function (l) { l.el.removeEventListener(l.type, l.fn); });
       listeners = [];
       timers.forEach(function (id) { clearTimeout(id); });
