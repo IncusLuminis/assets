@@ -1,0 +1,47 @@
+/*
+ * hud-02 -- micro:portrait styles. 87x130 portrait slot (real baseline
+ * defaults -- `widgets/shared/js/hud-mini.js`'s hardcoded fallback and
+ * the lineage's `.nc-micro-s { --nc-micro-w:87px; --nc-micro-h:130px; }`
+ * size class, same numbers hud-01's micro uses) -- label above, image
+ * fills the slot.
+ */
+
+.nc-or-widget, .nc-or-widget * { box-sizing: border-box; }
+
+.nc-or-widget--micro {
+  position: relative;
+  width: 87px;
+  overflow: visible; /* the frame's drop-shadow may extend past the box, Contract §15.5 */
+  font-family: "Share Tech Mono", monospace;
+  isolation: isolate;
+}
+
+.nc-or-title-micro {
+  font-size: 10px;
+  line-height: 1.25;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow: 0 0 4px rgba(80,245,255,.6);
+  margin-bottom: 3px;
+  max-height: 2.6em;
+  overflow: hidden;
+}
+.nc-or-title-micro:empty { display: none; }
+
+.nc-or-panel {
+  position: relative;
+  width: 87px;
+  height: 130px;
+  overflow: hidden;
+  background: #000;
+}
+
+.nc-or-frame-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+.nc-or-frame-main { fill: none; stroke: rgba(80,220,255,.88); stroke-width: 2; vector-effect: non-scaling-stroke; }
+
+.nc-or-image {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; filter: brightness(.72) contrast(1.18) saturate(.85);
+  background: #05070c;
+}

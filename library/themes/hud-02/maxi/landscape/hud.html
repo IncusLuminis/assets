@@ -1,0 +1,147 @@
+<!--
+  hud-02 -- maxi:landscape ("Object Report", full presentation, Contract
+  §7.2: an authored composition, no collapse/is-mini state).
+
+  Migrated from
+  widgets/sandbox/blogger-hud01-02-wip/examples/hud02-object.html (frame
+  polygon + separate contour-runner overlay SVG copied verbatim -- Inv
+  §1.14 "different polygon, different z-index": the main frame is
+  `.nc-or-frame-svg` at z-index:1 (behind the columns), so unlike hud-01
+  the 4-layer glow runner cannot live in the same SVG and is instead a
+  second `.nc-or-runner-svg` overlay at z-index:40, `overflow:visible`).
+  `data-slot="..."` attributes map the Contract §9.2 standard slot
+  vocabulary onto this Theme's own internal `nc-or-*` structure --
+  entirely internal to this package; SvgRenderer's setData() is the only
+  thing that reads them (Contract §9.1). scripts/hud-02.js drives
+  everything else (toolbar, Aladin, SIMBAD/VizieR fetch) via
+  `root.querySelector`, scoped to this mounted composition root.
+-->
+<div class="nc-or-widget"
+     data-mode="object"
+     data-target-lock="on"
+     data-reticle="on"
+     data-aladdin="on"
+     data-info-mode="data">
+  <div class="nc-or-panel">
+
+    <!-- Main polygon frame -- z-index:1, BEHIND the columns (Inv §1.14).
+         Distinct angled-top-left / flat-top-right polygon + six-tooth
+         bottom rail, unlike hud-01's frame shape. -->
+    <svg class="nc-or-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-frame-main"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-frame-inner"
+        d="M58 76 L1140 76 L1140 316 L1092 366 L58 366 Z" />
+      <g class="nc-or-frame-teeth">
+        <rect x="118" y="382" width="16" height="28"/>
+        <rect x="148" y="382" width="16" height="28"/>
+        <rect x="178" y="382" width="16" height="28"/>
+        <rect x="208" y="382" width="16" height="28"/>
+        <rect x="238" y="382" width="16" height="28"/>
+        <rect x="268" y="382" width="16" height="28"/>
+      </g>
+      <path class="nc-or-frame-teeth-box"
+        d="M98 382 L304 382 L304 412 L98 412 Z" />
+    </svg>
+
+    <!-- Separate contour-runner overlay -- z-index:40, own <svg>, own
+         4 coincident glow-layer <path>s (Inv §1.14/§1.15). overflowVisible
+         (manifest) covers this bleeding outside the panel box. -->
+    <svg class="nc-or-runner-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-runner-tail"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-body"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-head"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+      <path class="nc-or-runner-spark"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+    </svg>
+
+    <!-- 8-segment skewed loader bar (Inv §1.15: "ported from HUD-03's
+         ncHpLoader"; distinct from hud-01's single-fill progress bar). -->
+    <div class="nc-or-frame-loader" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- Hidden config inputs -- see README "How mode/objectName reach the
+         script" (same setData-workaround as hud-01, Contract §9.4/§27.3). -->
+    <span data-slot="objectName" hidden aria-hidden="true"></span>
+    <span data-slot="mode" hidden aria-hidden="true"></span>
+
+    <!-- Object-mode content: left column (photo + Aladin + reticle) -->
+    <div class="nc-or-left">
+      <img class="nc-or-image" data-slot="media" alt="" />
+
+      <div class="nc-hud-02-aladdin" data-slot="visualization">
+        <div></div><!-- Aladin viewer target -- unique id assigned by hud-02.js -->
+        <div class="nc-hud-02-aladdin__placeholder" aria-hidden="true">
+          <span class="nc-hud-02-aladdin__label">ALADIN LAYER STANDBY</span>
+          <span class="nc-hud-02-aladdin__sub">INTEGRATION PENDING</span>
+        </div>
+      </div>
+
+      <div class="nc-or-reticle">
+        <div class="nc-or-ring nc-or-ring-1"></div>
+        <div class="nc-or-ring nc-or-ring-2"></div>
+        <div class="nc-or-ring nc-or-ring-3"></div>
+        <div class="nc-or-cross"></div>
+        <div class="nc-or-lock-box">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="nc-or-corner nc-or-corner-tl"></div>
+        <div class="nc-or-corner nc-or-corner-tr"></div>
+        <div class="nc-or-corner nc-or-corner-bl"></div>
+        <div class="nc-or-corner nc-or-corner-br"></div>
+        <div class="nc-or-center-dot"></div>
+        <div class="nc-or-target-lock" data-slot="status">TARGET LOCK</div>
+      </div>
+    </div>
+
+    <!-- Right column: title + object-mode data panels. The real templates
+         never surface a subtitle line by default (no `nc-or-system` usage
+         in any example markup, though the class exists, unused, in the
+         shared lineage CSS) -- included here anyway for slot parity with
+         hud-01 (Contract §25.2 "slots as HUD-01"); see README. -->
+    <div class="nc-or-right">
+      <h2 class="nc-or-title" data-slot="title"></h2>
+      <div class="nc-or-system" data-slot="subtitle"></div>
+
+      <div class="nc-or-info-panel nc-or-info-panel--data nc-or-grid" id="nc-hud02-data-panel" data-slot="primary">
+        <div class="nc-or-data-status nc-or-data-status--loading">
+          <div class="nc-or-spinner"></div>
+          <span>QUERYING SIMBAD…</span>
+        </div>
+      </div>
+
+      <div data-slot="secondary">
+        <div class="nc-or-info-panel nc-or-info-panel--catalog">
+          <span class="nc-or-info-placeholder">VIZIER CATALOG MODULE STANDBY</span>
+        </div>
+        <div class="nc-or-info-panel nc-or-info-panel--papers">
+          <span class="nc-or-info-placeholder">ADS PAPERS MODULE STANDBY</span>
+        </div>
+      </div>
+
+      <div class="nc-or-footer" data-slot="footer"></div>
+    </div>
+
+    <!-- Toolbar -- Theme-owned chrome, never consumer content (Contract §9.2) -->
+    <div class="nc-or-toolbar" role="toolbar" aria-label="HUD-02 overlay controls" data-slot="controls">
+      <div class="nc-or-tb-group" role="group" aria-label="View overlays">
+        <button class="nc-or-tb-btn" type="button" data-action="reticle" aria-pressed="true">⊕ RETICLE</button>
+      </div>
+      <div class="nc-or-tb-sep" aria-hidden="true"></div>
+      <div class="nc-or-tb-group" role="group" aria-label="Object information">
+        <button class="nc-or-tb-btn" type="button" data-action="data"    aria-pressed="true">≡ DATA</button>
+        <button class="nc-or-tb-btn" type="button" data-action="papers"  aria-pressed="false">◎ PAPERS</button>
+        <button class="nc-or-tb-btn" type="button" data-action="catalog" aria-pressed="false">▦ CATALOGS</button>
+      </div>
+    </div>
+
+    <!-- HTML slot -- htmlSlot capability, hidden while data-mode="object" (hud.css) -->
+    <div class="nc-hud-02-html-slot" data-slot="content" aria-hidden="true"></div>
+
+  </div>
+</div>
