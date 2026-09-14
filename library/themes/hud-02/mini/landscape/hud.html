@@ -1,0 +1,31 @@
+<!--
+  hud-02 -- mini:landscape. Contract §7.3 option (a): a scaled miniature
+  crop of maxi (transform: scale()), reproducing the real baseline's own
+  `NcHudMini.init({ scale: 0.352, miniH: 148, ... })` thumbnail -- IDENTICAL
+  geometry and shared-module call to hud-01's (Inv §1.17: HUD-02's mini
+  toggle "uses the shared module", same `scale`/`miniH` numbers as HUD-01;
+  see README "mini/micro: same shared NcHudMini as hud-01, not a HUD-02-
+  specific mechanism"). Static -- no scripts entrypoint: the Runtime mounts
+  this composition directly on `setVariant("mini")`/direct construction
+  (Contract §7.5) and replays the last setData() (title/status) onto it
+  (Contract §6.5).
+-->
+<div class="nc-or-widget nc-or-widget--mini">
+  <div class="nc-or-mini-scale">
+    <div class="nc-or-panel">
+      <svg class="nc-or-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+        <path class="nc-or-frame-main"
+          d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+        <path class="nc-or-frame-inner"
+          d="M58 76 L1140 76 L1140 316 L1092 366 L58 366 Z" />
+      </svg>
+
+      <img class="nc-or-image" data-slot="media" alt="" />
+
+      <div class="nc-or-mini-text">
+        <div class="nc-or-title" data-slot="title"></div>
+        <div class="nc-or-target-lock" data-slot="status"></div>
+      </div>
+    </div>
+  </div>
+</div>

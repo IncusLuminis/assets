@@ -1,0 +1,351 @@
+/*
+ * hud-02 -- maxi:landscape styles. Ported (trimmed) from
+ * widgets/sandbox/blogger-hud01-02-wip/blogger-hud02-template.css.
+ *
+ * Scoped by class-name discipline (all rules under .nc-or-widget /
+ * .nc-hud-02-*) -- no bare body / html / '*' / `:root` rules (Contract
+ * §15.4). This package has no build-time selector-scoping tool in 0.1
+ * (same approach as hud-01's package and `library/themes/fixture-svg-hud`).
+ *
+ * Trimmed from the real hud02 CSS (2208 lines): the `--nc-image-*`
+ * float/position variable system, the Blogger `.separator` overrides, the
+ * YouTube/HeyGen/TikTok facade rules, and the Aladin dark-theme UI
+ * overrides for its internal controls are omitted -- hud-02 does not
+ * declare `capabilities.mediaEmbed` (HUD-04's territory) and this
+ * package's Aladin instance already hides those controls at the API level
+ * (`showZoomControl:false` etc., scripts/hud-02.js). The `content` slot
+ * gets a plain, self-contained typography pass instead. See README.md
+ * "Behavioural differences from the real baseline".
+ */
+
+.nc-or-widget, .nc-or-widget * { box-sizing: border-box; }
+
+.nc-or-widget {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  isolation: isolate; /* Contract §15.7 -- own stacking context */
+}
+
+.nc-or-panel {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  display: grid;
+  grid-template-columns: 30% 70%;
+  overflow: visible; /* Contract §15.5 -- runner overlay paints outside the box */
+  background:
+    linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)),
+    rgba(0,8,16,.95);
+  animation: ncOrOpenHud 1.2s cubic-bezier(.2,.9,.2,1) forwards, hudBreath 5s ease-in-out infinite;
+}
+
+/* ── Main polygon frame -- z-index:1, BEHIND the columns (Inv §1.14) ──── */
+
+.nc-or-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.nc-or-frame-main {
+  fill: rgba(5,18,38,0);
+  stroke: rgba(80,220,255,.92);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.85));
+}
+.nc-or-frame-inner,
+.nc-or-frame-teeth-box {
+  fill: none;
+  stroke: rgba(145,245,255,.62);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(80,220,255,.65));
+}
+.nc-or-frame-teeth rect {
+  fill: rgba(80,220,255,.92);
+  filter: drop-shadow(0 0 6px rgba(80,220,255,.8));
+}
+
+/* ── Separate contour-runner overlay -- z-index:40, own <svg> (Inv §1.14) ── */
+
+.nc-or-runner-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 40;
+  pointer-events: none;
+  overflow: visible;
+}
+.nc-or-runner-tail {
+  fill: none; stroke: rgba(60, 190, 255, .13); stroke-width: 72;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2751; filter: blur(32px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+.nc-or-runner-body {
+  fill: none; stroke: rgba(90, 210, 255, .26); stroke-width: 32;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2751; filter: blur(16px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+.nc-or-runner-head {
+  fill: none; stroke: rgba(150, 232, 255, .55); stroke-width: 10;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2751; filter: blur(3px);
+  animation: ncOrSweepBar 22s linear infinite;
+}
+.nc-or-runner-spark {
+  fill: none; stroke: rgba(200, 240, 255, .77); stroke-width: 2;
+  vector-effect: non-scaling-stroke; stroke-linecap: round;
+  stroke-dasharray: 120 2751;
+  filter: drop-shadow(0 0 3px rgba(180, 240, 255, .80)) drop-shadow(0 0 10px rgba(80, 200, 255, .64));
+  animation: ncOrSweepBar 22s linear infinite;
+}
+
+/* ── 8-segment skewed loader (Inv §1.15, ported from HUD-03's ncHpLoader) ── */
+
+.nc-or-frame-loader {
+  position: absolute;
+  top: 38px;
+  left: 23.67%;
+  width: 200px;
+  height: 24px;
+  z-index: 25;
+  pointer-events: none;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  transform: skewX(49deg);
+  padding: 3px;
+  border: 1px solid rgba(80,220,255,.45);
+  background: linear-gradient(90deg, rgba(80,220,255,.08), rgba(80,220,255,.02));
+  filter: drop-shadow(0 0 8px rgba(80,220,255,.55));
+}
+.nc-or-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80,220,255,.95);
+  box-shadow: 0 0 12px rgba(80,220,255,.85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.nc-or-frame-loader span:nth-child(1) { animation-name: ncOrLoader1; }
+.nc-or-frame-loader span:nth-child(2) { animation-name: ncOrLoader2; }
+.nc-or-frame-loader span:nth-child(3) { animation-name: ncOrLoader3; }
+.nc-or-frame-loader span:nth-child(4) { animation-name: ncOrLoader4; }
+.nc-or-frame-loader span:nth-child(5) { animation-name: ncOrLoader5; }
+.nc-or-frame-loader span:nth-child(6) { animation-name: ncOrLoader6; }
+.nc-or-frame-loader span:nth-child(7) { animation-name: ncOrLoader7; }
+.nc-or-frame-loader span:nth-child(8) { animation-name: ncOrLoader8; }
+
+/* ── Left column: photo + Aladin + reticle ──────────────────────── */
+
+.nc-or-left { position: relative; z-index: 3; min-width: 0; width: 100%; height: 420px; overflow: hidden; }
+
+.nc-or-image {
+  position: absolute; left: 25%; top: 18%; width: 80%; height: 66%;
+  display: block; object-fit: cover;
+  filter: brightness(.72) contrast(1.18) saturate(.85);
+  background: #05070c; /* visible even with no media slot value set */
+}
+
+.nc-hud-02-aladdin {
+  position: absolute; left: 25%; top: 18%; width: 80%; height: 66%;
+  z-index: 2; overflow: hidden; background: rgba(0, 8, 18, .96);
+  border: 1px solid rgba(80,220,255,.28);
+  box-shadow: inset 0 0 40px rgba(0,220,255,.06);
+}
+.nc-hud-02-aladdin > div:first-child { position: absolute; inset: 0; }
+.nc-hud-02-aladdin__placeholder {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: rgba(0,8,20,.92);
+  font-family: "Share Tech Mono", monospace; letter-spacing: .12em; text-transform: uppercase;
+}
+.nc-hud-02-aladdin--ready .nc-hud-02-aladdin__placeholder { display: none; }
+.nc-hud-02-aladdin__label { font-size: 13px; color: rgba(80,220,255,.60); }
+.nc-hud-02-aladdin__sub { font-size: 10px; color: rgba(80,220,255,.30); }
+.nc-or-widget[data-aladdin="off"] .nc-hud-02-aladdin { display: none; }
+
+.nc-or-reticle {
+  position: absolute; left: 25%; top: 18%; width: 80%; height: 66%;
+  z-index: 6; display: flex; align-items: center; justify-content: center;
+  pointer-events: none; transition: opacity .3s ease;
+}
+.nc-or-widget[data-target-lock="off"] .nc-or-reticle,
+.nc-or-widget[data-reticle="off"] .nc-or-reticle { opacity: 0; }
+
+.nc-or-ring { position: absolute; border-radius: 50%; }
+.nc-or-ring-1 { width: 210px; height: 210px; border: 2px solid rgba(80,245,255,.75); box-shadow: 0 0 18px rgba(80,245,255,.5); animation: hudPulseOuter 4s ease-in-out infinite; }
+.nc-or-ring-2 { width: 166px; height: 166px; border: 2px dashed rgba(80,245,255,.82); animation: hudRotate 10s linear infinite; }
+.nc-or-ring-3 { width: 94px; height: 94px; border: 1px solid rgba(170,255,255,.88); opacity: .65; animation: hudPulseInner 2.5s ease-in-out infinite; }
+
+.nc-or-cross { position: absolute; width: 180px; height: 180px; }
+.nc-or-cross::before, .nc-or-cross::after { content: ""; position: absolute; background: rgba(120,255,255,.85); box-shadow: 0 0 10px rgba(80,245,255,.72); }
+.nc-or-cross::before { width: 100%; height: 1px; top: 50%; left: 0; }
+.nc-or-cross::after { width: 1px; height: 100%; left: 50%; top: 0; }
+
+.nc-or-lock-box { position: absolute; width: 122px; height: 122px; animation: hudLockBoxPulse 3.2s ease-in-out infinite; }
+.nc-or-lock-box span { position: absolute; display: block; width: 30px; height: 30px; }
+.nc-or-lock-box span::before, .nc-or-lock-box span::after { content: ""; position: absolute; background: rgba(150,255,255,.95); box-shadow: 0 0 10px rgba(80,245,255,.75); }
+.nc-or-lock-box span::before { width: 30px; height: 3px; }
+.nc-or-lock-box span::after  { width: 3px;  height: 30px; }
+.nc-or-lock-box span:nth-child(1) { top: 0; left: 0; }
+.nc-or-lock-box span:nth-child(2) { top: 0; right: 0; }
+.nc-or-lock-box span:nth-child(3) { bottom: 0; left: 0; }
+.nc-or-lock-box span:nth-child(4) { bottom: 0; right: 0; }
+
+.nc-or-corner { position: absolute; width: 34px; height: 34px; border-color: rgba(210,255,255,.95); }
+.nc-or-corner-tl { top: 26px; left: 26px; border-top: 2px solid; border-left: 2px solid; }
+.nc-or-corner-tr { top: 26px; right: 26px; border-top: 2px solid; border-right: 2px solid; }
+.nc-or-corner-bl { bottom: 26px; left: 26px; border-bottom: 2px solid; border-left: 2px solid; }
+.nc-or-corner-br { bottom: 26px; right: 26px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.nc-or-center-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,255,255,.92); box-shadow: 0 0 18px rgba(80,245,255,.95); }
+
+.nc-or-target-lock {
+  position: absolute; bottom: 16px;
+  font-family: "Share Tech Mono", monospace; font-size: 11px; letter-spacing: .24em;
+  color: #d8ffff; text-shadow: 0 0 12px rgba(80,245,255,.95);
+  animation: hudBlinkSoft 1.4s ease-in-out infinite;
+}
+
+/* ── Right column: title + data panels ──────────────────────────── */
+
+.nc-or-right {
+  position: relative; z-index: 5; height: 420px;
+  padding: 58px 72px 28px 46px; color: #cfffff;
+  background: transparent; overflow: hidden;
+}
+.nc-or-right > * { position: relative; z-index: 7; }
+
+.nc-or-title {
+  margin: 0 0 16px 0; font-size: 34px; line-height: 1; font-weight: 400;
+  letter-spacing: .18em; text-transform: uppercase; color: #8ff6ff;
+  text-shadow: 0 0 6px rgba(80,245,255,.72), 0 0 14px rgba(80,245,255,.28);
+}
+.nc-or-title:empty::before { content: "\2014"; opacity: .35; } /* placeholder em-dash before setData({title}) */
+.nc-or-widget[data-mode="object"] .nc-or-title { margin: 23px auto 18px auto; width: max-content; }
+
+/* Real templates never surface this line by default (no data-slot usage
+   in any example markup) -- included for slot parity with hud-01 (README). */
+.nc-or-system {
+  margin-bottom: 10px; font-size: 10px; letter-spacing: .22em;
+  color: rgba(80,220,255,.62);
+}
+.nc-or-system:empty { display: none; }
+
+/* ── DATA panel grid -- 4-column (label/value x2), unlike hud-01's 2-col ── */
+
+.nc-or-grid {
+  display: grid;
+  grid-template-columns: 95px minmax(0, 1fr) 95px minmax(0, 1fr);
+  row-gap: 8px; column-gap: 14px; padding-top: 6px;
+  font-size: 12px; line-height: 1.05; letter-spacing: .05em;
+}
+.nc-or-label, .nc-or-value { padding-bottom: 4px; border-bottom: 1px solid rgba(80,220,255,.26); }
+.nc-or-label { font-weight: 400; color: #dfffff; white-space: nowrap; }
+.nc-or-value { color: #9ffcff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+.nc-or-data-note { grid-column: 1 / -1; font-size: 9px; letter-spacing: .12em; text-align: center; color: rgba(80,220,255,.22); padding-top: 8px; border-top: 1px solid rgba(80,220,255,.10); margin-top: 4px; }
+
+.nc-or-data-status { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px 0 10px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; text-align: center; }
+.nc-or-data-status--loading { color: rgba(80, 220, 255, 0.50); }
+.nc-or-data-status--error   { color: rgba(255, 100, 100, 0.60); }
+.nc-or-spinner {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid rgba(80, 220, 255, 0.14); border-top-color: rgba(80, 220, 255, 0.75);
+  animation: hudSpinner02 .85s linear infinite;
+}
+
+.nc-or-info-panel { margin-top: 16px; font-size: 11px; max-height: 150px; overflow: auto; }
+.nc-or-widget[data-info-mode="data"] .nc-or-info-panel--data { display: grid; }
+.nc-or-widget:not([data-info-mode="data"]) .nc-or-info-panel--data { display: none; }
+.nc-or-widget[data-info-mode="catalog"] .nc-or-info-panel--catalog { display: block; }
+.nc-or-widget:not([data-info-mode="catalog"]) .nc-or-info-panel--catalog { display: none; }
+.nc-or-widget[data-info-mode="papers"] .nc-or-info-panel--papers { display: block; }
+.nc-or-widget:not([data-info-mode="papers"]) .nc-or-info-panel--papers { display: none; }
+.nc-or-info-placeholder { color: rgba(80,220,255,.4); font-size: 11px; }
+
+.nc-or-paper-card { padding: 6px 0; border-bottom: 1px solid rgba(80,220,255,.08); }
+.nc-or-paper-card:last-child { border-bottom: none; }
+.nc-or-paper-title { display: block; font-size: 12px; color: rgba(80,220,255,.9); text-decoration: none; }
+.nc-or-paper-title:hover { text-decoration: underline; }
+.nc-or-paper-meta { font-size: 10px; letter-spacing: .05em; color: rgba(80,220,255,.45); margin-top: 2px; }
+.nc-or-paper-abstract { font-size: 10px; color: rgba(80,220,255,.55); margin-top: 3px; line-height: 1.4; }
+
+.nc-or-footer {
+  margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(80,220,255,.12);
+  font-size: 10px; letter-spacing: .1em; color: rgba(80,220,255,.4);
+}
+.nc-or-footer:empty { display: none; }
+
+/* ── Toolbar ─────────────────────────────────────────────────────── */
+
+.nc-or-toolbar {
+  position: absolute; bottom: 42px; right: 0; left: 0;
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  padding: 6px 30px; z-index: 35;
+}
+.nc-or-tb-group { display: flex; gap: 6px; }
+.nc-or-tb-sep { width: 1px; height: 18px; background: rgba(80,220,255,.25); }
+.nc-or-tb-btn {
+  font-family: "Share Tech Mono", monospace; font-size: 10px; letter-spacing: .1em;
+  background: rgba(0,10,20,.7); color: rgba(80,220,255,.7);
+  border: 1px solid rgba(80,220,255,.35); border-radius: 2px;
+  padding: 4px 8px; cursor: pointer;
+}
+.nc-or-tb-btn:hover { color: rgba(140,235,255,.95); border-color: rgba(140,235,255,.6); }
+.nc-or-tb-btn[aria-pressed="true"] { color: #d8ffff; background: rgba(80,220,255,.18); border-color: rgba(80,220,255,.75); box-shadow: 0 0 8px rgba(80,220,255,.35); }
+
+/* ── Object mode vs. html mode ───────────────────────────────────── */
+
+.nc-or-widget[data-mode="object"] .nc-hud-02-html-slot { display: none; }
+.nc-or-widget[data-mode="html"] .nc-or-left,
+.nc-or-widget[data-mode="html"] .nc-or-right,
+.nc-or-widget[data-mode="html"] .nc-or-toolbar { display: none; }
+.nc-or-widget[data-mode="html"] .nc-or-panel { grid-template-columns: 1fr; }
+
+.nc-hud-02-html-slot { padding: 40px 48px; color: #cfffff; overflow: auto; }
+.nc-hud-02-html-slot h1, .nc-hud-02-html-slot h2, .nc-hud-02-html-slot h3 {
+  font-family: "Share Tech Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: #8ff6ff;
+}
+.nc-hud-02-html-slot p { font-size: 14px; line-height: 1.6; color: rgba(207,255,255,.85); }
+.nc-hud-02-html-slot a { color: rgba(80,220,255,.9); }
+.nc-hud-02-html-slot img { max-width: 100%; display: block; }
+
+/* ── Local keyframes (Theme-specific; not in styles/shared.css) ──────
+   hudSpinner02 is deliberately named differently from hud-01's local
+   `hudSpinner` (Inv/Contract §15.6 concern: unscoped @keyframes are
+   global identifiers) -- matches the real baseline's own choice, made
+   for the same reason (both Themes can appear on one page). ──────── */
+
+@keyframes hudSpinner02 { to { transform: rotate(360deg); } }
+@keyframes ncOrOpenHud { from { width: 30%; opacity: .65; } to { width: 100%; opacity: 1; } }
+@keyframes ncOrSweepBar { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -2871px; } }
+@keyframes ncOrLoader1 { 0% { opacity: 0; } 13% { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+@keyframes ncOrLoader2 { 0%, 6.5%  { opacity: 0; } 19.5% { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+@keyframes ncOrLoader3 { 0%, 13%   { opacity: 0; } 26%   { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+@keyframes ncOrLoader4 { 0%, 19.5% { opacity: 0; } 32.5% { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+@keyframes ncOrLoader5 { 0%, 26%   { opacity: 0; } 39%   { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+@keyframes ncOrLoader6 { 0%, 32.5% { opacity: 0; } 45.5% { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+@keyframes ncOrLoader7 { 0%, 39%   { opacity: 0; } 52%   { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+@keyframes ncOrLoader8 { 0%, 45.5% { opacity: 0; } 58.5% { opacity: 1; } 82% { opacity: 1; } 82.01%, 100% { opacity: 0; } }
+
+@media (max-width: 900px) {
+  .nc-or-panel { height: auto; grid-template-columns: 1fr; }
+  .nc-or-frame-svg, .nc-or-runner-svg { display: none; }
+  .nc-or-left { width: 100%; height: 280px; }
+  .nc-or-image, .nc-hud-02-aladdin, .nc-or-reticle { left: 0; top: 0; width: 100%; height: 280px; }
+  .nc-or-right { height: auto; padding: 20px; }
+  .nc-or-toolbar { position: static; justify-content: center; }
+}

@@ -1,0 +1,25 @@
+<!--
+  hud-02 -- micro:portrait. Contract §7.3 option (b): a genuine distinct
+  lower-density composition, NOT a transform:scale() crop -- matching the
+  real baseline exactly (`widgets/shared/js/hud-mini.js`'s
+  `data-collapse="micro"` path: `--nc-micro-w:87px` / `--nc-micro-h:130px`
+  defaults, unscaled label above + portrait image slot). These are the
+  SAME default numbers hud-01's micro uses (Inv §1.17: HUD-02's `index.html`
+  never actually sets `data-collapse="micro"` so this path is dead in the
+  hud-02 lineage's own release, but is live in the blogger lineage/
+  Playground -- see README "micro: shared module, not hud-02-specific").
+  The frame <svg> is reused with `preserveAspectRatio="none"` (Contract
+  §8.1) rather than re-drawn; the separate contour-runner overlay is
+  omitted at this density (illegible detail dropped, same call hud-01's
+  package made for its glow runner at micro).
+-->
+<div class="nc-or-widget nc-or-widget--micro">
+  <div class="nc-or-title-micro" data-slot="title"></div>
+  <div class="nc-or-panel">
+    <svg class="nc-or-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <path class="nc-or-frame-main"
+        d="M36 38 L270 38 L298 62 L1160 62 L1160 326 L1106 382 L70 382 L70 160 L36 132 Z" />
+    </svg>
+    <img class="nc-or-image" data-slot="media" alt="" />
+  </div>
+</div>

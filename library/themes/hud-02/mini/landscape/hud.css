@@ -1,0 +1,56 @@
+/*
+ * hud-02 -- mini:landscape styles. 317x148 thumbnail, matching the real
+ * baseline's `NcHudMini` mini geometry -- `blogger-hud02-template.js`
+ * calls `NcHudMini.init({ scale: 0.352, miniH: 148, ... })`, the exact
+ * same numbers hud-01's own template uses (Inv §1.17). 901x420 is the
+ * natural width NcHudMini scales FROM (`panelW` default in
+ * widgets/shared/js/hud-mini.js) -- 901 * 0.352 ≈ 317, 420 * 0.352 ≈ 148.
+ */
+
+.nc-or-widget, .nc-or-widget * { box-sizing: border-box; }
+
+.nc-or-widget--mini {
+  position: relative;
+  width: 317px;
+  height: 148px;
+  overflow: hidden; /* crops the scaled 901x420 panel down to the thumbnail */
+  background: #000;
+  font-family: "Share Tech Mono", monospace;
+  isolation: isolate;
+}
+
+.nc-or-mini-scale {
+  width: 901px;
+  height: 420px;
+  transform: scale(0.352);
+  transform-origin: top left;
+}
+
+.nc-or-panel {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: visible; /* the runner overlay may bleed past the panel edge before the crop above */
+  background: linear-gradient(135deg, rgba(3,28,45,.96), rgba(0,9,20,.98)), rgba(0,8,16,.95);
+}
+
+.nc-or-frame-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.nc-or-frame-main { fill: rgba(5,18,38,0); stroke: rgba(80,220,255,.92); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.nc-or-frame-inner { fill: none; stroke: rgba(150,245,255,.62); stroke-width: 2.4; } /* widened at mini scale, same fix as hud-01/the real baseline */
+
+/* Positioned to match the real maxi layout's own 30%/70% grid at this
+   panel's natural 901px width (left column ~270px: image sits at 25%/18%/
+   80%/66% of that column, exactly as .nc-or-left/.nc-or-image do in
+   maxi/landscape/hud.css) -- NOT a copy of hud-01's fixed 520px column. */
+.nc-or-image {
+  position: absolute; left: 68px; top: 76px; width: 216px; height: 277px;
+  object-fit: cover; filter: brightness(.72) contrast(1.18) saturate(.85);
+  background: #05070c;
+}
+
+.nc-or-mini-text {
+  position: absolute; left: 300px; top: 40px; right: 30px;
+  color: #cfffff; text-shadow: 0 0 8px rgba(80,245,255,.55);
+}
+.nc-or-title { font-size: 30px; letter-spacing: .18em; text-transform: uppercase; color: #8ff6ff; margin: 0 0 10px 0; }
+.nc-or-target-lock { font-size: 13px; letter-spacing: .24em; color: #d8ffff; }

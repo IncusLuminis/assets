@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "hud-02",
+  "name": "Object Report",
+  "version": "0.1.0",
+  "description": "Astronomical object-report HUD: dual-SVG frame + contour-runner overlay, Aladin Lite sky viewer + SIMBAD/VizieR/ADS data panels, or a plain HTML content frame (Contract 1.0 -- Story #12).",
+  "engine": "svg",
+  "baseVersion": "1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "portrait-maxi-deferred-1.0" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": ["title"],
+    "optional": [
+      "subtitle", "media", "visualization", "primary", "secondary",
+      "status", "controls", "content", "footer", "objectName", "mode"
+    ]
+  },
+  "customSlots": [
+    {
+      "name": "objectName",
+      "kind": "text",
+      "required": false,
+      "description": "Astronomical target identifier (e.g. \"NGC 1300\", \"M31\"). Drives the Aladin sky viewer and the SIMBAD/VizieR/ADS lookups in object mode (Contract §10.2 input)."
+    },
+    {
+      "name": "mode",
+      "kind": "config",
+      "required": false,
+      "description": "Composition personality: \"object\" (Aladin + SIMBAD/VizieR/ADS, default) or \"html\" (plain content slot, no network). See this Theme's README for how mode is set in this 0.1 Runtime."
+    }
+  ],
+  "capabilities": {
+    "animation": true,
+    "interactive": true,
+    "htmlSlot": true,
+    "skyViewer": true,
+    "dataSource": {
+      "providers": ["simbad", "vizier", "ads"],
+      "hosts": ["simbad.cds.unistra.fr", "vizier.cds.unistra.fr", "ui.adsabs.harvard.edu"],
+      "input": "objectName",
+      "timing": { "simbad": "page-load", "vizier": "lazy", "ads": "lazy" }
+    },
+    "modes": { "values": ["object", "html"], "default": "object", "config": "mode" },
+    "multiInstance": true
+  },
+  "entrypoints": {
+    "maxi:landscape": {
+      "styles":  ["styles/shared.css", "maxi/landscape/hud.css"],
+      "markup":  "maxi/landscape/hud.html",
+      "scripts": ["scripts/hud-02.js"]
+    },
+    "mini:landscape": {
+      "styles":  ["styles/shared.css", "mini/landscape/hud.css"],
+      "markup":  "mini/landscape/hud.html",
+      "scripts": []
+    },
+    "micro:portrait": {
+      "styles":  ["styles/shared.css", "micro/portrait/hud.css"],
+      "markup":  "micro/portrait/hud.html",
+      "scripts": []
+    }
+  },
+  "externalResources": [
+    { "host": "aladin.cds.unistra.fr",    "kind": "script", "timing": "lazy",      "required": false, "note": "Aladin Lite v3 (skyViewer) -- shares one page-load loader with hud-01 in the real baseline (window._ncAladinLoader); this package's copy uses SvgRenderer's own per-host DomExternalResourceLoader de-duplication instead (README)" },
+    { "host": "simbad.cds.unistra.fr",    "kind": "fetch",  "timing": "page-load", "required": false, "note": "SIMBAD TAP -- object data + papers query (identical query shape to hud-01)" },
+    { "host": "vizier.cds.unistra.fr",    "kind": "fetch",  "timing": "lazy",      "required": false, "note": "VizieR VOTable -- catalog cross-references, CATALOGS tab" },
+    { "host": "ui.adsabs.harvard.edu",    "kind": "fetch",  "timing": "lazy",      "required": false, "note": "link target only for PAPERS rows (the query itself is SIMBAD ref/has_ref, see README)" }
+  ],
+  "animations": [
+    "hudBreath", "hudRotate", "hudPulseOuter", "hudPulseInner",
+    "hudBlinkSoft", "hudLockBoxPulse", "hudSpinner02",
+    "ncOrOpenHud", "ncOrSweepBar",
+    "ncOrLoader1", "ncOrLoader2", "ncOrLoader3", "ncOrLoader4",
+    "ncOrLoader5", "ncOrLoader6", "ncOrLoader7", "ncOrLoader8"
+  ],
+  "isolation": "scoped-root",
+  "overflowVisible": true,
+  "knownDeviations": [
+    { "code": "no-maxi-portrait",     "scope": "maxi:portrait", "clause": "8.3",
+      "note": "Full portrait maxi not authored in the real HUD-02 baseline; deferred per owner D.",
+      "plannedResolution": "Contract 1.1 / Platform 0.2" },
+    { "code": "external-io-on-mount", "scope": "all",           "clause": "16.3",
+      "note": "In object mode, the SIMBAD TAP query fires during mount (page-load timing), matching the real baseline's own behaviour." }
+  ]
+}
