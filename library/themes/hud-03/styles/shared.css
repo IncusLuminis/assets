@@ -1,0 +1,664 @@
+/*
+ * hud-03 -- shared styles, loaded before each composition's own
+ * <variant>/<orientation>/hud.css (Contract §3.10: array order significant).
+ *
+ * Migration source: widgets/releases/blogger-pilot-hud03/blogger-hud03-template.css
+ * (+ blogger-hud03-template.js -- shipped as the `NcHudMini` toggle module
+ * only, not carried into this package, see README "Behavioral diffs") --
+ * the blogger-template lineage, per owner decision A (2026-09-09, Plan §7,
+ * which names Stories #11-#15 including this one, #15, as targeting this
+ * lineage) and per Contract §25.1 (source lineage table: "widgets/releases/
+ * blogger-pilot-hud03/"). `widgets/releases/blogger-pilot-hud03/examples/
+ * image-version.html` is the concrete example -- its own file header labels
+ * it "EXAMPLE: Static Image (HUD-03 style)" -- and is the markup this
+ * package's `maxi`/`micro` compositions mirror; `heygen-version.html` /
+ * `youtube-version.html` / `tiktok-version.html` in the same directory are
+ * the *HUD-04*-style (video) examples and are out of this Story's scope
+ * (that's #13, already merged as `library/themes/hud-04/`).
+ *
+ * The CSS/JS template file covers HUD-03 and HUD-04 from one file (the
+ * release's own README: "There is no separate CSS or JS for HUD-03 vs.
+ * HUD-04 -- it is the same file. The visual difference is determined
+ * entirely by what you put inside `.nc-hp-text`."). This package therefore
+ * shares its frame/keyframe source bytes with `library/themes/hud-04/
+ * styles/shared.css` (#13) -- both migrated from the same upstream file --
+ * but is an independent copy, scoped under `.hud-03` instead of `.hud-04`,
+ * per this Story's own scope boundary (must not touch `library/themes/
+ * hud-04/`). The frame CSS duplication across HUD-03/HUD-04 is a documented,
+ * pre-existing condition of the real source itself (Inventory §1.28 "Frame
+ * CSS duplicated in HUD-04"), not something this Story introduces.
+ *
+ * Class names are kept as authored (`nc-hp-*` panel internals, `nc-hud-*`
+ * "public media API" per the source's own file header) for traceability --
+ * Contract §9.1 only forbids *consumers* targeting Theme-internal DOM, it
+ * does not require renaming it.
+ *
+ * Namespacing (Contract §15.1/§15.4): every selector below is nested under
+ * `.hud-03` (this Theme's `manifest.id`) -- the class CssRenderer's
+ * scoped-root fallback wrapper carries by construction, and which this
+ * Theme's own markup root also carries so the same selectors work
+ * byte-identically inside Shadow DOM. No bare `body`/`html`/`:root`/`*`
+ * selector appears anywhere in this file.
+ *
+ * Animations (Contract §3.12, §15.6): the blogger-lineage template is
+ * genuinely self-contained -- `ncHpOpenHud`, `hudBreath`, `hudPanelSweep`,
+ * `hudTickerScroll` and `ncHpLoader1-8` are all defined in this one file,
+ * there is no separate "shared base" it depends on (confirmed directly
+ * against the source, same finding #13 made for the identical upstream
+ * file). This package carries that self-containment forward but under
+ * Theme-local names (`hud03Breath`, `hud03PanelSweep`, `hud03TickerScroll`,
+ * `hud03OpenHud`, `hud03Loader1..8`) rather than the bare global names, to
+ * avoid the cross-bundle keyframe-name collision Contract §15.6 flags if
+ * this platform's shared-foundation "base" injection (not yet implemented --
+ * `src/runtime/core/ThemeResolver.ts:138`) is added later and defines
+ * `hudBreath` etc. itself; `manifest.animations` is left undeclared since
+ * nothing here is sourced from an external base. The keyframe *bodies*
+ * below are copied verbatim from the real source.
+ *
+ * Google Fonts ("Share Tech Mono"): the real source loads it via
+ * `@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono...')`
+ * directly in this CSS file (not a `<link>` in a page `<head>`) -- ported
+ * verbatim below. `@import` inside a `<style>` works the same whether that
+ * `<style>` sits in light DOM or a Shadow Root (ordinary CSS parsing, not a
+ * `document.head`-injection mechanism like Aladin's, which is what Contract
+ * §15.2 actually warns about). This is real page-load external I/O to an
+ * allowlisted host (Contract §16.2), so `manifest.knownDeviations` carries
+ * `external-io-on-mount` (§16.3) and `manifest.externalResources` declares
+ * it. If the font is blocked, text falls back to the monospace stack --
+ * same graceful-degradation the source's own README documents.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+.hud-03,
+.hud-03 * {
+  box-sizing: border-box;
+}
+
+.hud-03 {
+  position: relative;
+  isolation: isolate; /* Contract §15.7 -- own stacking context */
+  overflow: visible;  /* Contract §15.5 -- overflowVisible: true; the frame's drop-shadow paints outside the box */
+  width: 100%;
+  margin: 0 auto;
+  background: #000;
+  color: #cfffff;
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+/* ── Main panel ──────────────────────────────────────────────────── */
+
+.hud-03 .nc-hp-panel {
+  --loader-left: 28%;
+  --loader-width: 230px;
+  --frame-edge: 26px;
+  --top-line-y: 18px;
+  --top-line-drop: 26px;
+  --top-line-lower-y: calc(var(--top-line-y) + var(--top-line-drop));
+
+  position: relative;
+  width: min(1200px, 100%);
+  min-height: 520px;
+  margin: 0 auto;
+  padding: 86px 92px;
+  background: #000;
+  overflow: visible;
+  isolation: isolate;
+
+  opacity: .65;
+  animation:
+    hud03OpenHud 1.2s cubic-bezier(.2, .9, .2, 1) forwards,
+    hud03Breath 5s ease-in-out infinite;
+}
+
+/* ── Frame shell ─────────────────────────────────────────────────── */
+
+.hud-03 .nc-hp-frame-shell {
+  position: absolute;
+  inset: 26px;
+  z-index: 1;
+  pointer-events: none;
+  border: 3px solid rgba(80, 220, 255, .92);
+
+  clip-path: polygon(
+    0 22%, 0 100%, 96% 100%,
+    100% 72%, 100% 6%,
+    21% 6%, 18% 5%, 12% 5%
+  );
+
+  filter:
+    drop-shadow(0 0 6px rgba(80, 220, 255, .9))
+    drop-shadow(0 0 18px rgba(80, 220, 255, .5));
+}
+
+/* ── Frame masks ─────────────────────────────────────────────────── */
+
+.hud-03 .nc-hp-frame-mask {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  background: #000;
+}
+
+.hud-03 .nc-hp-frame-mask-left {
+  top: 24px;
+  left: 118px;
+  width: 170px;
+  height: 34px;
+  transform: skewX(-32deg);
+}
+
+.hud-03 .nc-hp-frame-mask-right {
+  top: 24px;
+  right: 18px;
+  width: 46px;
+  height: 48px;
+}
+
+/* ── Frame inner ─────────────────────────────────────────────────── */
+
+.hud-03 .nc-hp-frame-inner {
+  position: absolute;
+  inset: 72px 48px 72px 48px;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(145, 245, 255, .62);
+
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 96% 100%, 0 100%);
+
+  filter: drop-shadow(0 0 4px rgba(80, 220, 255, .7));
+}
+
+/* ── Frame topline ───────────────────────────────────────────────── */
+
+.hud-03 .nc-hp-frame-topline {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.hud-03 .nc-hp-frame-topline span {
+  position: absolute;
+  display: block;
+  background: rgba(80, 220, 255, .95);
+  box-shadow:
+    0 0 8px rgba(80, 220, 255, .95),
+    0 0 18px rgba(80, 220, 255, .45);
+}
+
+.hud-03 .nc-hp-topline-left {
+  top: var(--top-line-y);
+  left: var(--frame-edge);
+  width: calc(var(--loader-left) + var(--loader-width) + 4px - var(--frame-edge));
+  height: 3px;
+}
+
+.hud-03 .nc-hp-topline-slope {
+  top: var(--top-line-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 4px);
+  width: 34px;
+  height: 3px;
+  transform-origin: left center;
+  transform: rotate(58deg);
+}
+
+.hud-03 .nc-hp-topline-right {
+  top: var(--top-line-lower-y);
+  left: calc(var(--loader-left) + var(--loader-width) + 22px);
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 22px) - var(--frame-edge));
+  height: 3px;
+}
+
+.hud-03 .nc-hp-topline-side {
+  top: var(--top-line-lower-y);
+  right: var(--frame-edge);
+  width: 3px;
+  height: 62px;
+}
+
+/* ── Frame loader -- 8-segment sequential bar ───────────────────────── */
+
+.hud-03 .nc-hp-frame-loader {
+  position: absolute;
+  top: 42px;
+  left: var(--loader-left);
+  width: var(--loader-width);
+  height: 28px;
+  z-index: 5;
+  pointer-events: none;
+
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+
+  transform: skewX(32deg);
+  padding: 3px;
+  border: 1px solid rgba(80, 220, 255, .45);
+
+  background: linear-gradient(90deg, rgba(80, 220, 255, .08), rgba(80, 220, 255, .02));
+
+  filter: drop-shadow(0 0 8px rgba(80, 220, 255, .55));
+}
+
+.hud-03 .nc-hp-frame-loader span {
+  flex: 1;
+  opacity: 0;
+  background: rgba(80, 220, 255, .95);
+  box-shadow: 0 0 12px rgba(80, 220, 255, .85);
+  animation-duration: 6.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.hud-03 .nc-hp-frame-loader span:nth-child(1) { animation-name: hud03Loader1; }
+.hud-03 .nc-hp-frame-loader span:nth-child(2) { animation-name: hud03Loader2; }
+.hud-03 .nc-hp-frame-loader span:nth-child(3) { animation-name: hud03Loader3; }
+.hud-03 .nc-hp-frame-loader span:nth-child(4) { animation-name: hud03Loader4; }
+.hud-03 .nc-hp-frame-loader span:nth-child(5) { animation-name: hud03Loader5; }
+.hud-03 .nc-hp-frame-loader span:nth-child(6) { animation-name: hud03Loader6; }
+.hud-03 .nc-hp-frame-loader span:nth-child(7) { animation-name: hud03Loader7; }
+.hud-03 .nc-hp-frame-loader span:nth-child(8) { animation-name: hud03Loader8; }
+
+/* ── Frame ticker ────────────────────────────────────────────────── */
+
+.hud-03 .nc-hp-frame-ticker {
+  position: absolute;
+  top: 50px;
+  right: 54px;
+  width: calc(100% - (var(--loader-left) + var(--loader-width) + 74px));
+  height: 32px;
+  overflow: hidden;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.hud-03 .nc-hp-frame-ticker span {
+  position: absolute;
+  white-space: nowrap;
+  left: 100%;
+  top: 0;
+
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  font-size: 14px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+
+  color: rgba(120, 245, 255, .82);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .55);
+
+  animation: hud03TickerScroll 30s linear infinite;
+}
+
+/* ── Sweep beam (source: blogger-hud03-template.css `.nc-panel-sweep`,
+   shared by all HUD panels in that lineage) ────────────────────────── */
+
+.hud-03 .nc-panel-sweep {
+  position: absolute;
+  top: -38%;
+  left: -32%;
+  width: 58%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(80, 220, 255, 0) 8%,
+    rgba(80, 220, 255, .06) 25%,
+    rgba(180, 255, 255, .22) 50%,
+    rgba(80, 220, 255, .08) 75%,
+    transparent 100%
+  );
+  transform: rotate(8deg) translateX(-320%);
+  mix-blend-mode: screen;
+  animation: hud03PanelSweep 7s linear infinite;
+}
+
+.hud-03 .nc-hp-sweep {
+  z-index: 2;
+  opacity: .5;
+}
+
+/* ── Content ─────────────────────────────────────────────────────── */
+
+.hud-03 .nc-hp-content {
+  position: relative;
+  z-index: 6;
+  color: #cfffff;
+}
+
+/* Contract §9: `media` (data-slot="media") and `content` (data-slot="content")
+   MUST be independently addressable elements -- CssRenderer's `content` slot
+   replaces its target's innerHTML wholesale (Contract §9.3), which would
+   destroy a nested media child on every setData({content}) call. The real
+   source instead puts `<img class="nc-hud-float-image">` directly *inside*
+   `.nc-hp-text` and gives `.nc-hp-text` `display: flow-root` purely as a
+   clearfix so the text block grows to contain its floated child. Here the
+   two are siblings instead (`.nc-hud-float-image` immediately before
+   `.nc-hp-text`, both children of `.nc-hp-content`) -- CSS float-wrap works
+   identically for a plain-flow sibling as for a nested child, so this
+   preserves the original per-line wrap-around-the-image look. The
+   containing clearfix moves up to `.nc-hp-content` accordingly. Same
+   restructuring #13 made for the structurally-identical HUD-04 markup --
+   see README "Behavioral diffs". */
+.hud-03 .nc-hp-content::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* System-label row: absolute-positioned wrapper (source: blogger's
+   `.nc-hp-system-row`, normally also host to the collapse/expand toggle
+   button `NcHudMini.init()` injects at runtime). This package ships no
+   toggle (see README "Behavioral diffs" item 1), so the row here holds only
+   the label -- kept as its own element (rather than folding its offset into
+   `.nc-hp-system` directly) because the two elements' positioning values
+   were tuned together against the real rendered layout (source comments:
+   "Recalibrated empirically after fixing the line-height bug"); splitting
+   them risks silently reintroducing that bug. */
+.hud-03 .nc-hp-system-row {
+  position: absolute;
+  top: -36px;
+  left: -44px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.hud-03 .nc-hp-system {
+  display: inline;
+  vertical-align: middle;
+  position: relative;
+  top: -27px;
+  left: 2px;
+  margin: 0;
+
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: bold;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+
+  color: rgba(80, 220, 255, .72);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .45);
+}
+
+.hud-03 .nc-hp-title {
+  margin: 10px 0 34px 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+
+  color: #8ff6ff;
+
+  text-shadow:
+    0 0 8px rgba(80, 245, 255, .95),
+    0 0 20px rgba(80, 245, 255, .45);
+}
+
+.hud-03 .nc-hp-text {
+  max-width: 100%;
+
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  font-size: 12px;
+  line-height: 1.72;
+  letter-spacing: .02em;
+
+  color: rgba(190, 250, 255, .84);
+  text-shadow: 0 0 10px rgba(80, 220, 255, .18);
+
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  /* NOT display:flow-root here -- see the `.nc-hp-content` comment above.
+     A plain-flow block lets its own lines wrap around the preceding
+     `.nc-hud-float-image` float sibling; a flow-root/BFC block would
+     instead reserve a rigid rectangle beside the float for its own full
+     height, which is not the original per-line wrap look. */
+}
+
+.hud-03 .nc-hp-footer {
+  display: none; /* the footer/ticker slot's text is rendered by .nc-hp-frame-ticker span; kept for slot indexing only */
+}
+
+/* ── Media -- static image, floated left (source: blogger's "public media
+   API", nc-hud-* prefix; §1.21/§1.29 "media = .nc-hp-float-image") ──────
+   HUD-03 has no `mediaEmbed` capability (no iframe, no video) -- the `media`
+   slot targets a plain `<img>` element directly, which `CssRenderer`'s
+   generic slot path already handles (`#applyMediaSlot`: "no mediaEmbed ->
+   sets `<img>.src` if the markup put one there"). This is materially
+   simpler than HUD-04's media wiring and needs no renderer extension point,
+   confirmed against `CssRenderer.ts` (`#applyMediaSlot`), not assumed. */
+
+.hud-03 .nc-hud-float-image {
+  float: left;
+  width: 28%;
+  min-width: 220px;
+  max-width: 360px;
+  height: auto;
+  margin: 0 34px 22px 0;
+  object-fit: contain;
+  filter: brightness(.76) contrast(1.14) saturate(.9);
+  border: 1px solid rgba(80, 220, 255, .36);
+  box-shadow:
+    0 0 16px rgba(80, 220, 255, .18),
+    inset 0 0 18px rgba(80, 220, 255, .08);
+}
+
+/* ── Mini card (mini:landscape composition — see mini/landscape/hud.css) ──
+   Source: `.nc-hp-mini-card` etc. in blogger-hud03-template.css. Rewritten
+   from an absolutely-positioned, opacity-toggled overlay (it sits on top of
+   `.nc-hp-panel` inside one `.nc-hp-widget`, shown/hidden by the client-side
+   toggle) to a normal-flow, always-visible root -- this package has no
+   toggle; `mini` is its own mounted composition, not an overlay state.
+   Contract §7.3(b): a genuine, already-authored lower-density composition
+   (Inventory §1.26 "this one is genuinely a distinct lower-density
+   composition already"), migrated near-as-is. */
+
+.hud-03 .nc-hp-mini-card {
+  position: relative;
+  width: fit-content;
+  min-width: 240px;
+  max-width: min(420px, 100%);
+  height: 148px;
+  background: #000;
+  overflow: hidden;
+}
+
+.hud-03 .nc-hp-mini-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2.5px solid rgba(80, 220, 255, .92);
+  box-shadow:
+    0 0 8px  rgba(80, 220, 255, .9),
+    0 0 20px rgba(80, 220, 255, .4),
+    inset 0 0 12px rgba(80, 220, 255, .06);
+  pointer-events: none;
+  clip-path: polygon(12% 0, 100% 0, 100% 74%, 96% 100%, 0 100%, 0 22%);
+}
+
+.hud-03 .nc-hp-mini-card::after {
+  content: '▼';
+  position: absolute;
+  top: 17px; left: 12px;
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(80, 220, 255, .75);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .6);
+  z-index: 5;
+}
+
+.hud-03 .nc-hp-mini-system {
+  position: absolute;
+  top: 18px; left: 24px;
+  margin: 0;
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, .65);
+  text-shadow: 0 0 8px rgba(80, 220, 255, .4);
+  z-index: 4;
+}
+
+.hud-03 .nc-hp-mini-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 38px 50px 16px 20px;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 3;
+  position: relative;
+}
+
+/* Static image thumbnail -- the real `.nc-hp-mini-thumb`, exactly as
+   `image-version.html` ships it (a plain `<img>`, distinct from the main
+   `.nc-hud-float-image` src -- the source's own two-places-to-edit note,
+   Inventory §1.25). No behavioral diff needed here, unlike HUD-04's mini
+   card: HUD-03 has no `mediaEmbed` capability, so the real static-thumbnail
+   shape (`.nc-hp-mini-thumb`) is used as-is rather than substituting the
+   "live video preview" alternative HUD-04 needed (README "Behavioral
+   diffs" item 3 there does not apply here). */
+.hud-03 .nc-hp-mini-thumb {
+  height: 80px; width: auto;
+  max-width: none; min-width: 48px;
+  object-fit: contain;
+  border: 1px solid rgba(80, 220, 255, .38);
+  flex-shrink: 0;
+  filter: brightness(.82) contrast(1.12) saturate(.9);
+}
+
+.hud-03 .nc-hp-mini-name {
+  margin: 0;
+  white-space: normal;
+  flex-shrink: 1;
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", monospace;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8ff6ff;
+  text-shadow:
+    0 0 8px  rgba(80, 245, 255, .95),
+    0 0 22px rgba(80, 245, 255, .42);
+}
+
+/* ── Local keyframes -- copied verbatim from blogger-hud03-template.css
+   under Theme-local names (see file header) ─────────────────────────── */
+
+@keyframes hud03OpenHud {
+  from { transform: scaleX(.1); opacity: .65; }
+  to   { transform: scaleX(1);  opacity: 1;   }
+}
+
+@keyframes hud03Breath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0, 220, 255, .18),
+      0 0 42px rgba(0, 140, 255, .10),
+      inset 0 0 28px rgba(0, 255, 255, .08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0, 240, 255, .28),
+      0 0 64px rgba(0, 180, 255, .16),
+      inset 0 0 42px rgba(0, 255, 255, .12);
+  }
+}
+
+@keyframes hud03PanelSweep {
+  0%   { transform: rotate(8deg) translateX(-320%); }
+  100% { transform: rotate(8deg) translateX(900%); }
+}
+
+@keyframes hud03TickerScroll {
+  0%   { transform: translateX(0);                   opacity: 1; }
+  97%  { transform: translateX(calc(-100% - 100vw)); opacity: 1; }
+  98%  { opacity: 0; }
+  100% { transform: translateX(0);                   opacity: 0; }
+}
+
+@keyframes hud03Loader1 {
+  0%           { opacity: 0; } 13%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes hud03Loader2 {
+  0%, 6.5%     { opacity: 0; } 19.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes hud03Loader3 {
+  0%, 13%      { opacity: 0; } 26%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes hud03Loader4 {
+  0%, 19.5%    { opacity: 0; } 32.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes hud03Loader5 {
+  0%, 26%      { opacity: 0; } 39%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes hud03Loader6 {
+  0%, 32.5%    { opacity: 0; } 45.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes hud03Loader7 {
+  0%, 39%      { opacity: 0; } 52%          { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+@keyframes hud03Loader8 {
+  0%, 45.5%    { opacity: 0; } 58.5%        { opacity: 1; }
+  82%          { opacity: 1; } 82.01%, 100% { opacity: 0; }
+}
+
+/* ── Mobile reflow (baseline for the micro:portrait composition) ────── */
+/* Ported from the real blogger-hud03-template.css `@media (max-width:
+   900px)` block -- micro/portrait/hud.css applies this as its base layout
+   unconditionally rather than behind a breakpoint (README "micro:portrait",
+   same approach #13 used for the identical HUD-04 reflow). */
+
+.hud-03.hud-03--micro .nc-hp-panel {
+  min-height: 0;
+  padding: 48px 24px;
+}
+
+.hud-03.hud-03--micro .nc-hp-frame-shell,
+.hud-03.hud-03--micro .nc-hp-frame-inner,
+.hud-03.hud-03--micro .nc-hp-frame-loader,
+.hud-03.hud-03--micro .nc-hp-frame-topline,
+.hud-03.hud-03--micro .nc-hp-frame-mask,
+.hud-03.hud-03--micro .nc-hp-sweep {
+  display: none;
+}
+
+.hud-03.hud-03--micro .nc-hp-title {
+  font-size: 30px;
+  margin-bottom: 24px;
+}
+
+.hud-03.hud-03--micro .nc-hp-text {
+  font-size: 15px;
+  line-height: 1.72;
+  letter-spacing: .02em;
+}
+
+.hud-03.hud-03--micro .nc-hud-float-image {
+  float: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0 0 24px 0;
+}

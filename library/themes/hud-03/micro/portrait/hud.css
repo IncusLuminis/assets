@@ -1,0 +1,23 @@
+/*
+ * micro:portrait -- the vertical thumbnail form (Contract §7.1, §8.2).
+ *
+ * The real widgets/panels/hud-03/ / blogger-lineage baseline has no
+ * authored 9:16/portrait composition (Inventory §1.27 "No 9:16. Gap for
+ * #18."). It does, however, already ship a reduced reflow of the same maxi
+ * editorial layout for narrow viewports -- `@media (max-width: 900px)` in
+ * blogger-hud03-template.css: frame ornaments hidden, the floated image
+ * switched from `float:left` to a full-width block stacked above the text
+ * instead. This composition promotes that existing reflow (see the
+ * `.hud-03.hud-03--micro …` rules in ../../styles/shared.css) to a
+ * first-class, always-applied composition instead of a breakpoint --
+ * `orientations` has no exact-ratio requirement (Contract §8.1: "`@media`
+ * reflow … are all conformant") and this is the Contract-minimum vertical
+ * thumbnail, not a new 9:16 art direction. Same approach #13 (HUD-04) used
+ * for the identical mechanism in the same shared upstream file. See README
+ * "micro:portrait".
+ */
+
+.hud-03--micro {
+  width: min(420px, 100%);
+  margin: 0 auto;
+}

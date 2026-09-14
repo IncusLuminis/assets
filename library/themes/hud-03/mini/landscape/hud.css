@@ -1,0 +1,20 @@
+/*
+ * mini:landscape -- the real HUD-03's `.nc-hp-mini-card` is already a
+ * genuinely distinct, lower-density composition (Contract §7.3(b), Inventory
+ * §1.26: "this one is genuinely a distinct lower-density composition
+ * already -- closest of the four HUDs to Arch §13's intent"), not a scaled
+ * clone of maxi -- migrated near-as-is. `.nc-hp-mini-card` itself + its
+ * children are already fully styled in styles/shared.css; nothing further
+ * is needed here beyond sizing this composition's root to the card.
+ *
+ * Unlike HUD-04's mini card (which had to substitute a "live video preview"
+ * for the media slot because it declares `mediaEmbed`), HUD-03 has no
+ * `mediaEmbed` capability -- the real `.nc-hp-mini-thumb` static `<img>`
+ * from `image-version.html` is used as-is, so no behavioral diff applies
+ * here (see README "mini-card fidelity").
+ */
+
+.hud-03--mini {
+  width: fit-content;
+  max-width: 100%;
+}
