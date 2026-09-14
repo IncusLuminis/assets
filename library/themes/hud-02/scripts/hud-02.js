@@ -72,13 +72,30 @@ return (function () {
   // loadSimbadData()/loadPapers() below ("queue-behind" race fix).
   // `simbadInFlightTarget`/`papersInFlightTarget`: the target the CURRENT
   // in-flight fetch was actually started for (not the latest-requested
-  // target -- `currentTarget` already tracks that). Needed to tell an
-  // A->B->A reversion (the pending target reverts to the one already
-  // in flight -- nothing new to fetch) apart from a genuine A->B->C
-  // supersession (Story #36 follow-up fix).
-  var simbadLoaded = false, simbadBusy = false, simbadPendingTarget = null, simbadInFlightTarget = null;
+  // target). Needed to tell an A->B->A reversion (the pending target
+  // reverts to the one already in flight -- nothing new to fetch) apart
+  // from a genuine A->B->C supersession (Story #36 follow-up fix).
+  // `simbadRequestedTarget`/`papersRequestedTarget`: Story #36 second
+  // follow-up fix -- each panel's OWN independently-tracked "last target
+  // the consumer actually requested", used for THAT panel's staleness
+  // checks instead of the shared `currentTarget`. Both are written
+  // together, unconditionally, by every accepted setData({objectName})
+  // call below regardless of which tab is active -- so a target requested
+  // while (say) the PAPERS tab is active is never invisible to the DATA
+  // panel's own bookkeeping, and vice versa. `currentTarget` itself is no
+  // longer written by loadSimbadData/loadPapers (only by setData/mount's
+  // initial call) -- it was loadSimbadData writing it on every fetch IT
+  // started (including drain-fired ones, for a target the DATA panel
+  // cared about) that let a same-tick DATA-panel drain silently revert
+  // `currentTarget` out from under an in-flight PAPERS fetch for a
+  // DIFFERENT, newer target, making that PAPERS fetch's own genuinely
+  // current response look "stale" and get dropped when it resolved.
+  // `currentTarget` remains the widget's single "what am I conceptually
+  // showing" value (title/Aladin/initial-tab-switch reads), but no fetch
+  // pipeline's correctness depends on it any more.
+  var simbadLoaded = false, simbadBusy = false, simbadPendingTarget = null, simbadInFlightTarget = null, simbadRequestedTarget = DEFAULT_TARGET;
   var vizierCache = {}, vizierBusy = false;
-  var papersLoaded = false, papersBusy = false, papersPendingTarget = null, papersInFlightTarget = null;
+  var papersLoaded = false, papersBusy = false, papersPendingTarget = null, papersInFlightTarget = null, papersRequestedTarget = DEFAULT_TARGET;
 
   var aladinReady = false, aladinBusy = false, aladinInstance = null;
   var aladinViewerId = "nc-hud02-aladin-" + Math.random().toString(36).slice(2, 10);
@@ -204,12 +221,15 @@ return (function () {
   // queued target, so only the LAST-requested target is ever retained),
   // and once the in-flight fetch settles it is drained via
   // drainSimbadQueue(). The in-flight fetch's own resolution also checks
-  // `target !== currentTarget` before rendering -- if a newer request
-  // superseded it while it was in flight, its response is discarded, not
-  // painted over the newer target's (already-queued) data. This is the
-  // "queue-behind" choice (vs. cancel-in-flight/AbortController): the
-  // stale network call is still allowed to complete, its result is just
-  // never rendered, and the queued target's own fetch starts right after.
+  // `target !== simbadRequestedTarget` before rendering -- if a newer
+  // request superseded it while it was in flight, its response is
+  // discarded, not painted over the newer target's (already-queued) data.
+  // `simbadRequestedTarget` (NOT the shared `currentTarget` -- see the
+  // state-var block above for why) is what this staleness check compares
+  // against. This is the "queue-behind" choice (vs. cancel-in-flight/
+  // AbortController): the stale network call is still allowed to
+  // complete, its result is just never rendered, and the queued target's
+  // own fetch starts right after.
   function loadSimbadData(target) {
     if (simbadBusy) {
       // A->B->A reversion: if the newly-requested target is the SAME one
@@ -221,7 +241,7 @@ return (function () {
       return;
     }
     simbadPendingTarget = null;
-    simbadBusy = true; simbadLoaded = false; currentTarget = target; simbadInFlightTarget = target;
+    simbadBusy = true; simbadLoaded = false; simbadInFlightTarget = target;
     setDataStatus("QUERYING SIMBAD…", "loading");
 
     var query = [
@@ -239,7 +259,7 @@ return (function () {
         // Discard a response for a target that's no longer current -- a
         // newer setData({objectName}) call superseded it while this fetch
         // was in flight (queued above; drained below either way).
-        if (target !== currentTarget) { drainSimbadQueue(); return; }
+        if (target !== simbadRequestedTarget) { drainSimbadQueue(); return; }
         if (!json || !json.data || json.data.length === 0) { renderFallback(); drainSimbadQueue(); return; }
         var row = {};
         json.metadata.forEach(function (col, i) { row[col.name] = json.data[0][i]; });
@@ -249,7 +269,7 @@ return (function () {
       })
       .catch(function () {
         simbadBusy = false;
-        if (target === currentTarget) renderFallback();
+        if (target === simbadRequestedTarget) renderFallback();
         drainSimbadQueue();
       });
   }
@@ -292,8 +312,8 @@ return (function () {
   }
 
   // Story #36 cleanup: both call sites already gate on `target ===
-  // currentTarget` (the staleness check) before calling this, so the
-  // `target !== currentTarget` half of the old condition here -- and the
+  // simbadRequestedTarget` (the staleness check) before calling this, so
+  // the "not current" half of the old condition here -- and the
   // "SIMBAD DATA UNAVAILABLE" branch it guarded -- could never be reached.
   // Simplified to what's actually reachable: always render the NGC 1300
   // fallback rows for the (guaranteed-current) target.
@@ -451,7 +471,12 @@ return (function () {
     hud.loadExternalResource("simbad").catch(function () {}).then(function () { return simbadFetch(url); })
       .then(function (json) {
         papersBusy = false;
-        if (target !== currentTarget) { drainPapersQueue(); return; }
+        // Story #36 second follow-up fix: compares against
+        // `papersRequestedTarget` (this panel's own tracker), not the
+        // shared `currentTarget` -- a target requested while a DIFFERENT
+        // tab was active (so this panel's own load wasn't the one that
+        // fired) must still count as superseding this response.
+        if (target !== papersRequestedTarget) { drainPapersQueue(); return; }
         papersLoaded = true;
         var idx = {};
         (json.metadata || []).forEach(function (col, i) { idx[col.name] = i; });
@@ -463,7 +488,7 @@ return (function () {
       })
       .catch(function () {
         papersBusy = false;
-        if (target === currentTarget) setPanelStatus(".nc-or-info-panel--papers", "ARCHIVE UNAVAILABLE", "error");
+        if (target === papersRequestedTarget) setPanelStatus(".nc-or-info-panel--papers", "ARCHIVE UNAVAILABLE", "error");
         drainPapersQueue();
       });
   }
@@ -557,6 +582,16 @@ return (function () {
       if (typeof data.objectName === "string" && data.objectName.trim() && data.objectName.trim() !== currentTarget) {
         var target = data.objectName.trim();
         currentTarget = target;
+        // Story #36 second follow-up fix: update BOTH panels' own
+        // requested-target trackers here, unconditionally, regardless of
+        // which tab is active below -- a target requested while the
+        // PAPERS tab is active must still be visible to the DATA panel's
+        // own staleness check (and vice versa), so a sibling panel's own
+        // queue-drain (for a target requested earlier, on a different
+        // tab) can never make an unrelated, still-current fetch look
+        // stale (or a stale one look current) by surprise.
+        simbadRequestedTarget = target;
+        papersRequestedTarget = target;
         simbadLoaded = false; papersLoaded = false;
         var mode = root.getAttribute("data-info-mode") || "data";
         if (mode === "data") loadSimbadData(target);

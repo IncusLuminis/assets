@@ -361,6 +361,7 @@ describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Ala
     await hud.mount(hostEl);
     await flushAsync();
     expect(fetchCalls.length).toBe(1); // A (NGC 1300) in flight
+    expect(decodeURIComponent(fetchCalls[0].url)).toContain("i.id = 'NGC 1300'");
 
     const root = hostEl.querySelector("[data-hud-theme='hud-01']");
 
@@ -372,6 +373,14 @@ describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Ala
 
     expect(fetchCalls.length).toBe(2); // only A and C were ever fetched -- B never was
     expect(root.querySelector("#nc-hud01-data-panel").textContent).not.toContain("M 31");
+    // The actual DISPATCHED fetch, not just the (separately, hand-fed)
+    // response body, must be for C -- not B. A mutation that made the
+    // queue keep the FIRST queued target instead of the last would still
+    // pass a response-body-only assertion here (the test controls what
+    // each fetch resolves to independent of what it was actually fetching
+    // for), so this has to check the real request.
+    expect(decodeURIComponent(fetchCalls[1].url)).toContain("i.id = 'M 32'");
+    expect(decodeURIComponent(fetchCalls[1].url)).not.toContain("i.id = 'M 31'");
 
     fetchCalls[1].resolve(jsonResponse(simbadRow("M 32")));
     await flushAsync();
@@ -380,6 +389,118 @@ describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Ala
     expect(panelText).toContain("M 32");
     expect(panelText).not.toContain("M 31");
     expect(panelText).not.toContain("NGC 1300");
+  });
+
+  it("3-deep queue overwrite (PAPERS): same shape as the DATA-panel version, for the PAPERS panel's own queue", async () => {
+    const fetchCalls = [];
+    vi.stubGlobal("fetch", vi.fn((url) => {
+      const d = deferred();
+      fetchCalls.push({ url, ...d });
+      return d.promise;
+    }));
+
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+    expect(fetchCalls.length).toBe(1); // mount's own DATA-panel fetch, not under test here
+    fetchCalls[0].resolve(jsonResponse(simbadRow("NGC 1300")));
+    await flushAsync();
+    fetchCalls.length = 0;
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    root.querySelector('[data-action="papers"]').click();
+    await flushAsync();
+    expect(fetchCalls.length).toBe(1); // A (NGC 1300) in flight on the PAPERS panel
+    expect(decodeURIComponent(fetchCalls[0].url)).toContain("i.id = 'NGC 1300'");
+
+    hud.setData({ objectName: "M 31" }); // B queued
+    hud.setData({ objectName: "M 32" }); // C overwrites the queued B -- B is dropped, never fetched
+
+    fetchCalls[0].resolve(jsonResponse(papersRow("NGC 1300 Paper"))); // A settles, discarded (stale)
+    await flushAsync();
+
+    expect(fetchCalls.length).toBe(2); // only A and C were ever fetched -- B never was
+    const panel = root.querySelector(".nc-ol-info-panel--papers");
+    expect(panel.textContent).not.toContain("M 31");
+    // The actual dispatched fetch must be for C, not the dropped B.
+    expect(decodeURIComponent(fetchCalls[1].url)).toContain("i.id = 'M 32'");
+    expect(decodeURIComponent(fetchCalls[1].url)).not.toContain("i.id = 'M 31'");
+
+    fetchCalls[1].resolve(jsonResponse(papersRow("M 32 Paper")));
+    await flushAsync();
+
+    const panelText = panel.textContent;
+    expect(panelText).toContain("M 32 Paper");
+    expect(panelText).not.toContain("M 31");
+    expect(panelText).not.toContain("NGC 1300 Paper");
+  });
+
+  it("cross-panel currentTarget drift: a target successfully requested and fetched while the PAPERS tab is active must not be silently discarded because the DATA panel's own queue-drain (for a target requested earlier, on a different tab) touched shared state", async () => {
+    const fetchCalls = [];
+    vi.stubGlobal("fetch", vi.fn((url) => {
+      const d = deferred();
+      fetchCalls.push({ url, ...d });
+      return d.promise;
+    }));
+
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+    expect(fetchCalls.length).toBe(1); // SIMBAD(A=NGC 1300) in flight, DATA tab active by default
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+
+    // DATA tab active: request B -- queues behind the in-flight SIMBAD(A).
+    hud.setData({ objectName: "M 31" }); // B
+
+    // Switch to PAPERS tab -- fires PAPERS(B), since B is now the widget's
+    // last-requested target.
+    root.querySelector('[data-action="papers"]').click();
+    await flushAsync();
+    expect(fetchCalls.length).toBe(2); // SIMBAD(A) still in flight; PAPERS(B) now in flight too
+
+    // PAPERS tab active: request C -- queues behind the in-flight
+    // PAPERS(B). The DATA panel's own queue (still holding stale B from
+    // the step above) is a SEPARATE pipeline and is not touched by this.
+    hud.setData({ objectName: "M 32" }); // C
+
+    // SIMBAD(A) resolves: correctly discarded as stale (A was superseded
+    // long ago); draining the DATA panel's own queue fires a needless --
+    // but harmless -- SIMBAD(B) fetch.
+    fetchCalls[0].resolve(jsonResponse(simbadRow("NGC 1300")));
+    await flushAsync();
+    expect(fetchCalls.length).toBe(3);
+
+    // PAPERS(B) resolves. This must be recognised as stale (C is the
+    // actual last-requested target for the PAPERS panel) regardless of
+    // whatever the sibling DATA panel's own drain just did -- it must be
+    // discarded, not rendered, and its own drain must fire PAPERS(C).
+    fetchCalls[1].resolve(jsonResponse(papersRow("M 31 Paper")));
+    await flushAsync();
+    expect(fetchCalls.length).toBe(4);
+
+    // The needless SIMBAD(B) resolves too -- must not corrupt anything
+    // else in flight.
+    fetchCalls[2].resolve(jsonResponse(simbadRow("M 31")));
+    await flushAsync();
+
+    // PAPERS(C) -- the user's actual LAST request on the active tab,
+    // successfully fetched -- must render. This is the crux of the bug:
+    // it used to be silently discarded as "stale" because the DATA
+    // panel's own queue-drain (for an unrelated, earlier request) had
+    // corrupted the shared currentTarget out from under it.
+    fetchCalls[3].resolve(jsonResponse(papersRow("M 32 Paper")));
+    await flushAsync();
+
+    const panelText = root.querySelector(".nc-ol-info-panel--papers").textContent;
+    expect(panelText).toContain("M 32 Paper");
+    expect(panelText).not.toContain("M 31 Paper");
   });
 
   it("Aladin fallback: after a simulated Aladin init failure, the fallback message is actually visible (computed style), not just present in the DOM with textContent set", async () => {
