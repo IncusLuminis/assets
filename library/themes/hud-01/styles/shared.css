@@ -1,0 +1,126 @@
+/*
+ * styles/shared.css -- keyframes and paper-row styles this Theme's own
+ * compositions reference (manifest.json "animations", Contract §3.12,
+ * §15.6). Ported from the blogger-template lineage's
+ * widgets/sandbox/blogger-hud01-02-wip/blogger-hud-shared.css.
+ *
+ * There is no platform-provided injected "base" in this 0.1 Runtime yet
+ * (Contract §11.2 describes one; #8/#9 do not implement injection) -- this
+ * Theme is self-contained per §11.3 ("SVG/CSS/JS/HTML Themes SHOULD carry
+ * all their text assets in-package") and bundles the shared keyframes it
+ * needs itself, exactly as `library/themes/fixture-svg-hud` already does
+ * for its own (Theme-local) keyframe. Loaded first, before
+ * maxi|mini|micro/<orientation>/hud.css, so later files may reference these
+ * keyframes/classes (Contract §3.10 "order of loading is significant").
+ *
+ * Trimmed from the real blogger-hud-shared.css: this file omits the video
+ * embed / YouTube / TikTok / HeyGen facade rules and the `.nc-hud-row`
+ * multi-panel-row layout -- hud-01 does not declare `capabilities.mediaEmbed`
+ * (that is HUD-04's job, Contract §25's note under §25.4) and Story #14's
+ * Playground, not this package, is responsible for laying out multiple
+ * mounted instances on a page. See README.md "Behavioural differences".
+ */
+
+@keyframes hudBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(0,220,255,.18),
+      0 0 42px rgba(0,140,255,.10),
+      inset 0 0 28px rgba(0,255,255,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0,240,255,.28),
+      0 0 64px rgba(0,180,255,.16),
+      inset 0 0 42px rgba(0,255,255,.12);
+  }
+}
+
+@keyframes hudRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes hudPulseOuter {
+  0%, 100% { transform: scale(.94); opacity: .35; }
+  50%      { transform: scale(1.02); opacity: 1; }
+}
+
+@keyframes hudPulseInner {
+  0%, 100% { transform: scale(.92); opacity: .28; }
+  50%      { transform: scale(1.05); opacity: .78; }
+}
+
+@keyframes hudBlinkSoft {
+  0%, 100% { opacity: .32; }
+  50%      { opacity: 1; }
+}
+
+@keyframes hudLockBoxPulse {
+  0%, 100% { transform: scale(.78); opacity: .25; }
+  50%      { transform: scale(1.12); opacity: .95; }
+}
+
+@keyframes hudProgressScan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+
+/* ================================================================
+   SHARED PAPER ROWS (this Theme's own PAPERS-tab renderer, scripts/hud-01.js)
+   ================================================================ */
+
+.nc-hud-panel-header {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 15px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 255, 0.82);
+  text-align: center;
+  padding: 7px 8px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.12);
+  margin-bottom: 2px;
+}
+
+.nc-hud-paper-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(80, 220, 255, 0.06);
+}
+.nc-hud-paper-row:last-child { border-bottom: none; }
+
+.nc-hud-paper-year {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: rgba(80, 220, 255, 0.50);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.nc-hud-paper-title {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: .02em;
+  color: rgba(80, 220, 255, 0.88);
+  flex: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.nc-hud-paper-title:hover {
+  color: rgba(80, 220, 255, 1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.nc-hud-paper-journal {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: rgba(80, 220, 255, 0.32);
+  flex-shrink: 0;
+  white-space: nowrap;
+}

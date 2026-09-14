@@ -1,0 +1,458 @@
+// hud-01/scripts/hud-01.js -- Theme entry script for maxi:landscape.
+// Evaluated by SvgRenderer as `new Function("root", "context", "hud", <this
+// file's text>)` (Contract §16.4, §17.1) -- `root` is this composition's
+// mounted element, `hud` is the Theme-internal lazy-resource API
+// (`hud.loadExternalResource(name)`, Contract §10.4/§16.2-§16.3).
+//
+// Migrated (trimmed -- see README.md "Behavioural differences") from
+// widgets/sandbox/blogger-hud01-02-wip/blogger-hud01-template.js's
+// `createInstance()` factory. The blogger lineage's multi-instance
+// bookkeeping (`_ncAladinLoader` page global, unique-id counters) is
+// replaced here by SvgRenderer's own per-instance `#runThemeScript` call
+// (fresh closure per mount) and `DomExternalResourceLoader`'s page-scoped
+// `kind:host` de-duplication (Story #9) -- so this script itself carries no
+// cross-instance state; `capabilities.multiInstance: true` still holds
+// because every DOM query below is scoped to `root`, matching Contract
+// §16.5's requirement for a Theme claiming multi-instance support.
+"use strict";
+
+// `new Function("root", "context", "hud", <this file's text>)` treats this
+// whole file as ONE function body (SvgRenderer#runThemeScript) -- the IIFE
+// below is purely for local `var`/`function` scoping, so its own returned
+// handle object must itself be returned from the OUTER function via this
+// `return`, or the factory would resolve to `undefined` and the renderer
+// would treat this composition as having no teardown handle at all.
+return (function () {
+  var OTYPE_LABELS = {
+    "G": "GALAXY", "GBar": "BARRED SPIRAL GALAXY", "GbS": "BARRED SPIRAL GALAXY",
+    "Sy1": "SEYFERT 1 GALAXY", "Sy2": "SEYFERT 2 GALAXY", "AGN": "ACTIVE GALACTIC NUCLEUS",
+    "QSO": "QUASAR", "*": "STAR", "**": "DOUBLE STAR", "Cl*": "STAR CLUSTER",
+    "GlC": "GLOBULAR CLUSTER", "OpC": "OPEN CLUSTER", "Neb": "NEBULA",
+    "SNR": "SUPERNOVA REMNANT", "PN": "PLANETARY NEBULA", "SFR": "STAR-FORMING REGION"
+  };
+
+  // Contract §10.6 "MUST still render (empty/placeholder state) ... if the
+  // providers are unreachable [Inv §1.8 NGC 1300 fallback]" -- ported
+  // verbatim from the real baseline's own designed safety net.
+  var NGC1300_FALLBACK = [
+    ["OBJECT", "NGC 1300"], ["TYPE", "BARRED SPIRAL GALAXY"],
+    ["RA", "03H 19M 41.1S"], ["DEC", "-19° 24' 25\""],
+    ["REDSHIFT", "0.005258"], ["RADIAL VEL", "1576 KM/S"],
+    ["SIZE", "6.2' × 4.1'"], ["MORPH", "SB(RS)BC"], ["MAGNITUDE", "V ≈ 11.4"]
+  ];
+
+  var VIZIER_NGC1300_FALLBACK = [
+    { catid: "VII/155", title: "Revised New General Catalogue and Index Catalogue", desc: "Morphological, positional, and bibliographic data for 13 226 NGC and 5 386 IC objects", year: "2022", author: "Steinicke W." },
+    { catid: "VII/237", title: "HYPERLEDA — Extragalactic Database", desc: "Redshifts, B-magnitudes, diameters, morphology for ~3 million galaxies", year: "2014", author: "Makarov D. et al." },
+    { catid: "J/AJ/146/86", title: "S4G — Spitzer Survey of Stellar Structure in Galaxies", desc: "3.6 and 4.5 μm mosaics and photometry for 2352 nearby galaxies; NGC 1300 included", year: "2013", author: "Sheth K. et al." }
+  ];
+
+  var SIMBAD_TAP_URL = "https://simbad.cds.unistra.fr/simbad/sim-tap/sync";
+  var VIZIER_URL = "https://vizier.cds.unistra.fr/viz-bin/votable";
+  var FETCH_TIMEOUT_MS = 12000;
+  var DEFAULT_TARGET = "NGC 1300";
+  var INFO_TABS = ["data", "papers", "catalog"];
+  var vizierLimit = 10;
+
+  var buttons = {};
+  var listeners = []; // { el, type, fn } -- removed on destroy() (Contract §17.1)
+  var timers = [];    // setTimeout ids -- cleared on destroy()
+  var controllers = []; // AbortController instances -- aborted on destroy()
+
+  var currentTarget = DEFAULT_TARGET;
+  var simbadLoaded = false, simbadBusy = false;
+  var vizierCache = {}, vizierBusy = false;
+  var papersLoaded = false, papersBusy = false;
+
+  var aladinReady = false, aladinBusy = false, aladinInstance = null;
+  var aladinViewerId = "nc-hud01-aladin-" + Math.random().toString(36).slice(2, 10);
+
+  function q(sel) { return root.querySelector(sel); }
+  function qa(sel) { return root.querySelectorAll(sel); }
+  function on(el, type, fn) { if (!el) return; el.addEventListener(type, fn); listeners.push({ el: el, type: type, fn: fn }); }
+  function later(fn, ms) { var id = setTimeout(fn, ms); timers.push(id); return id; }
+  function warn(msg) { if (typeof console !== "undefined") console.warn("[hud-01] " + msg); }
+
+  // ── Toolbar ──────────────────────────────────────────────────────────
+
+  function setReticle(enabled) {
+    root.setAttribute("data-reticle", enabled ? "on" : "off");
+    if (buttons.reticle) buttons.reticle.setAttribute("aria-pressed", String(!!enabled));
+  }
+
+  function setInfoMode(mode) {
+    if (INFO_TABS.indexOf(mode) === -1) return;
+    var widget = root;
+    widget.setAttribute("data-info-mode", mode);
+    INFO_TABS.forEach(function (m) {
+      if (buttons[m]) buttons[m].setAttribute("aria-pressed", String(m === mode));
+    });
+    if (mode === "data" && !simbadLoaded && !simbadBusy) loadSimbadData(currentTarget);
+    else if (mode === "catalog") loadVizierReferences(currentTarget);
+    else if (mode === "papers" && !papersLoaded && !papersBusy) loadPapers(currentTarget);
+  }
+
+  function wireToolbar() {
+    qa(".nc-ol-tb-btn").forEach(function (btn) {
+      var action = btn.getAttribute("data-action");
+      if (!action) return;
+      buttons[action] = btn;
+      on(btn, "click", function () {
+        if (action === "reticle") setReticle(btn.getAttribute("aria-pressed") !== "true");
+        else setInfoMode(action);
+      });
+    });
+  }
+
+  // ── Aladin Lite (skyViewer capability, lazy via hud.loadExternalResource) ──
+
+  function initAladin() {
+    if (aladinReady || aladinBusy) return;
+    aladinBusy = true;
+    hud.loadExternalResource("skyViewer").then(
+      function () {
+        aladinBusy = false;
+        var A = typeof window !== "undefined" ? window.A : undefined;
+        if (!A || typeof A.init === "undefined") {
+          // Real degrade-graceful behaviour (Inv "If the CDN fails, the
+          // placeholder ALADIN LAYER STANDBY remains visible"): this is the
+          // expected path in every test in this repo, since no test ever
+          // injects a real Aladin global -- see README "Aladin / SIMBAD /
+          // VizieR / ADS in tests".
+          return;
+        }
+        createAladinInstance(A);
+      },
+      function () {
+        aladinBusy = false;
+        showAladinFallback("ALADIN LITE UNAVAILABLE");
+      }
+    );
+  }
+
+  function createAladinInstance(A) {
+    try {
+      A.init.then(function () {
+        aladinInstance = A.aladin("#" + aladinViewerId, {
+          survey: "P/DSS2/color", fov: 0.5, target: currentTarget, mode: "dark",
+          showReticle: false, showZoomControl: false, showFullscreenControl: false,
+          showLayersControl: false, showGotoControl: false, showStatusBar: false,
+          showFrame: false, showCooGrid: false, showProjectionControl: false,
+          backgroundColor: "#000814"
+        });
+        aladinReady = true;
+        var layer = q(".nc-hud-01-aladdin");
+        if (layer) layer.classList.add("nc-hud-01-aladdin--ready");
+      }, function () {
+        showAladinFallback("ALADIN LITE UNAVAILABLE");
+      });
+    } catch (err) {
+      warn("A.aladin() threw: " + err);
+      showAladinFallback("ALADIN LITE ERROR");
+    }
+  }
+
+  function showAladinFallback(msg) {
+    var widget = root;
+    widget.setAttribute("data-aladdin", "off");
+    var label = q(".nc-hud-01-aladdin__label");
+    if (label) label.textContent = msg;
+  }
+
+  // ── SIMBAD (DATA tab) ────────────────────────────────────────────────
+
+  function loadSimbadData(target) {
+    if (simbadBusy) return;
+    simbadBusy = true; simbadLoaded = false; currentTarget = target;
+    setDataStatus("QUERYING SIMBAD…", "loading");
+
+    var query = [
+      "SELECT b.main_id, b.otype, b.ra, b.dec,",
+      "       b.rvz_redshift, b.rvz_radvel, b.nbref,",
+      "       b.galdim_majaxis, b.galdim_minaxis, b.morph_type",
+      "FROM basic b JOIN ident i ON i.oidref = b.oid",
+      "WHERE i.id = '" + target.replace(/'/g, "''") + "'"
+    ].join(" ");
+    var url = SIMBAD_TAP_URL + "?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=" + encodeURIComponent(query);
+
+    hud.loadExternalResource("simbad").then(function () { return simbadFetch(url); }, function () { return simbadFetch(url); })
+      .then(function (json) {
+        simbadBusy = false;
+        if (!json || !json.data || json.data.length === 0) { renderFallback(target); return; }
+        var row = {};
+        json.metadata.forEach(function (col, i) { row[col.name] = json.data[0][i]; });
+        renderSimbadData(row, target);
+        simbadLoaded = true;
+      })
+      .catch(function () { simbadBusy = false; renderFallback(target); });
+  }
+
+  function simbadFetch(url) {
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    if (ctrl) controllers.push(ctrl);
+    var timer = later(function () { if (ctrl) ctrl.abort(); }, FETCH_TIMEOUT_MS);
+    return fetch(url, ctrl ? { signal: ctrl.signal } : {}).then(function (r) {
+      clearTimeout(timer);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+
+  function renderSimbadData(row, target) {
+    var rows = [];
+    rows.push(["OBJECT", row.main_id ? String(row.main_id).trim() : target]);
+    if (row.otype) rows.push(["TYPE", OTYPE_LABELS[String(row.otype).trim()] || String(row.otype).trim()]);
+    if (row.ra != null) rows.push(["RA", formatRA(row.ra)]);
+    if (row.dec != null) rows.push(["DEC", formatDec(row.dec)]);
+    if (row.rvz_redshift != null && row.rvz_redshift !== "") rows.push(["REDSHIFT", Number(row.rvz_redshift).toFixed(5)]);
+    if (row.rvz_radvel != null && row.rvz_radvel !== "") rows.push(["RADIAL VEL", Math.round(Number(row.rvz_radvel)) + " KM/S"]);
+    if (row.morph_type != null && row.morph_type !== "") rows.push(["MORPH", String(row.morph_type).trim().toUpperCase()]);
+    if (row.nbref != null && row.nbref !== "") rows.push(["PAPERS", Number(row.nbref).toLocaleString() + " REFS"]);
+    injectDataRows(rows, false);
+  }
+
+  function renderFallback(target) {
+    if (target === DEFAULT_TARGET || target === currentTarget) injectDataRows(NGC1300_FALLBACK, true);
+    else setDataStatus("SIMBAD DATA UNAVAILABLE", "error");
+  }
+
+  function injectDataRows(pairs, isFallback) {
+    var panel = q("#nc-hud01-data-panel");
+    if (!panel) return;
+    panel.innerHTML = "";
+    pairs.forEach(function (pair) {
+      var lbl = document.createElement("div"); lbl.className = "nc-ol-label"; lbl.textContent = pair[0] + ":";
+      var val = document.createElement("div"); val.className = "nc-ol-value"; val.textContent = pair[1];
+      panel.appendChild(lbl); panel.appendChild(val);
+    });
+    if (isFallback) {
+      var note = document.createElement("div");
+      note.className = "nc-ol-data-note";
+      note.textContent = "— SIMBAD OFFLINE / CACHED DATA —";
+      panel.appendChild(note);
+    }
+  }
+
+  function setDataStatus(text, state) {
+    var panel = q("#nc-hud01-data-panel");
+    if (!panel) return;
+    panel.innerHTML = "";
+    var wrap = document.createElement("div");
+    wrap.className = "nc-ol-data-status nc-ol-data-status--" + (state || "loading");
+    if (state === "loading") { var ring = document.createElement("div"); ring.className = "nc-ol-spinner"; wrap.appendChild(ring); }
+    var txt = document.createElement("span"); txt.textContent = text;
+    wrap.appendChild(txt); panel.appendChild(wrap);
+  }
+
+  function pad2(n) { return n < 10 ? "0" + n : String(n); }
+  function formatRA(deg) {
+    if (deg == null) return "—";
+    var h = Math.floor(deg / 15), rm = (deg / 15 - h) * 60, m = Math.floor(rm), s = (rm - m) * 60;
+    return pad2(h) + "H " + pad2(m) + "M " + s.toFixed(1) + "S";
+  }
+  function formatDec(deg) {
+    if (deg == null) return "—";
+    var sign = deg < 0 ? "-" : "+", abs = Math.abs(deg), d = Math.floor(abs), dm = (abs - d) * 60, m = Math.floor(dm), s = (dm - m) * 60;
+    return sign + pad2(d) + "° " + pad2(m) + "' " + s.toFixed(1) + '"';
+  }
+
+  // ── VizieR (CATALOGS tab) ────────────────────────────────────────────
+
+  function loadVizierReferences(target) {
+    if (vizierCache[target]) { renderVizierRefs(vizierCache[target].refs, vizierCache[target].fallback); return; }
+    if (vizierBusy) return;
+    vizierBusy = true;
+    setPanelStatus(".nc-ol-info-panel--catalog", "LOADING VIZIER REFERENCES…", "loading");
+
+    var params = ["-c=" + encodeURIComponent(target), "-c.rs=2", "-out.max=1", "-source=", "-out.form=mini"].join("&");
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    if (ctrl) controllers.push(ctrl);
+    var timer = later(function () { if (ctrl) ctrl.abort(); }, FETCH_TIMEOUT_MS);
+
+    hud.loadExternalResource("vizier").catch(function () {}).then(function () {
+      return fetch(VIZIER_URL + "?" + params, ctrl ? { signal: ctrl.signal } : {});
+    }).then(function (r) {
+      clearTimeout(timer);
+      vizierBusy = false;
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    }).then(function (xml) {
+      var refs = parseVizierVOTable(xml);
+      if (!refs.length) { useVizierFallback(target); return; }
+      vizierCache[target] = { refs: refs, fallback: false };
+      renderVizierRefs(refs, false);
+    }).catch(function () { vizierBusy = false; useVizierFallback(target); });
+  }
+
+  function useVizierFallback(target) {
+    var refs = VIZIER_NGC1300_FALLBACK.slice(0, vizierLimit);
+    vizierCache[target] = { refs: refs, fallback: true };
+    renderVizierRefs(refs, true);
+  }
+
+  function parseVizierVOTable(xml) {
+    var refs = [];
+    try {
+      var doc = new DOMParser().parseFromString(xml, "application/xml");
+      if (doc.querySelector("parsererror")) return refs;
+      var resources = doc.getElementsByTagName("RESOURCE");
+      for (var i = 0; i < resources.length && refs.length < vizierLimit; i++) {
+        var name = resources[i].getAttribute("name") || "";
+        if (!name || name === "votable" || name === "results") continue;
+        refs.push({ catid: name, title: name, desc: "", year: "", author: "" });
+      }
+    } catch (e) { warn("VizieR VOTable parse exception: " + e); }
+    return refs;
+  }
+
+  function renderVizierRefs(refs, isFallback) {
+    var panel = q(".nc-ol-info-panel--catalog");
+    if (!panel) return;
+    panel.innerHTML = "";
+    var hdr = document.createElement("div");
+    hdr.className = "nc-hud-panel-header";
+    hdr.textContent = "TOP " + refs.length + " CATALOGS LINKED TO THE OBJECT";
+    panel.appendChild(hdr);
+    if (isFallback) {
+      var note = document.createElement("div");
+      note.className = "nc-ol-data-note";
+      note.textContent = "— VIZIER OFFLINE / DEMO DATA —";
+      panel.appendChild(note);
+    }
+    refs.forEach(function (ref) {
+      var card = document.createElement("div"); card.className = "nc-ol-paper-card";
+      var titleEl = document.createElement("a");
+      titleEl.className = "nc-ol-paper-title";
+      titleEl.textContent = ref.title || ref.catid;
+      titleEl.href = "https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=" + encodeURIComponent(ref.catid);
+      titleEl.target = "_blank"; titleEl.rel = "noopener noreferrer";
+      card.appendChild(titleEl);
+      if (ref.desc) { var desc = document.createElement("div"); desc.className = "nc-ol-paper-abstract"; desc.textContent = ref.desc; card.appendChild(desc); }
+      panel.appendChild(card);
+    });
+  }
+
+  // ── PAPERS tab -- ports widgets/shared/js/hud_papers.js's own SIMBAD
+  //    ref/has_ref query (NOT a real ui.adsabs.harvard.edu API call: ADS is
+  //    a link target for each row's href only, matching Contract §10.3's
+  //    "ads | ui.adsabs.harvard.edu | fetch + link target" row). ──────────
+
+  function loadPapers(target) {
+    papersBusy = true;
+    setPanelStatus(".nc-ol-info-panel--papers", "QUERYING SCIENTIFIC ARCHIVE…", "loading");
+
+    var query = "SELECT TOP " + vizierLimit + ' r.title, r."year", r.bibcode, r.journal ' +
+      "FROM ref r JOIN has_ref hr ON hr.oidbibref = r.oidbib JOIN ident i ON i.oidref = hr.oidref " +
+      "WHERE i.id = '" + target.replace(/'/g, "''") + "' ORDER BY \"year\" DESC";
+    var url = SIMBAD_TAP_URL + "?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=" + encodeURIComponent(query);
+
+    hud.loadExternalResource("simbad").catch(function () {}).then(function () { return simbadFetch(url); })
+      .then(function (json) {
+        papersBusy = false; papersLoaded = true;
+        var idx = {};
+        (json.metadata || []).forEach(function (col, i) { idx[col.name] = i; });
+        var papers = (json.data || []).map(function (row) {
+          return { title: row[idx.title] || "", year: row[idx.year] || null, bibcode: row[idx.bibcode] || "", journal: row[idx.journal] || "" };
+        });
+        renderPapers(papers);
+      })
+      .catch(function () { papersBusy = false; setPanelStatus(".nc-ol-info-panel--papers", "ARCHIVE UNAVAILABLE", "error"); });
+  }
+
+  function renderPapers(papers) {
+    var panel = q(".nc-ol-info-panel--papers");
+    if (!panel) return;
+    panel.innerHTML = "";
+    var hdr = document.createElement("div");
+    hdr.className = "nc-hud-panel-header";
+    hdr.textContent = "TOP " + papers.length + " PAPERS LINKED TO THE OBJECT";
+    panel.appendChild(hdr);
+    if (!papers.length) { setPanelStatus(".nc-ol-info-panel--papers", "NO PUBLICATIONS FOUND", "error"); return; }
+    papers.forEach(function (paper) {
+      var row = document.createElement("div"); row.className = "nc-hud-paper-row";
+      if (paper.year) { var yr = document.createElement("span"); yr.className = "nc-hud-paper-year"; yr.textContent = "[" + paper.year + "]"; row.appendChild(yr); }
+      var titleEl = document.createElement(paper.bibcode ? "a" : "span");
+      titleEl.className = "nc-hud-paper-title";
+      titleEl.textContent = paper.title || paper.bibcode || "—";
+      if (paper.bibcode) { titleEl.href = "https://ui.adsabs.harvard.edu/abs/" + encodeURIComponent(paper.bibcode) + "/abstract"; titleEl.target = "_blank"; titleEl.rel = "noopener noreferrer"; }
+      row.appendChild(titleEl);
+      if (paper.journal) { var jrn = document.createElement("span"); jrn.className = "nc-hud-paper-journal"; jrn.textContent = paper.journal; row.appendChild(jrn); }
+      panel.appendChild(row);
+    });
+  }
+
+  function setPanelStatus(sel, text, state) {
+    var panel = q(sel);
+    if (!panel) return;
+    panel.innerHTML = "";
+    var wrap = document.createElement("div");
+    wrap.className = "nc-ol-data-status nc-ol-data-status--" + (state || "loading");
+    if (state === "loading") { var ring = document.createElement("div"); ring.className = "nc-ol-spinner"; wrap.appendChild(ring); }
+    var txt = document.createElement("span"); txt.textContent = text;
+    wrap.appendChild(txt); panel.appendChild(wrap);
+  }
+
+  // ── Mode (object / html) -- see README "How mode/objectName reach the
+  //    script" for why this is driven by setData rather than a construction
+  //    option in this 0.1 Runtime. ──────────────────────────────────────
+
+  function applyMode(mode) {
+    var widget = root;
+    widget.setAttribute("data-mode", mode);
+    var slot = q(".nc-hud-01-html-slot");
+    if (slot) slot.setAttribute("aria-hidden", mode === "object" ? "true" : "false");
+  }
+
+  // ── Init: assign the Aladin viewer id, wire the toolbar, start object
+  //    mode with the default target (matches the real baseline's own
+  //    `cfg.target || 'NGC 1300'` default -- Contract §16.3 "network during
+  //    mount is permitted", knownDeviations "external-io-on-mount"). ─────
+
+  var aladinDiv = q(".nc-hud-01-aladdin > div:first-child");
+  if (aladinDiv && !aladinDiv.id) aladinDiv.id = aladinViewerId;
+
+  wireToolbar();
+  applyMode("object");
+  loadSimbadData(currentTarget);
+  initAladin();
+
+  return {
+    setData: function (data) {
+      if (Object.prototype.hasOwnProperty.call(data, "mode") && (data.mode === "html" || data.mode === "object")) {
+        applyMode(data.mode);
+      }
+      if (typeof data.objectName === "string" && data.objectName.trim() && data.objectName.trim() !== currentTarget) {
+        var target = data.objectName.trim();
+        currentTarget = target;
+        simbadLoaded = false; papersLoaded = false;
+        var mode = root.getAttribute("data-info-mode") || "data";
+        if (mode === "data") loadSimbadData(target);
+        else if (mode === "catalog") loadVizierReferences(target);
+        else if (mode === "papers") loadPapers(target);
+        if (aladinReady && aladinInstance) {
+          try { aladinInstance.gotoObject(target); } catch (e) { warn("gotoObject failed: " + e); }
+        }
+      }
+    },
+    // Contract §17.1: REQUIRED. Removes every listener this script added,
+    // cancels timers, aborts in-flight fetches. The real baseline has none
+    // of this (Inv §6.5, H10: "no teardown exists anywhere in the
+    // baseline") -- 1.0 requires it, so this is new correctness this
+    // package adds on top of the migrated behaviour, not a port.
+    destroy: function () {
+      listeners.forEach(function (l) { l.el.removeEventListener(l.type, l.fn); });
+      listeners = [];
+      timers.forEach(function (id) { clearTimeout(id); });
+      timers = [];
+      controllers.forEach(function (c) { try { c.abort(); } catch (e) {} });
+      controllers = [];
+      if (aladinInstance && typeof aladinInstance.view === "object") {
+        // AladinLite v3 exposes no documented destroy(); this Theme has
+        // already removed the composition's own listeners/timers above and
+        // the mount container itself is emptied by the renderer right
+        // after this call returns (SvgRenderer.destroy(), Contract §17.2).
+        aladinInstance = null;
+      }
+    }
+  };
+})();

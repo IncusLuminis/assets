@@ -1,0 +1,30 @@
+<!--
+  hud-01 -- mini:landscape. Contract §7.3 option (a): a scaled miniature
+  crop of maxi (transform: scale(), same frame paths as maxi/landscape --
+  the real baseline's own `NcHudMini.init({ scale: 0.352, miniH: 148, ... })`
+  thumbnail, 317x148, Inv §1.9). Static -- no scripts entrypoint (empty
+  array in manifest.json): the Runtime mounts this composition directly on
+  `setVariant("mini")`/direct construction (Contract §7.5, no toggle click
+  inside one instance) and replays the last setData() (title/status) onto
+  it (Contract §6.5) -- so no live SIMBAD/Aladin/toolbar logic is needed
+  here. See README.md "mini/micro simplifications".
+-->
+<div class="nc-ol-widget nc-ol-widget--mini">
+  <div class="nc-ol-mini-scale">
+    <div class="nc-ol-panel">
+      <svg class="nc-ol-frame-svg" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+        <path class="nc-ol-frame-line"
+          d="M22 42 L112 42 L158 8 L1160 8 L1190 38 L1190 380 L1160 410 L42 410 L12 380 L12 86 Z" />
+        <path class="nc-ol-frame-line nc-ol-frame-inner"
+          d="M36 62 L126 62 L170 26 L1145 26 L1174 54 L1174 366 L1145 394 L60 394 L26 364 L26 96 Z" />
+      </svg>
+
+      <img class="nc-ol-image" data-slot="media" alt="" />
+
+      <div class="nc-ol-mini-text">
+        <div class="nc-ol-title" data-slot="title"></div>
+        <div class="nc-ol-target-lock" data-slot="status"></div>
+      </div>
+    </div>
+  </div>
+</div>
