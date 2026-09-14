@@ -1,0 +1,8 @@
+/* maxi:landscape -- composition-specific tweaks layered after
+   styles/shared.css (Contract §3.10: array order significant). The full
+   frame + editorial layout is already the shared baseline; nothing further
+   is needed for maxi specifically. */
+
+.hud-03--maxi {
+  min-height: 520px;
+}
