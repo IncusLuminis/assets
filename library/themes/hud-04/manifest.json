@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "contractVersion": "1.0",
+  "id": "hud-04",
+  "name": "HUD Post — Media Embed",
+  "version": "1.0.0",
+  "description": "Editorial character-post HUD with a vertical HeyGen video embed and a RECONNECTING pause overlay; shares HUD-03's clip-path frame (Contract §25.4).",
+  "engine": "css",
+  "baseVersion": "^1.0.0",
+  "variants": ["maxi", "mini", "micro"],
+  "orientations": ["landscape", "portrait"],
+  "compositions": {
+    "maxi:landscape":  { "dir": "maxi/landscape",  "supported": true },
+    "maxi:portrait":   { "supported": false, "reason": "portrait-maxi-deferred-1.0" },
+    "mini:landscape":  { "dir": "mini/landscape",  "supported": true },
+    "mini:portrait":   { "supported": false, "reason": "not-authored" },
+    "micro:landscape": { "supported": false, "reason": "not-authored" },
+    "micro:portrait":  { "dir": "micro/portrait", "supported": true }
+  },
+  "slots": {
+    "required": ["title"],
+    "optional": ["subtitle", "media", "content", "footer"]
+  },
+  "capabilities": {
+    "animation": true,
+    "htmlSlot": true,
+    "mediaEmbed": { "hosts": ["app.heygen.com"], "lifecycle": "src-swap" }
+  },
+  "entrypoints": {
+    "maxi:landscape":  { "styles": ["styles/shared.css", "maxi/landscape/hud.css"],  "markup": "maxi/landscape/hud.html",  "scripts": [] },
+    "mini:landscape":  { "styles": ["styles/shared.css", "mini/landscape/hud.css"],  "markup": "mini/landscape/hud.html",  "scripts": [] },
+    "micro:portrait":  { "styles": ["styles/shared.css", "micro/portrait/hud.css"],  "markup": "micro/portrait/hud.html",  "scripts": [] }
+  },
+  "externalResources": [
+    { "host": "fonts.googleapis.com", "kind": "style", "timing": "page-load", "required": false, "note": "Share Tech Mono, @import in styles/shared.css -- ported verbatim from blogger-hud03-template.css" },
+    { "host": "fonts.gstatic.com", "kind": "font", "timing": "page-load", "required": false, "note": "font files the Google Fonts stylesheet above pulls" }
+  ],
+  "isolation": "shadow-dom-preferred",
+  "overflowVisible": true,
+  "knownDeviations": [
+    {
+      "code": "no-maxi-portrait",
+      "scope": "maxi:portrait",
+      "clause": "8.3",
+      "note": "Full portrait maxi not authored -- the real blogger-lineage baseline (widgets/releases/blogger-pilot-hud03/) is one fluid landscape-ish editorial composition with no portrait maxi. micro:portrait covers the required vertical thumbnail form using the baseline's existing @media(max-width:900px) reflow, promoted to a first-class composition -- not a new 9:16 redraw.",
+      "plannedResolution": "Contract 1.1 / Platform 0.2, if the owner wants a fully authored portrait maxi"
+    },
+    {
+      "code": "external-io-on-mount",
+      "scope": "all",
+      "clause": "16.3",
+      "note": "Google Fonts (Share Tech Mono) loads via @import in styles/shared.css at mount, ported verbatim from the real blogger-hud03-template.css. Falls back to the monospace stack if blocked/offline (owner F, Contract §16.3)."
+    }
+  ]
+}
