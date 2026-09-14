@@ -477,6 +477,22 @@ return (function () {
   //    mode with the default target (matches the real baseline's own
   //    `cfg.target || 'NGC 1300'` default -- Contract §16.3 "network during
   //    mount is permitted", knownDeviations "external-io-on-mount"). ─────
+  //
+  //    Story #36: this unconditionally starts object-mode network I/O
+  //    (loadSimbadData/initAladin) even for a consumer whose intended
+  //    starting mode is "html" -- e.g. `hud.setData({ mode: "html", ... })`
+  //    queued before mount() resolves (Contract §6.3). The Runtime's
+  //    `MountContext` (RendererInterface.ts) carries no `config`/initial-
+  //    mode field this script could read synchronously here, so there is
+  //    no way for this Theme script to know the intended mode before this
+  //    init sequence runs (the whole script body is `mount()`, so it runs
+  //    to completion, network calls included, before any queued setData
+  //    can be replayed). Not fixable within this Theme's own script
+  //    without an out-of-scope Runtime/MountContext change (README "How
+  //    mode/objectName reach the script"; tracked honestly as the
+  //    `external-io-on-mount` deviation's `html-mode-initial-mount` scope
+  //    in manifest.json, not left as an inaccurate "no network in html
+  //    mode" claim).
 
   var aladinDiv = q(".nc-hud-01-aladdin > div:first-child");
   if (aladinDiv && !aladinDiv.id) aladinDiv.id = aladinViewerId;

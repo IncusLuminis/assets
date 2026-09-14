@@ -353,4 +353,30 @@ describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Ala
     expect(panel.textContent).toContain("M 31 Paper");
     expect(panel.textContent).not.toContain("NGC 1300 Paper");
   });
+
+  it("html-mode network leak: mounting directly with setData({mode:'html'}) queued before mount() STILL dispatches the object-mode skyViewer/simbad calls -- the behaviour manifest.json now honestly discloses as the 'html-mode-initial-mount' deviation, not an unqualified 'no network' claim", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("no real network in tests"))));
+
+    let load;
+    ({ hud, load } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    // Queued before mount() resolves, exactly like the existing "html mode
+    // is honoured" test -- Contract §6.3.
+    hud.setData({ mode: "html", title: "Character Post", content: "<p>Dossier text.</p>" });
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    expect((root.querySelector(".nc-ol-widget") ?? root).getAttribute("data-mode")).toBe("html");
+
+    // The documented deviation: this Theme's mount() cannot see the
+    // intended html mode before its own synchronous init runs (no
+    // MountContext.config to read), so the object-mode network calls fire.
+    // Asserted here so the manifest's disclosure and the real behaviour
+    // cannot silently drift apart.
+    expect(load).toHaveBeenCalledWith({ name: "skyViewer", host: "aladin.cds.unistra.fr", kind: "script" });
+    expect(load).toHaveBeenCalledWith({ name: "simbad", host: "simbad.cds.unistra.fr", kind: "fetch" });
+  });
 });

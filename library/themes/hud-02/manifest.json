@@ -89,6 +89,9 @@
       "note": "Full portrait maxi not authored in the real HUD-02 baseline; deferred per owner D.",
       "plannedResolution": "Contract 1.1 / Platform 0.2" },
     { "code": "external-io-on-mount", "scope": "all",           "clause": "16.3",
-      "note": "In object mode, the SIMBAD TAP query fires during mount (page-load timing), matching the real baseline's own behaviour." }
+      "note": "In object mode, the SIMBAD TAP query fires during mount (page-load timing), matching the real baseline's own behaviour." },
+    { "code": "external-io-on-mount", "scope": "html-mode-initial-mount", "clause": "16.3",
+      "note": "mount() unconditionally starts the object-mode SIMBAD fetch + Aladin CDN load before any queued setData({mode:'html'}) can be replayed (Contract §6.3: the Runtime replays queued setData only after mount() resolves, and this Theme's whole init sequence -- network calls included -- runs synchronously inside that same mount() call). A consumer intending html mode from the very first mount (e.g. hud.setData({mode:'html'}) called before mount()) still pays for this network I/O once; a later setData({mode:'html'}) correctly stops further object-mode work but cannot retroactively cancel calls already in flight. Root cause: MountContext (RendererInterface.ts) carries no config/initial-mode field a Theme script can read synchronously before this init sequence runs -- the same gap this package's README documents for objectName/mode in general. Not fixable inside this Theme script without that Runtime change; distinct from this same code's 'all'-scope entry above, which is object mode's own accepted page-load timing, not this html-mode leak.",
+      "plannedResolution": "Runtime follow-up: extend MountContext with an initial config value (Epic #21 follow-up, tracked alongside hud-01/hud-02's README 'How mode/objectName reach the script' gap)." }
   ]
 }

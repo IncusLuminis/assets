@@ -50,6 +50,19 @@ describe("library/themes/hud-02 -- 'Object Report' (Story #12 AC)", () => {
     expect(manifest.knownDeviations.some((d) => d.code === "no-maxi-portrait")).toBe(true);
   });
 
+  it("Story #36: honestly discloses the html-mode-from-first-mount network leak via a distinct external-io-on-mount knownDeviations entry, not an unqualified 'no network in html mode' claim", () => {
+    const manifest = loadManifest();
+    const htmlModeDeviation = manifest.knownDeviations.find(
+      (d) => d.code === "external-io-on-mount" && d.scope === "html-mode-initial-mount"
+    );
+    expect(htmlModeDeviation).toBeDefined();
+    expect(htmlModeDeviation.note.toLowerCase()).toContain("mountcontext");
+    // Distinct from the pre-existing object-mode entry, not a replacement.
+    expect(
+      manifest.knownDeviations.filter((d) => d.code === "external-io-on-mount").length
+    ).toBeGreaterThanOrEqual(2);
+  });
+
   it("declares skyViewer + all three dataSource providers (Contract §10, matching §25.2's HUD-02 cross-check row)", () => {
     const manifest = loadManifest();
     expect(manifest.capabilities.skyViewer).toBe(true);

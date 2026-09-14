@@ -129,6 +129,19 @@ Contract §11.1 also states "Switching mode after mount is out of scope for
 1.0" -- this package's `setData({mode})` handling is a best-effort
 convenience for the *first* `setData` call, not a supported live toggle.
 
+**Story #36 correction:** the `mode` customSlot's manifest description
+above ("html" mode is "plain content slot, no network") is only accurate
+for a Theme that was *already mounted* in object mode and then switched.
+It was not accurate for a consumer intending `html` mode **from the very
+first mount** (`hud.setData({ mode: "html" })` called before `mount()`,
+per Contract §6.3's queue-and-replay-after-mount-resolves) -- that
+consumer still pays for the same object-mode SIMBAD fetch + Aladin CDN
+load this section already describes above, because of the same
+`MountContext` gap. `manifest.json`'s `knownDeviations` now carries an
+honest `external-io-on-mount` entry scoped `html-mode-initial-mount`
+documenting this precisely, instead of leaving the customSlot description
+as an unqualified "no network" claim for that case.
+
 ## `dataSource` / `skyViewer` lazy loading (no real network in tests)
 
 Every external call is gated through `SvgRenderer`'s
