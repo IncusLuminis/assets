@@ -68,9 +68,11 @@ return (function () {
   var controllers = []; // AbortController instances -- aborted on destroy()
 
   var currentTarget = DEFAULT_TARGET;
-  var simbadLoaded = false, simbadBusy = false;
+  // `simbadPendingTarget`/`papersPendingTarget`: Story #36 fix -- see
+  // loadSimbadData()/loadPapers() below ("queue-behind" race fix).
+  var simbadLoaded = false, simbadBusy = false, simbadPendingTarget = null;
   var vizierCache = {}, vizierBusy = false;
-  var papersLoaded = false, papersBusy = false;
+  var papersLoaded = false, papersBusy = false, papersPendingTarget = null;
 
   var aladinReady = false, aladinBusy = false, aladinInstance = null;
   var aladinViewerId = "nc-hud02-aladin-" + Math.random().toString(36).slice(2, 10);
@@ -160,17 +162,44 @@ return (function () {
     }
   }
 
+  // Story #36 fix (Aladin fallback hidden): failure states use a distinct
+  // "error" value, NOT "off". `[data-aladdin="off"] .nc-hud-02-aladdin` is
+  // a `display:none` rule in hud.css that hides the WHOLE container --
+  // including `.nc-hud-02-aladdin__placeholder`/`__label`, the very element
+  // this function is about to write the fallback message into. Reusing
+  // "off" for an error made the message unconditionally invisible on every
+  // failure path. Nothing in this Theme sets "off" any more (reserved for
+  // a future explicit hide, should one ever be added) -- hud.css has no
+  // `[data-aladdin="error"]` display rule, so the placeholder (and the
+  // message written into it) stays visible, which is exactly what an error
+  // state needs.
   function showAladinFallback(msg) {
     var widget = root;
-    widget.setAttribute("data-aladdin", "off");
+    widget.setAttribute("data-aladdin", "error");
     var label = q(".nc-hud-02-aladdin__label");
     if (label) label.textContent = msg;
   }
 
   // ── SIMBAD (DATA tab) ────────────────────────────────────────────────
 
+  // Story #36 fix (SIMBAD data race): loadSimbadData stays single-flight
+  // (the `simbadBusy` guard is kept -- exactly one SIMBAD fetch in flight
+  // at a time, so two overlapping requests never both render into the
+  // shared DATA panel), but a call that arrives while a fetch is already
+  // in flight for a *different* target no longer silently no-ops. It
+  // queues its target in `simbadPendingTarget` (overwriting any earlier
+  // queued target, so only the LAST-requested target is ever retained),
+  // and once the in-flight fetch settles it is drained via
+  // drainSimbadQueue(). The in-flight fetch's own resolution also checks
+  // `target !== currentTarget` before rendering -- if a newer request
+  // superseded it while it was in flight, its response is discarded, not
+  // painted over the newer target's (already-queued) data. This is the
+  // "queue-behind" choice (vs. cancel-in-flight/AbortController): the
+  // stale network call is still allowed to complete, its result is just
+  // never rendered, and the queued target's own fetch starts right after.
   function loadSimbadData(target) {
-    if (simbadBusy) return;
+    if (simbadBusy) { simbadPendingTarget = target; return; }
+    simbadPendingTarget = null;
     simbadBusy = true; simbadLoaded = false; currentTarget = target;
     setDataStatus("QUERYING SIMBAD…", "loading");
 
@@ -186,13 +215,29 @@ return (function () {
     hud.loadExternalResource("simbad").then(function () { return simbadFetch(url); }, function () { return simbadFetch(url); })
       .then(function (json) {
         simbadBusy = false;
-        if (!json || !json.data || json.data.length === 0) { renderFallback(target); return; }
+        // Discard a response for a target that's no longer current -- a
+        // newer setData({objectName}) call superseded it while this fetch
+        // was in flight (queued above; drained below either way).
+        if (target !== currentTarget) { drainSimbadQueue(); return; }
+        if (!json || !json.data || json.data.length === 0) { renderFallback(target); drainSimbadQueue(); return; }
         var row = {};
         json.metadata.forEach(function (col, i) { row[col.name] = json.data[0][i]; });
         renderSimbadData(row, target);
         simbadLoaded = true;
+        drainSimbadQueue();
       })
-      .catch(function () { simbadBusy = false; renderFallback(target); });
+      .catch(function () {
+        simbadBusy = false;
+        if (target === currentTarget) renderFallback(target);
+        drainSimbadQueue();
+      });
+  }
+
+  function drainSimbadQueue() {
+    if (simbadPendingTarget === null) return;
+    var next = simbadPendingTarget;
+    simbadPendingTarget = null;
+    loadSimbadData(next);
   }
 
   function simbadFetch(url) {
@@ -346,7 +391,18 @@ return (function () {
   //    "ads | ui.adsabs.harvard.edu | fetch + link target" row) -- IDENTICAL
   //    query shape to hud-01's own port of the same shared module. ────────
 
+  // Story #36 fix (papersBusy missing reentrancy guard): loadPapers
+  // previously set `papersBusy = true` with no `if (papersBusy) return;`
+  // guard at all -- unlike loadVizierReferences/loadSimbadData, which are
+  // both internally guarded -- so two rapid setData({objectName}) calls
+  // while the PAPERS tab was active could fire overlapping SIMBAD TAP
+  // queries that both rendered into the same shared panel node. Guarded
+  // here the same way loadSimbadData now is (queue-behind + a
+  // target-staleness check on resolution), so the panel ends up showing
+  // the LAST-requested target's papers regardless of fetch arrival order.
   function loadPapers(target) {
+    if (papersBusy) { papersPendingTarget = target; return; }
+    papersPendingTarget = null;
     papersBusy = true;
     setPanelStatus(".nc-or-info-panel--papers", "QUERYING SCIENTIFIC ARCHIVE…", "loading");
 
@@ -357,15 +413,29 @@ return (function () {
 
     hud.loadExternalResource("simbad").catch(function () {}).then(function () { return simbadFetch(url); })
       .then(function (json) {
-        papersBusy = false; papersLoaded = true;
+        papersBusy = false;
+        if (target !== currentTarget) { drainPapersQueue(); return; }
+        papersLoaded = true;
         var idx = {};
         (json.metadata || []).forEach(function (col, i) { idx[col.name] = i; });
         var papers = (json.data || []).map(function (row) {
           return { title: row[idx.title] || "", year: row[idx.year] || null, bibcode: row[idx.bibcode] || "", journal: row[idx.journal] || "" };
         });
         renderPapers(papers);
+        drainPapersQueue();
       })
-      .catch(function () { papersBusy = false; setPanelStatus(".nc-or-info-panel--papers", "ARCHIVE UNAVAILABLE", "error"); });
+      .catch(function () {
+        papersBusy = false;
+        if (target === currentTarget) setPanelStatus(".nc-or-info-panel--papers", "ARCHIVE UNAVAILABLE", "error");
+        drainPapersQueue();
+      });
+  }
+
+  function drainPapersQueue() {
+    if (papersPendingTarget === null) return;
+    var next = papersPendingTarget;
+    papersPendingTarget = null;
+    loadPapers(next);
   }
 
   function renderPapers(papers) {

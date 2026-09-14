@@ -133,6 +133,12 @@
 .nc-hud-01-aladdin--ready .nc-hud-01-aladdin__placeholder { display: none; }
 .nc-hud-01-aladdin__label { font-size: 12px; color: rgba(80,220,255,.85); }
 .nc-hud-01-aladdin__sub { font-size: 9px; color: rgba(80,220,255,.45); }
+/* [data-aladdin="off"] hides the whole viewer container -- reserved for a
+   future explicit hide, not currently set by scripts/hud-01.js. Failure
+   states use [data-aladdin="error"] instead (Story #36 fix), which has no
+   rule here: the placeholder -- and the fallback message
+   showAladinFallback() writes into .nc-hud-01-aladdin__label -- must stay
+   visible on error, not be hidden along with the rest of the container. */
 .nc-ol-widget[data-aladdin="off"] .nc-hud-01-aladdin { display: none; }
 
 .nc-ol-reticle {

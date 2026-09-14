@@ -26,10 +26,13 @@ async function flushAsync() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-function mountHud(overrides = {}) {
+// `loadImpl` lets a test override the externalResourceLoader's `load` (e.g.
+// to reject a specific resource name, like "skyViewer", to simulate an
+// Aladin CDN failure) -- defaults to the existing always-resolves stub.
+function mountHud(overrides = {}, loadImpl = async () => {}) {
   const themeSource = new FileSystemThemeSource(themesRoot);
   const rendererRegistry = createDefaultRendererRegistry();
-  const load = vi.fn(async () => {});
+  const load = vi.fn(loadImpl);
   rendererRegistry.register(
     "svg",
     () => new SvgRenderer({ loadText: loadTextFromFileUrl, externalResourceLoader: { load } })
@@ -39,6 +42,35 @@ function mountHud(overrides = {}) {
     { themeSource, rendererRegistry }
   );
   return { hud, load };
+}
+
+// Deferred fetch response -- lets a test control exactly when a given
+// fetch() call resolves, to reproduce a network race deterministically
+// instead of relying on real timing.
+function deferred() {
+  let resolve, reject;
+  const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+  return { promise, resolve, reject };
+}
+
+function jsonResponse(body) {
+  return { ok: true, json: async () => body };
+}
+
+const SIMBAD_METADATA = [
+  { name: "main_id" }, { name: "otype" }, { name: "ra" }, { name: "dec" },
+  { name: "rvz_redshift" }, { name: "rvz_radvel" }, { name: "nbref" },
+  { name: "galdim_majaxis" }, { name: "galdim_minaxis" }, { name: "morph_type" }
+];
+
+function simbadRow(mainId) {
+  return { metadata: SIMBAD_METADATA, data: [[mainId, "G", 10.68, 41.27, 0.0001, 300, 42, 3, 1, "Sb"]] };
+}
+
+const PAPERS_METADATA = [{ name: "title" }, { name: "year" }, { name: "bibcode" }, { name: "journal" }];
+
+function papersRow(title) {
+  return { metadata: PAPERS_METADATA, data: [[title, 2020, "2020xxxx", "ApJ"]] };
 }
 
 describe("End-to-end: mount the real hud-01 Theme via Hud + SvgRenderer (Story #11 AC)", () => {
@@ -193,5 +225,132 @@ describe("End-to-end: mount the real hud-01 Theme via Hud + SvgRenderer (Story #
     expect(el2.querySelector(".nc-ol-widget--micro")).not.toBeNull();
     microHud.destroy();
     el2.remove();
+  });
+});
+
+describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Aladin fallback (hud-01)", () => {
+  let hud;
+  let hostEl;
+
+  afterEach(() => {
+    hud?.destroy();
+    hostEl?.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("SIMBAD race: a stale in-flight fetch for the default target resolving AFTER a newer setData({objectName}) call must not overwrite the newer target's data -- the DATA panel ends up showing the last-requested target regardless of resolution order", async () => {
+    const fetchCalls = [];
+    vi.stubGlobal("fetch", vi.fn((url) => {
+      const d = deferred();
+      fetchCalls.push({ url, ...d });
+      return d.promise;
+    }));
+
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+    // Mount's own object-mode init dispatched a SIMBAD fetch for the
+    // default target (NGC 1300); it has not resolved yet.
+    expect(fetchCalls.length).toBe(1);
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+
+    // A newer target is requested while that fetch is still in flight --
+    // this used to no-op via the simbadBusy guard (the original bug); it
+    // must now queue behind the in-flight fetch instead of being dropped.
+    hud.setData({ objectName: "M 31" });
+    expect(fetchCalls.length).toBe(1); // still single-flight: no second concurrent fetch dispatched yet
+
+    // The STALE fetch (for the superseded default target) resolves now,
+    // after the newer target was already requested.
+    fetchCalls[0].resolve(jsonResponse(simbadRow("NGC 1300")));
+    await flushAsync();
+
+    // Its response must be discarded, not rendered -- and the queued
+    // newer-target fetch must have been drained/dispatched.
+    expect(fetchCalls.length).toBe(2);
+    expect(root.querySelector("#nc-hud01-data-panel").textContent).not.toContain("NGC 1300");
+
+    fetchCalls[1].resolve(jsonResponse(simbadRow("M 31")));
+    await flushAsync();
+
+    const panelText = root.querySelector("#nc-hud01-data-panel").textContent;
+    expect(panelText).toContain("M 31");
+    expect(panelText).not.toContain("NGC 1300");
+  });
+
+  it("Aladin fallback: after a simulated Aladin init failure, the fallback message is actually visible (computed style), not just present in the DOM with textContent set", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("no real network in tests"))));
+
+    ({ hud } = mountHud({}, async ({ name } = {}) => {
+      if (name === "skyViewer") throw new Error("Aladin CDN unavailable");
+    }));
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    const widget = root.querySelector(".nc-ol-widget") ?? root;
+    expect(widget.getAttribute("data-aladdin")).toBe("error");
+
+    const label = root.querySelector(".nc-hud-01-aladdin__label");
+    expect(label.textContent).toBe("ALADIN LITE UNAVAILABLE");
+
+    // The bug: [data-aladdin="off"] applied display:none to the WHOLE
+    // .nc-hud-01-aladdin container (the label's own ancestor), hiding the
+    // message it had just written. Assert real computed visibility, not
+    // just DOM presence/textContent.
+    const container = root.querySelector(".nc-hud-01-aladdin");
+    expect(getComputedStyle(container).display).not.toBe("none");
+    expect(getComputedStyle(label).display).not.toBe("none");
+    expect(getComputedStyle(label).visibility).not.toBe("hidden");
+  });
+
+  it("Papers race: same shape as the SIMBAD race, for the PAPERS panel -- the panel ends up showing the last-requested target's papers", async () => {
+    const fetchCalls = [];
+    vi.stubGlobal("fetch", vi.fn((url) => {
+      const d = deferred();
+      fetchCalls.push({ url, ...d });
+      return d.promise;
+    }));
+
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+    // Discard mount's own default-target SIMBAD (DATA tab) fetch -- not
+    // under test here.
+    expect(fetchCalls.length).toBe(1);
+    fetchCalls[0].resolve(jsonResponse(simbadRow("NGC 1300")));
+    await flushAsync();
+    fetchCalls.length = 0;
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    root.querySelector('[data-action="papers"]').click();
+    await flushAsync();
+    expect(fetchCalls.length).toBe(1); // PAPERS fetch for the default target, in flight
+
+    hud.setData({ objectName: "M 31" });
+    expect(fetchCalls.length).toBe(1); // queued behind the in-flight PAPERS fetch, not a second concurrent one
+
+    fetchCalls[0].resolve(jsonResponse(papersRow("NGC 1300 Paper")));
+    await flushAsync();
+
+    expect(fetchCalls.length).toBe(2);
+    const panel = root.querySelector(".nc-ol-info-panel--papers");
+    expect(panel.textContent).not.toContain("NGC 1300 Paper");
+
+    fetchCalls[1].resolve(jsonResponse(papersRow("M 31 Paper")));
+    await flushAsync();
+
+    expect(panel.textContent).toContain("M 31 Paper");
+    expect(panel.textContent).not.toContain("NGC 1300 Paper");
   });
 });
