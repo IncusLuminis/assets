@@ -62,12 +62,25 @@ return (function () {
   var currentTarget = DEFAULT_TARGET;
   // `simbadPendingTarget`/`papersPendingTarget`: Story #36 fix -- see
   // loadSimbadData()/loadPapers() below ("queue-behind" race fix).
-  var simbadLoaded = false, simbadBusy = false, simbadPendingTarget = null;
+  // `simbadInFlightTarget`/`papersInFlightTarget`: the target the CURRENT
+  // in-flight fetch was actually started for (not the latest-requested
+  // target -- `currentTarget` already tracks that). Needed to tell an
+  // A->B->A reversion (the pending target reverts to the one already
+  // in flight -- nothing new to fetch) apart from a genuine A->B->C
+  // supersession (Story #36 follow-up fix).
+  var simbadLoaded = false, simbadBusy = false, simbadPendingTarget = null, simbadInFlightTarget = null;
   var vizierCache = {}, vizierBusy = false;
-  var papersLoaded = false, papersBusy = false, papersPendingTarget = null;
+  var papersLoaded = false, papersBusy = false, papersPendingTarget = null, papersInFlightTarget = null;
 
   var aladinReady = false, aladinBusy = false, aladinInstance = null;
   var aladinViewerId = "nc-hud01-aladin-" + Math.random().toString(36).slice(2, 10);
+
+  // Story #36 follow-up fix: set true by destroy() so a drain call
+  // scheduled by an in-flight fetch that settles AFTER destroy() (aborting
+  // its controller does not stop its own .then()/.catch() from running)
+  // is a guaranteed no-op instead of starting a brand-new, untracked fetch
+  // from a torn-down instance (Contract §17.1).
+  var destroyed = false;
 
   function q(sel) { return root.querySelector(sel); }
   function qa(sel) { return root.querySelectorAll(sel); }
@@ -190,9 +203,17 @@ return (function () {
   // stale network call is still allowed to complete, its result is just
   // never rendered, and the queued target's own fetch starts right after.
   function loadSimbadData(target) {
-    if (simbadBusy) { simbadPendingTarget = target; return; }
+    if (simbadBusy) {
+      // A->B->A reversion: if the newly-requested target is the SAME one
+      // already in flight, there is nothing new to fetch -- clear any
+      // queued target instead of leaving a stale one that would otherwise
+      // fire a redundant, UI-clobbering re-fetch once the in-flight
+      // request (for this same target) resolves and renders correctly.
+      simbadPendingTarget = (target === simbadInFlightTarget) ? null : target;
+      return;
+    }
     simbadPendingTarget = null;
-    simbadBusy = true; simbadLoaded = false; currentTarget = target;
+    simbadBusy = true; simbadLoaded = false; currentTarget = target; simbadInFlightTarget = target;
     setDataStatus("QUERYING SIMBAD…", "loading");
 
     var query = [
@@ -211,7 +232,7 @@ return (function () {
         // newer setData({objectName}) call superseded it while this fetch
         // was in flight (queued above; drained below either way).
         if (target !== currentTarget) { drainSimbadQueue(); return; }
-        if (!json || !json.data || json.data.length === 0) { renderFallback(target); drainSimbadQueue(); return; }
+        if (!json || !json.data || json.data.length === 0) { renderFallback(); drainSimbadQueue(); return; }
         var row = {};
         json.metadata.forEach(function (col, i) { row[col.name] = json.data[0][i]; });
         renderSimbadData(row, target);
@@ -220,12 +241,18 @@ return (function () {
       })
       .catch(function () {
         simbadBusy = false;
-        if (target === currentTarget) renderFallback(target);
+        if (target === currentTarget) renderFallback();
         drainSimbadQueue();
       });
   }
 
   function drainSimbadQueue() {
+    // Story #36 follow-up fix: an in-flight fetch's .then()/.catch() can
+    // still run after destroy() (abort() rejects the fetch, it does not
+    // silence its own continuation) -- guard here too, on top of destroy()
+    // clearing simbadPendingTarget itself, so a scheduled drain can never
+    // start a new, untracked fetch from a torn-down instance.
+    if (destroyed) return;
     if (simbadPendingTarget === null) return;
     var next = simbadPendingTarget;
     simbadPendingTarget = null;
@@ -256,9 +283,14 @@ return (function () {
     injectDataRows(rows, false);
   }
 
-  function renderFallback(target) {
-    if (target === DEFAULT_TARGET || target === currentTarget) injectDataRows(NGC1300_FALLBACK, true);
-    else setDataStatus("SIMBAD DATA UNAVAILABLE", "error");
+  // Story #36 cleanup: both call sites already gate on `target ===
+  // currentTarget` (the staleness check) before calling this, so the
+  // `target !== currentTarget` half of the old condition here -- and the
+  // "SIMBAD DATA UNAVAILABLE" branch it guarded -- could never be reached.
+  // Simplified to what's actually reachable: always render the NGC 1300
+  // fallback rows for the (guaranteed-current) target.
+  function renderFallback() {
+    injectDataRows(NGC1300_FALLBACK, true);
   }
 
   function injectDataRows(pairs, isFallback) {
@@ -392,9 +424,14 @@ return (function () {
   // target-staleness check on resolution), so the panel ends up showing
   // the LAST-requested target's papers regardless of fetch arrival order.
   function loadPapers(target) {
-    if (papersBusy) { papersPendingTarget = target; return; }
+    if (papersBusy) {
+      // A->B->A reversion (same fix as loadSimbadData's): nothing new to
+      // fetch if the newly-requested target is the one already in flight.
+      papersPendingTarget = (target === papersInFlightTarget) ? null : target;
+      return;
+    }
     papersPendingTarget = null;
-    papersBusy = true;
+    papersBusy = true; papersInFlightTarget = target;
     setPanelStatus(".nc-ol-info-panel--papers", "QUERYING SCIENTIFIC ARCHIVE…", "loading");
 
     var query = "SELECT TOP " + vizierLimit + ' r.title, r."year", r.bibcode, r.journal ' +
@@ -423,6 +460,7 @@ return (function () {
   }
 
   function drainPapersQueue() {
+    if (destroyed) return; // Story #36 follow-up fix -- see drainSimbadQueue()
     if (papersPendingTarget === null) return;
     var next = papersPendingTarget;
     papersPendingTarget = null;
@@ -526,6 +564,19 @@ return (function () {
     // baseline") -- 1.0 requires it, so this is new correctness this
     // package adds on top of the migrated behaviour, not a port.
     destroy: function () {
+      // Story #36 follow-up fix: aborting an in-flight fetch's controller
+      // (below) makes it reject -- it does NOT stop its own .then()/
+      // .catch() continuation from running afterward. That continuation
+      // unconditionally called drainSimbadQueue()/drainPapersQueue(),
+      // which -- if a target was queued -- started a BRAND-NEW fetch from
+      // this now-destroyed instance, whose own AbortController lands in
+      // the fresh `controllers` array below and can therefore never be
+      // aborted (Contract §17.1 violation). Setting `destroyed` (checked
+      // by both drain functions) and clearing both pending targets here
+      // makes any already-scheduled drain call a guaranteed no-op.
+      destroyed = true;
+      simbadPendingTarget = null;
+      papersPendingTarget = null;
       listeners.forEach(function (l) { l.el.removeEventListener(l.type, l.fn); });
       listeners = [];
       timers.forEach(function (id) { clearTimeout(id); });

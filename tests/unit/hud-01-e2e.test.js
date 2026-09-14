@@ -282,6 +282,106 @@ describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Ala
     expect(panelText).not.toContain("NGC 1300");
   });
 
+  it("destroy() with a queued target clears the pending queue -- a stale fetch settling after destroy() must not start a brand-new, untracked fetch", async () => {
+    const fetchCalls = [];
+    vi.stubGlobal("fetch", vi.fn((url) => {
+      const d = deferred();
+      fetchCalls.push({ url, ...d });
+      return d.promise;
+    }));
+
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+    expect(fetchCalls.length).toBe(1); // default-target fetch in flight
+
+    // Queue a newer target while that fetch is still in flight.
+    hud.setData({ objectName: "M 31" });
+
+    // Destroy while a fetch is in flight AND a target is queued behind it.
+    hud.destroy();
+
+    // The in-flight fetch settles AFTER destroy(). Its .then()/.catch()
+    // continuation used to unconditionally call drainSimbadQueue(), which
+    // -- since a target was queued -- started a brand-new, untracked fetch
+    // from the destroyed instance (Contract §17.1 violation).
+    fetchCalls[0].resolve(jsonResponse(simbadRow("NGC 1300")));
+    await flushAsync();
+
+    expect(fetchCalls.length).toBe(1); // no new fetch dispatched post-destroy
+  });
+
+  it("A->B->A reversion: reverting setData back to the target already in flight must not trigger a redundant re-fetch that clobbers the just-rendered data", async () => {
+    const fetchCalls = [];
+    vi.stubGlobal("fetch", vi.fn((url) => {
+      const d = deferred();
+      fetchCalls.push({ url, ...d });
+      return d.promise;
+    }));
+
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+    expect(fetchCalls.length).toBe(1); // NGC 1300's fetch in flight
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+
+    hud.setData({ objectName: "M 31" });     // queues M 31 behind the in-flight fetch
+    hud.setData({ objectName: "NGC 1300" }); // reverts back to the already-in-flight target
+
+    // The original (never-superseded) fetch resolves and should render
+    // normally -- no redundant second fetch should ever be dispatched for
+    // the same target, and no "QUERYING SIMBAD..." status should clobber
+    // the render that's about to happen.
+    fetchCalls[0].resolve(jsonResponse(simbadRow("NGC 1300")));
+    await flushAsync();
+
+    expect(fetchCalls.length).toBe(1); // no redundant re-fetch
+    expect(root.querySelector("#nc-hud01-data-panel").textContent).toContain("NGC 1300");
+  });
+
+  it("3-deep queue overwrite: a third target requested before the first resolves replaces the queued second target -- the middle target is never fetched or rendered", async () => {
+    const fetchCalls = [];
+    vi.stubGlobal("fetch", vi.fn((url) => {
+      const d = deferred();
+      fetchCalls.push({ url, ...d });
+      return d.promise;
+    }));
+
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+    expect(fetchCalls.length).toBe(1); // A (NGC 1300) in flight
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+
+    hud.setData({ objectName: "M 31" }); // B queued
+    hud.setData({ objectName: "M 32" }); // C overwrites the queued B -- B is dropped, never fetched
+
+    fetchCalls[0].resolve(jsonResponse(simbadRow("NGC 1300"))); // A settles, discarded (stale)
+    await flushAsync();
+
+    expect(fetchCalls.length).toBe(2); // only A and C were ever fetched -- B never was
+    expect(root.querySelector("#nc-hud01-data-panel").textContent).not.toContain("M 31");
+
+    fetchCalls[1].resolve(jsonResponse(simbadRow("M 32")));
+    await flushAsync();
+
+    const panelText = root.querySelector("#nc-hud01-data-panel").textContent;
+    expect(panelText).toContain("M 32");
+    expect(panelText).not.toContain("M 31");
+    expect(panelText).not.toContain("NGC 1300");
+  });
+
   it("Aladin fallback: after a simulated Aladin init failure, the fallback message is actually visible (computed style), not just present in the DOM with textContent set", async () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("no real network in tests"))));
 
