@@ -9,13 +9,17 @@
   },
   "scripts": {
     "build": "node scripts/build/build.mjs",
-    "typecheck": "tsc --noEmit",
+    "build:theme": "node scripts/build/build-theme.ts",
+    "build:registry": "node scripts/build/build-registry.ts",
+    "build:all": "node scripts/build/build-all.ts",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.scripts.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.2",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "esbuild": "^0.28.0",
