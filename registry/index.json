@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0",
+  "themes": [
+    {
+      "id": "hud-01",
+      "latest": "0.1.0",
+      "manifest": "/themes/hud-01/0.1.0/manifest.json",
+      "versions": [
+        {
+          "version": "0.1.0",
+          "manifest": "/themes/hud-01/0.1.0/manifest.json",
+          "package": "/themes/hud-01/0.1.0/"
+        }
+      ]
+    },
+    {
+      "id": "hud-02",
+      "latest": "0.1.0",
+      "manifest": "/themes/hud-02/0.1.0/manifest.json",
+      "versions": [
+        {
+          "version": "0.1.0",
+          "manifest": "/themes/hud-02/0.1.0/manifest.json",
+          "package": "/themes/hud-02/0.1.0/"
+        }
+      ]
+    },
+    {
+      "id": "hud-03",
+      "latest": "1.0.0",
+      "manifest": "/themes/hud-03/1.0.0/manifest.json",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "manifest": "/themes/hud-03/1.0.0/manifest.json",
+          "package": "/themes/hud-03/1.0.0/"
+        }
+      ]
+    },
+    {
+      "id": "hud-04",
+      "latest": "1.0.0",
+      "manifest": "/themes/hud-04/1.0.0/manifest.json",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "manifest": "/themes/hud-04/1.0.0/manifest.json",
+          "package": "/themes/hud-04/1.0.0/"
+        }
+      ]
+    }
+  ]
+}
