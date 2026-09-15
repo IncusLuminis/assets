@@ -27,7 +27,7 @@ Before running a **real** (non-`--dry-run`) deploy:
    with access to the Cloudflare account that owns `assets-4gy` — same
    assumption `scripts/deploy_gadgets_media.sh` makes. This script does not
    perform or check authentication itself; an unauthenticated `wrangler`
-   invocation will simply fail at step 3 with wrangler's own error.
+   invocation will simply fail at the deploy step with wrangler's own error.
 3. **`npm install` has been run** in this repo (build tooling
    dependencies — esbuild, ajv, etc.).
 4. Run from the repo root (or anywhere — the script resolves its own repo
@@ -36,30 +36,37 @@ Before running a **real** (non-`--dry-run`) deploy:
 ## Invoking it
 
 ```sh
-# Sanity-check first: build + validate + stage, print the exact wrangler
-# command and verify plan, and stop. No network call, no wrangler
+# Sanity-check first: clean + build + validate + stage, print the exact
+# wrangler command and verify plan, and stop. No network call, no wrangler
 # invocation, no Cloudflare credentials touched — safe to run any time.
 scripts/deploy/deploy-registry.sh --dry-run
 
-# The real thing: build -> validate -> stage -> DEPLOY -> verify.
+# The real thing: clean -> build -> validate -> stage -> DEPLOY -> verify.
 # Publishes to https://assets-4gy.pages.dev/.
 scripts/deploy/deploy-registry.sh
 ```
 
 A real run:
 
-1. runs `npm run build:all` (aborts here, before touching anything else, on
+1. **cleans** `dist/themes/` and `dist/runtime/` before rebuilding, so any
+   stale/bogus directory left over from a previous local run (a
+   half-finished experiment, a renamed/removed Theme's leftover output)
+   can never survive into the build, the registry index, or the deploy —
+   required for "reproducible deployment from repository state alone"
+   (Arch §33);
+2. runs `npm run build:all` (aborts here, before touching anything else, on
    any build/manifest-validation failure);
-2. stages an **allowlist-only** copy — `dist/themes/`, `dist/runtime/`, and
+3. stages an **allowlist-only** copy — `dist/themes/`, `dist/runtime/`, and
    the repo-root `registry/index.json` — into gitignored `.deploy/`
    (nothing else from `dist/` or the repo can reach the CDN, Arch §44);
-3. runs `wrangler pages deploy .deploy --project-name assets-4gy
+4. runs `wrangler pages deploy .deploy --project-name assets-4gy
    --commit-dirty=true` (a real, outward-facing Cloudflare publish);
-4. fetches `registry/index.json` + one versioned Theme manifest back from
-   `https://assets-4gy.pages.dev/` and asserts HTTP 200 + a sha256
+5. fetches `registry/index.json` + **every** staged Theme's manifest back
+   from `https://assets-4gy.pages.dev/` (not just one Theme — every Theme
+   the staged registry index lists) and asserts HTTP 200 + a sha256
    content-hash match against what was staged, then removes `.deploy/`.
 
-If step 4 (verify) fails, the script exits non-zero and says so loudly —
+If step 5 (verify) fails, the script exits non-zero and says so loudly —
 the deploy has already happened at that point (there is no automatic
 rollback in 0.1; investigate manually).
 

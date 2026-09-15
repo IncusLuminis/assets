@@ -13,9 +13,10 @@
  *
  * Two layers, both exported so tests can exercise each independently:
  *   - `buildChecksFromStagedRegistry(stageDir)`   pure fs, no network --
- *     decides *what* to verify (registry/index.json + "one versioned
- *     asset", chosen as the first theme's manifest.json per the staged
- *     registry/index.json -- see its own doc comment for why).
+ *     decides *what* to verify: registry/index.json + one versioned asset
+ *     PER Theme (every theme's manifest.json, not just the first) per the
+ *     staged registry/index.json -- see its own doc comment for why "every
+ *     Theme" matters here.
  *   - `verifyDeployment({ baseUrl, checks, fetchImpl })`   pure fetch +
  *     hash-compare, no fs -- decides whether the *published* content
  *     matches. `fetchImpl` defaults to the global `fetch` but is injectable
@@ -45,19 +46,30 @@ export function hashContent(content) {
  *
  *   - `registry/index.json` itself (the mutable discovery metadata, Arch
  *     §34) -- always checked.
- *   - "one versioned asset" (the AC's wording) -- the first Theme's
- *     `manifest.json`, per that Theme's own `manifest` path recorded in the
- *     staged `registry/index.json` (`themes[0].manifest`, e.g.
- *     "/themes/hud-01/0.1.0/manifest.json"). Picking it *from* the staged
- *     registry index (rather than hard-coding a Theme id) means this stays
- *     correct as Themes are added/removed/reordered -- and it doubles as an
- *     implicit check that the registry index's own theme->package linkage
- *     resolves to a real staged file (Arch §34 "immutable versioned
- *     assets" example path).
+ *   - "one versioned asset" per Theme (the AC's wording, applied to EVERY
+ *     Theme the staged registry index lists -- not only the first). Each
+ *     Theme's own `manifest` path recorded in the staged
+ *     `registry/index.json` (`themes[i].manifest`, e.g.
+ *     "/themes/hud-01/0.1.0/manifest.json") is checked. Checking every
+ *     Theme, not just `themes[0]`, matters: a post-deploy verification step
+ *     that can only ever catch corruption in one Theme leaves the rest
+ *     structurally unmonitored, defeating the point of the check (Arch §49
+ *     "a Theme failing validation MUST NOT be partially published" --
+ *     verify is the last line of defense that a *publish* didn't partially
+ *     or incorrectly land, and it needs to actually look at every Theme to
+ *     do that). Picking assets *from* the staged registry index (rather
+ *     than hard-coding Theme ids) means this stays correct as Themes are
+ *     added/removed/reordered -- and it doubles as an implicit check that
+ *     every Theme's registry-index entry resolves to a real staged file
+ *     (Arch §34 "immutable versioned assets" example path).
  *
- * Returns `[]` (rather than throwing) if the staged registry index has no
- * themes -- `deploy-registry.sh` still verifies `registry/index.json`
- * alone in that (0.1-unrealistic) case.
+ * Returns just the `registry/index.json` check (rather than throwing) if
+ * the staged registry index has no themes -- `deploy-registry.sh` still
+ * verifies `registry/index.json` alone in that (0.1-unrealistic) case.
+ *
+ * Throws `VerificationError` -- never an uncaught `SyntaxError` -- if the
+ * staged registry index is missing, is not valid JSON, or references a
+ * Theme asset that isn't actually staged.
  */
 export function buildChecksFromStagedRegistry(stageDir) {
   const registryRelPath = "registry/index.json";
@@ -70,14 +82,23 @@ export function buildChecksFromStagedRegistry(stageDir) {
     { path: registryRelPath, absPath: registryAbsPath, expectedHash: hashFile(registryAbsPath) }
   ];
 
-  const index = JSON.parse(fs.readFileSync(registryAbsPath, "utf8"));
-  const firstTheme = Array.isArray(index.themes) ? index.themes[0] : undefined;
-  if (firstTheme?.manifest) {
-    const assetRelPath = String(firstTheme.manifest).replace(/^\/+/, ""); // "themes/hud-01/0.1.0/manifest.json"
+  let index;
+  try {
+    index = JSON.parse(fs.readFileSync(registryAbsPath, "utf8"));
+  } catch (err) {
+    throw new VerificationError(
+      `staged registry index at ${registryAbsPath} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+
+  const themes = Array.isArray(index.themes) ? index.themes : [];
+  for (const theme of themes) {
+    if (!theme?.manifest) continue;
+    const assetRelPath = String(theme.manifest).replace(/^\/+/, ""); // "themes/hud-01/0.1.0/manifest.json"
     const assetAbsPath = path.join(stageDir, ...assetRelPath.split("/"));
     if (!fs.existsSync(assetAbsPath)) {
       throw new VerificationError(
-        `staged registry index references "${firstTheme.manifest}" for theme "${firstTheme.id}" but it was not found at ${assetAbsPath}`
+        `staged registry index references "${theme.manifest}" for theme "${theme.id}" but it was not found at ${assetAbsPath}`
       );
     }
     checks.push({ path: assetRelPath, absPath: assetAbsPath, expectedHash: hashFile(assetAbsPath) });

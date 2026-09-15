@@ -26,7 +26,8 @@ import {
   rmTempRepoRoot,
   writeFixtureRepo,
   writeFakeWrangler,
-  fixtureThemeManifestRelPath
+  fixtureThemeManifestRelPath,
+  plantStaleThemeDir
 } from "../helpers/deploy-fixtures.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -106,6 +107,38 @@ describe("deploy-registry.sh -- build -> validate -> stage ordering (issue #7 AC
     expect(result.status).not.toBe(0);
     expect(fs.existsSync(path.join(repoRoot, ".deploy"))).toBe(false);
     expect(fs.existsSync(logFile)).toBe(false);
+  });
+
+  it("refuses to stage or deploy when the build reports success but produces no output at all", async () => {
+    const repoRoot = newFixtureRoot();
+    writeFixtureRepo(repoRoot, { buildProducesNothing: true });
+    const { binDir, logFile } = newFakeWranglerBin();
+
+    const result = await runDeployScript([`--repo-root=${repoRoot}`], { fakeWranglerBinDir: binDir });
+
+    expect(result.status).not.toBe(0);
+    expect((result.stdout + result.stderr)).toMatch(/expected build output missing/);
+    expect(fs.existsSync(path.join(repoRoot, ".deploy"))).toBe(false);
+    expect(fs.existsSync(logFile)).toBe(false); // wrangler never reached
+  });
+
+  it("REGRESSION: a stale theme directory already under dist/themes/ before the run does NOT survive into the staged output or registry index", async () => {
+    const repoRoot = newFixtureRoot();
+    writeFixtureRepo(repoRoot, { themes: [{ id: "hud-01", version: "0.1.0" }] });
+    // Simulate cruft already sitting on the dev machine BEFORE this deploy
+    // run -- a half-finished experiment, a renamed/removed Theme's leftover
+    // package -- predating deploy-registry.sh's own build step entirely.
+    plantStaleThemeDir(repoRoot, "hud-99-stale", "9.9.9");
+
+    const result = await runDeployScript([`--repo-root=${repoRoot}`, "--dry-run"]);
+    expect(result.status).toBe(0);
+
+    const stage = path.join(repoRoot, ".deploy");
+    const stagedThemeIds = fs.readdirSync(path.join(stage, "themes")).sort();
+    expect(stagedThemeIds).toEqual(["hud-01"]); // NOT ["hud-01", "hud-99-stale"]
+
+    const stagedRegistry = JSON.parse(fs.readFileSync(path.join(stage, "registry", "index.json"), "utf8"));
+    expect(stagedRegistry.themes.map((t) => t.id)).toEqual(["hud-01"]);
   });
 });
 

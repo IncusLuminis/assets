@@ -15,19 +15,37 @@
 # Pipeline (Arch §49), enforced here in this exact order -- not just
 # documented:
 #
-#   build -> validate -> stage -> deploy -> verify
+#   clean -> build -> validate -> stage -> deploy -> verify
 #
-#   1. build + validate -- runs `npm run build:all` fresh, every run.
-#      `build-theme.ts` (called by `build-all.ts`) already fails closed on
-#      any invalid manifest, missing `supported:true` composition dir, or
-#      missing entrypoint file (Story #1 AC) and stops at the first Theme
-#      that fails -- so a *fresh* build succeeding IS the validation gate.
-#      There is no separate "is dist/ stale?" heuristic, because this
-#      script is always the one producing dist/ immediately before staging
-#      it, in the same run. If `npm run build:all` exits non-zero, this
-#      script aborts before creating a stage directory or touching
-#      `wrangler` at all.
-#   2. stage -- an explicit ALLOWLIST copy (Arch §44), not a blanket copy of
+#   1. clean -- removes `dist/themes/` and `dist/runtime/` BEFORE the build
+#      runs. Required for "reproducible deployment from repository state
+#      alone" (Arch §33, this Story's AC): without this, any stale/bogus
+#      directory already sitting under `dist/themes/` on the run host (a
+#      half-finished experiment, a renamed/removed Theme's leftover output,
+#      anything) survives an incremental `build:all` run untouched --
+#      `build-theme.ts`/`build-all.ts` only ever WRITE the known real Theme
+#      ids, they don't own or clean the rest of `dist/themes/` -- and
+#      `build-registry.ts`'s directory discovery is not scoped to the known
+#      Theme ids, so it would silently pick the stray directory up as a
+#      legitimate published Theme. This step makes every run start from a
+#      guaranteed-clean `dist/`, so what gets built (and later staged) can
+#      only ever be exactly what the current `library/themes/` source
+#      produces -- never leftover cruft. (Root cause note: this is NOT an
+#      `rsync --delete` problem in the staging step below -- `.deploy/` is
+#      already `rm -rf`'d fresh every run, so `--delete` there would be a
+#      no-op. The actual gap was upstream of staging entirely: nothing ever
+#      cleared `dist/themes/` before asking the build to regenerate it.)
+#   2. build + validate -- runs `npm run build:all` fresh, every run, against
+#      that guaranteed-clean `dist/`. `build-theme.ts` (called by
+#      `build-all.ts`) already fails closed on any invalid manifest, missing
+#      `supported:true` composition dir, or missing entrypoint file (Story
+#      #1 AC) and stops at the first Theme that fails -- so a *fresh* build
+#      succeeding IS the validation gate. There is no separate "is dist/
+#      stale?" heuristic beyond step 1's clean, because this script is
+#      always the one producing dist/ immediately before staging it, in the
+#      same run. If `npm run build:all` exits non-zero, this script aborts
+#      before creating a stage directory or touching `wrangler` at all.
+#   3. stage -- an explicit ALLOWLIST copy (Arch §44), not a blanket copy of
 #      `dist/` or the repo root, into a gitignored `.deploy/` directory
 #      (matches `deploy_gadgets_media.sh`'s convention; see `.gitignore`):
 #
@@ -51,18 +69,19 @@
 #      `media/` yet because 0.1 doesn't build them (Plan §2 decision 9).
 #      This choice is deliberate, not a guess left silent: see this file's
 #      README.md for the same explanation in one place for a human reader.
-#   3. deploy -- `wrangler pages deploy .deploy --project-name assets-4gy
+#   4. deploy -- `wrangler pages deploy .deploy --project-name assets-4gy
 #      --commit-dirty=true`. A REAL network call to Cloudflare. Skipped
 #      entirely under `--dry-run`.
-#   4. verify -- `node verify.mjs` fetches `registry/index.json` + one
-#      versioned asset from the published base URL and asserts HTTP 200 +
-#      sha256 content-hash match against what was staged (Arch §33/§49,
-#      this Story's AC). Also skipped under `--dry-run` (nothing has been
-#      deployed yet to verify).
+#   5. verify -- `node verify.mjs` fetches `registry/index.json` + every
+#      staged Theme's manifest.json (not just the first) from the published
+#      base URL and asserts HTTP 200 + sha256 content-hash match against
+#      what was staged (Arch §33/§49, this Story's AC) -- so a broken
+#      publish of ANY Theme is caught, not only a broken hud-01. Also
+#      skipped under `--dry-run` (nothing has been deployed yet to verify).
 #
 # Usage:
-#   scripts/deploy/deploy-registry.sh              # build -> stage -> DEPLOY -> verify (real)
-#   scripts/deploy/deploy-registry.sh --dry-run     # build -> stage -> print plan; stop
+#   scripts/deploy/deploy-registry.sh              # clean -> build -> stage -> DEPLOY -> verify (real)
+#   scripts/deploy/deploy-registry.sh --dry-run     # clean -> build -> stage -> print plan; stop
 #
 # Flags:
 #   --dry-run            Perform every step through staging, print the exact
@@ -90,8 +109,16 @@ PROJECT_NAME="assets-4gy"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Prints the header comment block above (from the `#!` line down to the
+# first non-comment line), reformatted as plain usage text. Uses awk rather
+# than a fixed line count so this stays correct however long the header
+# comment grows or shrinks.
 usage() {
-  sed -n '1,70p' "$0" | grep '^#' | sed 's/^#$//; s/^# //'
+  awk '
+    NR == 1 { next }                          # skip the #!/usr/bin/env bash line
+    /^#/    { line = $0; sub(/^#[ ]?/, "", line); print line; next }
+    { exit }
+  ' "$0"
 }
 
 for arg in "$@"; do
@@ -127,7 +154,10 @@ DIST_THEMES="$REPO_ROOT/dist/themes"
 DIST_RUNTIME="$REPO_ROOT/dist/runtime"
 REGISTRY_INDEX="$REPO_ROOT/registry/index.json"
 
-echo "==> [1/4] build + validate (npm run build:all)"
+echo "==> [1/5] clean (removing dist/themes/ and dist/runtime/ before rebuilding)"
+rm -rf "$DIST_THEMES" "$DIST_RUNTIME"
+
+echo "==> [2/5] build + validate (npm run build:all)"
 npm run build:all
 
 for required in "$DIST_THEMES" "$DIST_RUNTIME" "$REGISTRY_INDEX"; do
@@ -146,7 +176,7 @@ if [ -z "$(ls -A "$DIST_RUNTIME" 2>/dev/null)" ]; then
   exit 1
 fi
 
-echo "==> [2/4] stage (allowlist-only copy into $STAGE)"
+echo "==> [3/5] stage (allowlist-only copy into $STAGE)"
 rm -rf "$STAGE"
 mkdir -p "$STAGE/themes" "$STAGE/runtime" "$STAGE/registry"
 rsync -a "$DIST_THEMES/" "$STAGE/themes/"
@@ -164,15 +194,15 @@ if [ "$DRY_RUN" = "1" ]; then
   printf ' %q' "${WRANGLER_CMD[@]}"
   echo
   echo "==> [dry-run] would then verify against $BASE_URL:"
-  echo "    registry/index.json + one versioned asset (first theme's manifest.json, per the staged registry index)"
+  echo "    registry/index.json + every staged theme's manifest.json (per the staged registry index)"
   echo "==> [dry-run] stopping before the real wrangler call. No network access, no wrangler invocation, no Cloudflare credentials used."
   exit 0
 fi
 
-echo "==> [3/4] deploy (wrangler pages deploy)"
+echo "==> [4/5] deploy (wrangler pages deploy)"
 "${WRANGLER_CMD[@]}"
 
-echo "==> [4/4] verify (post-deploy)"
+echo "==> [5/5] verify (post-deploy)"
 VERIFY_STATUS=0
 node "$SCRIPT_DIR/verify.mjs" --stage-dir="$STAGE" --base-url="$BASE_URL" || VERIFY_STATUS=$?
 

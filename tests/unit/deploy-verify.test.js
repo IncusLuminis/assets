@@ -47,6 +47,35 @@ function writeStagedFixture(stageDir, { themeManifest = '{"id":"hud-01","version
   return registryIndex;
 }
 
+/**
+ * A staged fixture with FOUR themes (hud-01..hud-04, matching the real
+ * repo's 0.1 Theme count) -- used to prove verification covers every
+ * Theme, not just the first (Validator finding: `buildChecksFromStagedRegistry`
+ * used to hardcode `themes[0]`, leaving hud-02/03/04 structurally
+ * unmonitored).
+ */
+function writeMultiThemeStagedFixture(stageDir, { manifestOverrides = {} } = {}) {
+  const ids = ["hud-01", "hud-02", "hud-03", "hud-04"];
+  const themes = ids.map((id) => ({
+    id,
+    latest: "0.1.0",
+    manifest: `/themes/${id}/0.1.0/manifest.json`,
+    versions: [{ version: "0.1.0", manifest: `/themes/${id}/0.1.0/manifest.json`, package: `/themes/${id}/0.1.0/` }]
+  }));
+  const registryIndex = { schemaVersion: "1.0", themes };
+  fs.mkdirSync(path.join(stageDir, "registry"), { recursive: true });
+  fs.writeFileSync(path.join(stageDir, "registry", "index.json"), JSON.stringify(registryIndex, null, 2));
+
+  const manifestContents = {};
+  for (const id of ids) {
+    const content = manifestOverrides[id] ?? JSON.stringify({ id, version: "0.1.0" });
+    manifestContents[id] = content;
+    fs.mkdirSync(path.join(stageDir, "themes", id, "0.1.0"), { recursive: true });
+    fs.writeFileSync(path.join(stageDir, "themes", id, "0.1.0", "manifest.json"), content);
+  }
+  return { registryIndex, manifestContents };
+}
+
 describe("verify.mjs -- buildChecksFromStagedRegistry() (pure fs, no network)", () => {
   it("returns registry/index.json + the first theme's manifest.json, with correct sha256 hashes", () => {
     const stageDir = newStageDir();
@@ -82,6 +111,33 @@ describe("verify.mjs -- buildChecksFromStagedRegistry() (pure fs, no network)", 
     );
     // deliberately do NOT write themes/hud-01/0.1.0/manifest.json
     expect(() => buildChecksFromStagedRegistry(stageDir)).toThrow(VerificationError);
+  });
+
+  it("throws VerificationError (not an uncaught SyntaxError) when registry/index.json is not valid JSON", () => {
+    const stageDir = newStageDir();
+    fs.mkdirSync(path.join(stageDir, "registry"), { recursive: true });
+    fs.writeFileSync(path.join(stageDir, "registry", "index.json"), "{ this is not valid JSON ");
+
+    expect(() => buildChecksFromStagedRegistry(stageDir)).toThrow(VerificationError);
+  });
+
+  it("REGRESSION: covers EVERY theme's manifest.json, not just themes[0] (4-theme fixture)", () => {
+    const stageDir = newStageDir();
+    writeMultiThemeStagedFixture(stageDir);
+
+    const checks = buildChecksFromStagedRegistry(stageDir);
+
+    expect(checks.map((c) => c.path)).toEqual([
+      "registry/index.json",
+      "themes/hud-01/0.1.0/manifest.json",
+      "themes/hud-02/0.1.0/manifest.json",
+      "themes/hud-03/0.1.0/manifest.json",
+      "themes/hud-04/0.1.0/manifest.json"
+    ]);
+    for (const id of ["hud-01", "hud-02", "hud-03", "hud-04"]) {
+      const check = checks.find((c) => c.path === `themes/${id}/0.1.0/manifest.json`);
+      expect(check.expectedHash).toBe(hashFile(path.join(stageDir, "themes", id, "0.1.0", "manifest.json")));
+    }
   });
 });
 
@@ -152,5 +208,35 @@ describe("verify.mjs -- verifyDeployment() (mocked fetch, no network)", () => {
     expect(results).toHaveLength(2);
     expect(results[0].ok).toBe(true);
     expect(results[1].ok).toBe(false);
+  });
+
+  it("REGRESSION: catches corruption in a NON-first theme (hud-03) when checks come from a real multi-theme staged registry", async () => {
+    const stageDir = newStageDir();
+    writeMultiThemeStagedFixture(stageDir);
+    const checks = buildChecksFromStagedRegistry(stageDir);
+
+    // Every theme's published content matches EXCEPT hud-03's, which
+    // "drifted" on the CDN relative to what was staged.
+    const fetchImpl = async (url) => {
+      if (url.includes("hud-03")) {
+        return { status: 200, arrayBuffer: async () => Buffer.from("corrupted-on-the-cdn") };
+      }
+      const check = checks.find((c) => url.endsWith(c.path));
+      const body = fs.readFileSync(check.absPath);
+      return { status: 200, arrayBuffer: async () => body };
+    };
+
+    const { ok, results } = await verifyDeployment({ baseUrl: "https://assets-4gy.pages.dev", checks, fetchImpl });
+
+    expect(ok).toBe(false); // the run as a whole must be reported as failed...
+    const hud03Result = results.find((r) => r.path === "themes/hud-03/0.1.0/manifest.json");
+    expect(hud03Result.ok).toBe(false); // ...specifically because hud-03 was caught...
+    expect(hud03Result.error).toMatch(/content-hash mismatch/);
+    // ...which a themes[0]-only check (the pre-fix behaviour) could never
+    // have detected, since hud-03 isn't the first theme in the index.
+    for (const id of ["hud-01", "hud-02", "hud-04"]) {
+      const result = results.find((r) => r.path === `themes/${id}/0.1.0/manifest.json`);
+      expect(result.ok).toBe(true);
+    }
   });
 });
