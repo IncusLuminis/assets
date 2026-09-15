@@ -1,0 +1,22 @@
+name = "assets-4gy"
+pages_build_output_dir = ".deploy"
+
+# assets-4gy (https://assets-4gy.pages.dev/) is a Cloudflare Pages project
+# with no GitHub connection -- it only ever receives files via a direct
+# `wrangler pages deploy` upload, same as the portfolio's other Pages
+# projects deployed this way (gadgets-media, media-roadsoftimes). See
+# scripts/deploy/deploy-registry.sh, modelled on scripts/deploy_gadgets_media.sh
+# (Plan §2 decision 6).
+#
+# `.deploy/` is a gitignored staging directory that `deploy-registry.sh`
+# assembles from `dist/themes/`, `dist/runtime/`, and the committed
+# `registry/index.json` (Arch §27, §44) -- it does not point at `dist/`
+# directly because `registry/index.json` is generated to the repo root, not
+# under `dist/` (Plan §3). `pages_build_output_dir` here lets a bare
+# `wrangler pages deploy` (no positional argument) reproduce the same
+# target from repository state alone (Arch §33); `deploy-registry.sh`
+# itself always passes the stage directory explicitly and does not rely on
+# this default.
+#
+# `assets.nebulacast.app` custom-domain DNS is a later, separate concern
+# (post-0.1) -- not configured here. See scripts/deploy/README.md.
