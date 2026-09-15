@@ -9,9 +9,12 @@
  * (#8) and renderers (#9/#10) land under `src/runtime/`; they are picked up
  * automatically once `src/runtime/index.ts` re-exports them.
  *
- * Theme packaging (`build-theme.ts`), registry index generation
- * (`build-registry.ts`, Story #1) and an aggregate `build-all.ts` are
- * separate, not-yet-built tools per Plan §3 -- out of this Story's scope.
+ * `runBuild()` is exported so `build-all.ts` (Story #1) can fold this
+ * bundling step into the aggregate `npm run build:all` pipeline alongside
+ * Theme packaging (`build-theme.ts`) and Registry generation
+ * (`build-registry.ts`) without duplicating this esbuild call or shelling
+ * out to a second process. Running this file directly (`npm run build`,
+ * unchanged from Story #5) still does exactly what it always did.
  */
 import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
@@ -20,13 +23,20 @@ import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
 
-await build({
-  entryPoints: [path.join(repoRoot, "src/runtime/index.ts")],
-  outfile: path.join(repoRoot, "dist/runtime/index.js"),
-  bundle: true,
-  format: "esm",
-  platform: "browser",
-  target: "es2022",
-  sourcemap: true,
-  logLevel: "info"
-});
+export async function runBuild() {
+  await build({
+    entryPoints: [path.join(repoRoot, "src/runtime/index.ts")],
+    outfile: path.join(repoRoot, "dist/runtime/index.js"),
+    bundle: true,
+    format: "esm",
+    platform: "browser",
+    target: "es2022",
+    sourcemap: true,
+    logLevel: "info"
+  });
+}
+
+const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMainModule) {
+  await runBuild();
+}
