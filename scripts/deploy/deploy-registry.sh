@@ -4,10 +4,9 @@
 #
 # Publishes a validated `dist/` build (scripts/build/build-all.ts's output,
 # Story #1/#5) plus the committed `registry/index.json` to the existing
-# `assets-4gy-e40` Cloudflare Pages project (https://assets-4gy-e40.pages.dev/).
-# (Named `assets-4gy-e40`, not `assets-4gy`, because pages.dev subdomains are
-# unique platform-wide and `assets-4gy` was already taken by an unrelated
-# project when this one was first created on 2026-09-16 -- see wrangler.toml.)
+# Cloudflare Pages project named `assets` (https://assets-4gy.pages.dev/ --
+# that pages.dev subdomain differs from the project NAME; see wrangler.toml
+# for why `--project-name assets` is correct here and `assets-4gy` is not).
 #
 # Modelled directly on the sibling `scripts/deploy_gadgets_media.sh` pattern
 # (Plan §2 decision 6): a gitignored staging directory, a direct
@@ -52,13 +51,17 @@
 #      `dist/` or the repo root, into a gitignored `.deploy/` directory
 #      (matches `deploy_gadgets_media.sh`'s convention; see `.gitignore`):
 #
-#        dist/themes/         -> .deploy/themes/
-#        dist/runtime/        -> .deploy/runtime/
-#        registry/index.json  -> .deploy/registry/index.json
+#        dist/themes/                -> .deploy/themes/
+#        dist/runtime/               -> .deploy/runtime/
+#        registry/index.json         -> .deploy/registry/index.json
+#        scripts/deploy/_headers     -> .deploy/_headers
 #
 #      Nothing else under `dist/` or the repo root is ever copied, so a
 #      stray `.env`, secret, source file, or local artifact that somehow
 #      ended up in `dist/` can never reach the stage directory or the CDN.
+#      `_headers` is Cloudflare Pages' native cache-control config file
+#      (Arch §34, issue #6 AC) -- see scripts/deploy/_headers itself for the
+#      actual policy and scripts/deploy/README.md for the summary.
 #
 #      NOTE on `registry/index.json`'s placement: `build-all.ts` writes the
 #      generated registry index to the repo-root `registry/index.json`
@@ -98,13 +101,13 @@
 #                         repo (two directories up from `scripts/deploy/`).
 #   --base-url=<url>     Override the published base URL the post-deploy
 #                         verify step checks against. Test hook only;
-#                         defaults to https://assets-4gy-e40.pages.dev.
+#                         defaults to https://assets-4gy.pages.dev.
 #   --branch=<name>       Override the Cloudflare Pages deployment branch
 #                         label passed to `wrangler pages deploy`. Cloudflare
 #                         Pages treats a deploy whose branch label matches the
 #                         project's configured production branch (`main`) as
 #                         the production deploy (served from the bare
-#                         `https://assets-4gy-e40.pages.dev/` URL); any other
+#                         `https://assets-4gy.pages.dev/` URL); any other
 #                         label is a preview deploy served only from a
 #                         hash/branch-alias URL. Defaults to `main` so a plain
 #                         run of this script always publishes to production
@@ -122,8 +125,8 @@ set -euo pipefail
 
 DRY_RUN=0
 REPO_ROOT=""
-BASE_URL="https://assets-4gy-e40.pages.dev"
-PROJECT_NAME="assets-4gy-e40"
+BASE_URL="https://assets-4gy.pages.dev"
+PROJECT_NAME="assets"
 BRANCH="main"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -175,6 +178,7 @@ STAGE="$REPO_ROOT/.deploy"
 DIST_THEMES="$REPO_ROOT/dist/themes"
 DIST_RUNTIME="$REPO_ROOT/dist/runtime"
 REGISTRY_INDEX="$REPO_ROOT/registry/index.json"
+HEADERS_FILE="$SCRIPT_DIR/_headers"
 
 echo "==> [1/5] clean (removing dist/themes/ and dist/runtime/ before rebuilding)"
 rm -rf "$DIST_THEMES" "$DIST_RUNTIME"
@@ -189,6 +193,11 @@ for required in "$DIST_THEMES" "$DIST_RUNTIME" "$REGISTRY_INDEX"; do
     exit 1
   fi
 done
+if [ ! -e "$HEADERS_FILE" ]; then
+  echo "deploy-registry.sh: refusing to deploy -- cache-policy file missing: $HEADERS_FILE" >&2
+  echo "    (this is a committed source file, not build output -- it should not be able to go missing)" >&2
+  exit 1
+fi
 if [ -z "$(ls -A "$DIST_THEMES" 2>/dev/null)" ]; then
   echo "deploy-registry.sh: refusing to deploy -- $DIST_THEMES is empty" >&2
   exit 1
@@ -204,9 +213,10 @@ mkdir -p "$STAGE/themes" "$STAGE/runtime" "$STAGE/registry"
 rsync -a "$DIST_THEMES/" "$STAGE/themes/"
 rsync -a "$DIST_RUNTIME/" "$STAGE/runtime/"
 cp "$REGISTRY_INDEX" "$STAGE/registry/index.json"
+cp "$HEADERS_FILE" "$STAGE/_headers"
 
 STAGED_FILE_COUNT="$(find "$STAGE" -type f | wc -l | tr -d ' ')"
-echo "    staged $STAGED_FILE_COUNT file(s) under $STAGE (themes/, runtime/, registry/index.json only)"
+echo "    staged $STAGED_FILE_COUNT file(s) under $STAGE (themes/, runtime/, registry/index.json, _headers only)"
 
 WRANGLER_CMD=(wrangler pages deploy "$STAGE" --project-name "$PROJECT_NAME" --branch "$BRANCH" --commit-dirty=true)
 

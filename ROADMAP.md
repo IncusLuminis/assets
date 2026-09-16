@@ -4,7 +4,6 @@
 **Source docs:** `docs/architecture/HUD_Platform_Vision.md` (0.3) · `docs/architecture/HUD_Platform_Architecture.md` (0.3) · `docs/architecture/HUD_Platform_Implementation_Plan_0.1.md` (0.1)
 **Working constraint (owner, 2026-09-09):** all work on feature branches; **nothing merges to `main`** until the owner decides. Verification is local for now.
 **Owner answers (2026-09-09):** Q1 → deploy target is the existing **`assets-4gy` Pages project** (`https://assets-4gy.pages.dev/`), publish dir `dist/`, custom domain deferred; Q2 → #17's consumer is **`IncusLuminis/stellar-attractor-site`**; Q4 → HUD-01/02 external deps stay **as-is** (lazy-loaded, no per-Theme allowlisting). Q3/Q5/Q6 still open but not blocking (see below).
-**Correction (2026-09-16, first real deploy / issue #6):** the name `assets-4gy` was already taken platform-wide when the Pages project was actually created, so Cloudflare created it as **`assets-4gy-e40`** (`https://assets-4gy-e40.pages.dev/`) instead — every `assets-4gy.pages.dev` reference below is the pre-deploy intent, not the live URL. See `wrangler.toml` and `scripts/deploy/README.md` for the corrected, current values.
 
 Platform 0.1 is successful when:
 

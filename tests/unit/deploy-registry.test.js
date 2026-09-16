@@ -143,7 +143,7 @@ describe("deploy-registry.sh -- build -> validate -> stage ordering (issue #7 AC
 });
 
 describe("deploy-registry.sh -- allowlist-oriented staging (Arch §44)", () => {
-  it("stages exactly themes/, runtime/, registry/index.json -- stray dist/ files (e.g. a leaked .env) are never staged", async () => {
+  it("stages exactly themes/, runtime/, registry/index.json, _headers -- stray dist/ files (e.g. a leaked .env) are never staged", async () => {
     const repoRoot = newFixtureRoot();
     const { manifestContents, registryIndex } = writeFixtureRepo(repoRoot, {
       themes: [{ id: "hud-01", version: "0.1.0" }],
@@ -157,7 +157,7 @@ describe("deploy-registry.sh -- allowlist-oriented staging (Arch §44)", () => {
     expect(result.status).toBe(0);
 
     const stage = path.join(repoRoot, ".deploy");
-    expect(fs.readdirSync(stage).sort()).toEqual(["registry", "runtime", "themes"]);
+    expect(fs.readdirSync(stage).sort()).toEqual(["_headers", "registry", "runtime", "themes"]);
 
     const stagedFiles = walkFiles(stage).map((f) => path.relative(stage, f));
     expect(stagedFiles).not.toContain(".env");
@@ -167,6 +167,16 @@ describe("deploy-registry.sh -- allowlist-oriented staging (Arch §44)", () => {
     const manifestRel = fixtureThemeManifestRelPath("hud-01", "0.1.0");
     expect(fs.readFileSync(path.join(stage, manifestRel), "utf8")).toBe(manifestContents["hud-01"]);
     expect(JSON.parse(fs.readFileSync(path.join(stage, "registry", "index.json"), "utf8"))).toEqual(registryIndex);
+
+    // The staged _headers file is the real scripts/deploy/_headers (cache
+    // policy is a tool-level config, not something that varies with
+    // --repo-root fixtures) and sets Cache-Control on the three published
+    // path groups (Arch §34, issue #6 AC).
+    const stagedHeaders = fs.readFileSync(path.join(stage, "_headers"), "utf8");
+    expect(stagedHeaders).toContain("/themes/*");
+    expect(stagedHeaders).toContain("immutable");
+    expect(stagedHeaders).toContain("/registry/index.json");
+    expect(stagedHeaders).toContain("/runtime/*");
   });
 });
 
@@ -182,7 +192,7 @@ describe("deploy-registry.sh -- --dry-run mode", () => {
     expect(fs.existsSync(logFile)).toBe(false); // the fake wrangler was never called
     expect(result.stdout).toMatch(/\[dry-run]/);
     expect(result.stdout).toMatch(/wrangler pages deploy/);
-    expect(result.stdout).toMatch(/--project-name assets-4gy/);
+    expect(result.stdout).toMatch(/--project-name assets/);
     expect(result.stdout).toMatch(/--commit-dirty=true/);
     // The stage directory is left behind for a human to inspect under dry-run.
     expect(fs.existsSync(path.join(repoRoot, ".deploy", "themes"))).toBe(true);
@@ -233,7 +243,7 @@ describe("deploy-registry.sh -- full pipeline (mocked wrangler + loopback verify
     const log = fs.readFileSync(logFile, "utf8").trim().split("\n");
     expect(log).toHaveLength(1); // wrangler invoked exactly once
     expect(log[0]).toMatch(/^pages deploy /);
-    expect(log[0]).toMatch(/--project-name assets-4gy/);
+    expect(log[0]).toMatch(/--project-name assets/);
     expect(log[0]).toMatch(/--commit-dirty=true/);
     expect(log[0]).toContain(path.join(repoRoot, ".deploy"));
 
