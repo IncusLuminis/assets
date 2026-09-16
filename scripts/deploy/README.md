@@ -2,8 +2,8 @@
 
 `deploy-registry.sh` publishes a validated `dist/` build (from
 `npm run build:all`, Story #1/#5) plus the committed `registry/index.json`
-to the existing **`assets-4gy`** Cloudflare Pages project
-(`https://assets-4gy.pages.dev/`). It is modelled directly on the sibling
+to the **`assets-4gy-e40`** Cloudflare Pages project
+(`https://assets-4gy-e40.pages.dev/`). It is modelled directly on the sibling
 `scripts/deploy_gadgets_media.sh` (Plan §2 decision 6): a gitignored staging
 directory, a direct `wrangler pages deploy` upload, no GitHub-connected
 Pages project, content-hashed incremental upload. Reuses existing CDN
@@ -18,16 +18,28 @@ post-deploy verification design.
 
 Before running a **real** (non-`--dry-run`) deploy:
 
-1. **The `assets-4gy` Cloudflare Pages project must already exist.** It
-   does — confirmed by the owner (Implementation Plan §7 Q1). This tooling
-   does not create it; `wrangler pages deploy` publishes *into* an existing
-   project, it does not provision one.
+1. **The `assets-4gy-e40` Cloudflare Pages project must already exist.**
+   It does, since 2026-09-16 (first real deploy, issue #6) — created via
+   `wrangler pages deploy`'s own interactive "project does not exist,
+   create it?" prompt. The owner had originally approved the name
+   `assets-4gy` (Implementation Plan §7 Q1), but Cloudflare Pages
+   subdomains are unique platform-wide (not just per-account) and that
+   exact name was already taken by an unrelated project — Cloudflare
+   silently suffixed ours to `assets-4gy-e40` instead of erroring. This
+   tooling does not create the project itself; `wrangler pages deploy`
+   publishes *into* an existing project (or prompts interactively to
+   create one on first use), it does not provision one non-interactively.
 2. **`wrangler` must be authenticated on the run host** (`wrangler login`,
    or `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` in the environment),
-   with access to the Cloudflare account that owns `assets-4gy` — same
+   with access to the Cloudflare account that owns `assets-4gy-e40` — same
    assumption `scripts/deploy_gadgets_media.sh` makes. This script does not
    perform or check authentication itself; an unauthenticated `wrangler`
    invocation will simply fail at the deploy step with wrangler's own error.
+   Note also that `wrangler pages deploy`/`project list` refuse to run in a
+   non-interactive shell without `CLOUDFLARE_API_TOKEN` set, even with a
+   valid cached OAuth login — run this from a genuinely interactive
+   terminal (a real Terminal.app/iTerm window), not from a subprocess/CI
+   shell, unless `CLOUDFLARE_API_TOKEN` is exported.
 3. **`npm install` has been run** in this repo (build tooling
    dependencies — esbuild, ajv, etc.).
 4. Run from the repo root (or anywhere — the script resolves its own repo
@@ -42,7 +54,10 @@ Before running a **real** (non-`--dry-run`) deploy:
 scripts/deploy/deploy-registry.sh --dry-run
 
 # The real thing: clean -> build -> validate -> stage -> DEPLOY -> verify.
-# Publishes to https://assets-4gy.pages.dev/.
+# Publishes to https://assets-4gy-e40.pages.dev/, tagged as the Cloudflare
+# Pages "main" (production) deployment branch label by default -- pass
+# --branch=<name> to publish a preview instead. This is a Pages deployment
+# label only; it never touches or merges this repo's own git branches.
 scripts/deploy/deploy-registry.sh
 ```
 
@@ -59,10 +74,13 @@ A real run:
 3. stages an **allowlist-only** copy — `dist/themes/`, `dist/runtime/`, and
    the repo-root `registry/index.json` — into gitignored `.deploy/`
    (nothing else from `dist/` or the repo can reach the CDN, Arch §44);
-4. runs `wrangler pages deploy .deploy --project-name assets-4gy
-   --commit-dirty=true` (a real, outward-facing Cloudflare publish);
+4. runs `wrangler pages deploy .deploy --project-name assets-4gy-e40
+   --branch main --commit-dirty=true` (a real, outward-facing Cloudflare
+   publish, tagged as the production branch label so it serves from the
+   bare `https://assets-4gy-e40.pages.dev/` URL rather than a preview
+   hash/branch-alias URL);
 5. fetches `registry/index.json` + **every** staged Theme's manifest back
-   from `https://assets-4gy.pages.dev/` (not just one Theme — every Theme
+   from `https://assets-4gy-e40.pages.dev/` (not just one Theme — every Theme
    the staged registry index lists) and asserts HTTP 200 + a sha256
    content-hash match against what was staged, then removes `.deploy/`.
 
@@ -80,7 +98,7 @@ rollback in 0.1; investigate manually).
   tooling exists.
 - **`assets.nebulacast.app` custom-domain DNS** is a later, separate,
   out-of-scope concern (post-0.1). Until it's configured,
-  `https://assets-4gy.pages.dev/` is the published URL.
+  `https://assets-4gy-e40.pages.dev/` is the published URL.
 - CDN-divergence maintenance tooling (`scripts/maintenance/`) — not this
   Story.
 
