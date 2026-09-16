@@ -1,12 +1,21 @@
-name = "assets-4gy"
+name = "assets-4gy-e40"
 pages_build_output_dir = ".deploy"
 
-# assets-4gy (https://assets-4gy.pages.dev/) is a Cloudflare Pages project
-# with no GitHub connection -- it only ever receives files via a direct
-# `wrangler pages deploy` upload, same as the portfolio's other Pages
+# assets-4gy-e40 (https://assets-4gy-e40.pages.dev/) is a Cloudflare Pages
+# project with no GitHub connection -- it only ever receives files via a
+# direct `wrangler pages deploy` upload, same as the portfolio's other Pages
 # projects deployed this way (gadgets-media, media-roadsoftimes). See
 # scripts/deploy/deploy-registry.sh, modelled on scripts/deploy_gadgets_media.sh
 # (Plan §2 decision 6).
+#
+# NOTE: the project was first created 2026-09-16 by `wrangler pages deploy`
+# itself (interactive "project does not exist, create it?" prompt) while
+# requesting the name `assets-4gy` -- Cloudflare Pages subdomains are unique
+# platform-wide (not just per-account), that exact name was already taken by
+# an unrelated project, and Cloudflare silently suffixed ours to
+# `assets-4gy-e40` instead of erroring. This file and deploy-registry.sh's
+# defaults were updated to match the project Cloudflare actually created;
+# there is no `assets-4gy` project and there will not be one.
 #
 # `.deploy/` is a gitignored staging directory that `deploy-registry.sh`
 # assembles from `dist/themes/`, `dist/runtime/`, and the committed
