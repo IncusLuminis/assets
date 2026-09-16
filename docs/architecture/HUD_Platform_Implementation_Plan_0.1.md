@@ -6,14 +6,6 @@
 **Board:** `IncusLuminis/projects/7` ("Assets Library") — 5 Epics (#20–#24), 19 Stories (#1–#19)
 **Audience:** IncusLuminis internal (engineering + PO)
 
-**Correction (2026-09-16, first real deploy / issue #6):** every `assets-4gy` /
-`assets-4gy.pages.dev` reference below is the pre-deploy intent, not the live
-target — the name `assets-4gy` was already taken platform-wide when the
-Cloudflare Pages project was actually created, so Cloudflare created it as
-**`assets-4gy-e40`** (`https://assets-4gy-e40.pages.dev/`) instead. See
-`wrangler.toml` and `scripts/deploy/README.md` for the corrected, current
-values.
-
 ---
 
 ## 0. Purpose

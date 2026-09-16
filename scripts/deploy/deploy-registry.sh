@@ -4,10 +4,9 @@
 #
 # Publishes a validated `dist/` build (scripts/build/build-all.ts's output,
 # Story #1/#5) plus the committed `registry/index.json` to the existing
-# `assets-4gy-e40` Cloudflare Pages project (https://assets-4gy-e40.pages.dev/).
-# (Named `assets-4gy-e40`, not `assets-4gy`, because pages.dev subdomains are
-# unique platform-wide and `assets-4gy` was already taken by an unrelated
-# project when this one was first created on 2026-09-16 -- see wrangler.toml.)
+# Cloudflare Pages project named `assets` (https://assets-4gy.pages.dev/ --
+# that pages.dev subdomain differs from the project NAME; see wrangler.toml
+# for why `--project-name assets` is correct here and `assets-4gy` is not).
 #
 # Modelled directly on the sibling `scripts/deploy_gadgets_media.sh` pattern
 # (Plan §2 decision 6): a gitignored staging directory, a direct
@@ -98,13 +97,13 @@
 #                         repo (two directories up from `scripts/deploy/`).
 #   --base-url=<url>     Override the published base URL the post-deploy
 #                         verify step checks against. Test hook only;
-#                         defaults to https://assets-4gy-e40.pages.dev.
+#                         defaults to https://assets-4gy.pages.dev.
 #   --branch=<name>       Override the Cloudflare Pages deployment branch
 #                         label passed to `wrangler pages deploy`. Cloudflare
 #                         Pages treats a deploy whose branch label matches the
 #                         project's configured production branch (`main`) as
 #                         the production deploy (served from the bare
-#                         `https://assets-4gy-e40.pages.dev/` URL); any other
+#                         `https://assets-4gy.pages.dev/` URL); any other
 #                         label is a preview deploy served only from a
 #                         hash/branch-alias URL. Defaults to `main` so a plain
 #                         run of this script always publishes to production
@@ -122,8 +121,8 @@ set -euo pipefail
 
 DRY_RUN=0
 REPO_ROOT=""
-BASE_URL="https://assets-4gy-e40.pages.dev"
-PROJECT_NAME="assets-4gy-e40"
+BASE_URL="https://assets-4gy.pages.dev"
+PROJECT_NAME="assets"
 BRANCH="main"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

@@ -182,7 +182,7 @@ describe("deploy-registry.sh -- --dry-run mode", () => {
     expect(fs.existsSync(logFile)).toBe(false); // the fake wrangler was never called
     expect(result.stdout).toMatch(/\[dry-run]/);
     expect(result.stdout).toMatch(/wrangler pages deploy/);
-    expect(result.stdout).toMatch(/--project-name assets-4gy/);
+    expect(result.stdout).toMatch(/--project-name assets/);
     expect(result.stdout).toMatch(/--commit-dirty=true/);
     // The stage directory is left behind for a human to inspect under dry-run.
     expect(fs.existsSync(path.join(repoRoot, ".deploy", "themes"))).toBe(true);
@@ -233,7 +233,7 @@ describe("deploy-registry.sh -- full pipeline (mocked wrangler + loopback verify
     const log = fs.readFileSync(logFile, "utf8").trim().split("\n");
     expect(log).toHaveLength(1); // wrangler invoked exactly once
     expect(log[0]).toMatch(/^pages deploy /);
-    expect(log[0]).toMatch(/--project-name assets-4gy/);
+    expect(log[0]).toMatch(/--project-name assets/);
     expect(log[0]).toMatch(/--commit-dirty=true/);
     expect(log[0]).toContain(path.join(repoRoot, ".deploy"));
 
