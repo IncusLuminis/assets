@@ -1,0 +1,26 @@
+# HUD Platform 0.1 CDN cache policy (Arch §34, issue #6 AC).
+#
+# This is a Cloudflare Pages `_headers` file: placed at the root of the
+# deploy directory, Cloudflare reads it natively at publish time and
+# applies these rules to matching response paths -- no wrangler.toml
+# config or separate CDN-side setup needed.
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# Immutable versioned Theme assets: every Theme asset lives under
+# /themes/<id>/<version>/... and a given version's files never change in
+# place (Contract 1.0 -- a new release is a new version directory), so
+# these are safe to cache forever.
+/themes/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Registry index: the one mutable, frequently-re-read entry point new
+# Theme versions get published through. Short TTL so consumers see a newly
+# published Theme quickly without needing an explicit cache purge.
+/registry/index.json
+  Cache-Control: public, max-age=60, must-revalidate
+
+# Runtime bundle: published at a fixed, non-versioned path in 0.1
+# (dist/runtime/index.js -- see scripts/deploy/README.md), unlike Theme
+# assets it is NOT immutable at that path, so it gets a short TTL too.
+/runtime/*
+  Cache-Control: public, max-age=300, must-revalidate
