@@ -42,6 +42,22 @@
  *   insertions from `requestExternalResource` are intentionally left in
  *   place (§6.6: "MAY remain in `document.head` after `destroy()`") since
  *   they are shared, page-scoped, and de-duplicated across instances.
+ *
+ * ## `capabilities.mediaEmbed` (Story #43)
+ *
+ * Ported from `CssRenderer.ts` into the shared `./mediaEmbed.js` module (see
+ * that file's docstring for the per-value routing rule) so HUD-01/HUD-02
+ * can accept a YouTube/HeyGen embed URL through their existing `media` slot
+ * without losing that slot's original, still-supported plain-photo-`<img>`
+ * behaviour. `setData()` below checks each `media`-slot target against
+ * `resolveMediaEmbedUrl` BEFORE falling into the generic `applySlotValue`
+ * path; only a value that resolves to an allowlisted embed host is
+ * diverted, everything else (including every non-allowlisted absolute URL,
+ * e.g. a photo CDN link) reaches `applySlotValue` exactly as before. A
+ * `MutationObserver` on the mount container's `data-hud-variant` attribute
+ * (set here on `mount()`/`setVariant()`, mirroring `CssRenderer`'s own
+ * convention) implements the `"src-swap"` lifecycle (parked at
+ * `about:blank` off-`maxi`) and is disconnected in `destroy()`.
  */
 import type { MountContext, RendererLifecycle, Viewport } from "./RendererInterface.js";
 import type {
@@ -60,6 +76,14 @@ import {
   ThemeMountFailedError,
   VariantUnsupportedError
 } from "../contract/errors.js";
+import {
+  applyMediaEmbedLifecycle,
+  mountMediaEmbed,
+  resolveMediaEmbedUrl,
+  unmountMediaEmbed,
+  watchVariantForMediaEmbed,
+  type MediaEmbedState
+} from "./mediaEmbed.js";
 
 /** Fetches the text content of a package-relative resource, already resolved to an absolute URL against `context.assetBaseUrl`. */
 export type ResourceTextLoader = (url: string) => Promise<string>;
@@ -246,6 +270,9 @@ export class SvgRenderer implements RendererLifecycle {
   #lastData: Record<string, unknown> = {};
   #lastViewport: Viewport | undefined;
   #warnedSlots = new Set<string>();
+  /** Keyed by the `[data-slot="media"]` target element, since `setData()`'s generic slot-mapping loop supports (in principle) more than one match per name -- mirrors `CssRenderer`'s single `#mediaEmbed` field, generalised to per-target. */
+  #mediaEmbedByTarget = new Map<HTMLElement, MediaEmbedState>();
+  #variantObserver: MutationObserver | undefined;
 
   constructor(options: SvgRendererOptions = {}) {
     this.#loadText = options.loadText ?? defaultLoadText;
@@ -293,6 +320,16 @@ export class SvgRenderer implements RendererLifecycle {
       container.appendChild(root);
       this.#root = root;
       this.#compositionKey = key;
+
+      if (manifest.capabilities?.mediaEmbed) {
+        // Contract §10.5 src-swap lifecycle -- see class docstring "Story
+        // #43" section. Only set up for Themes that actually declare the
+        // capability, so this is a no-op for every other `engine: "svg"`
+        // Theme (no `data-hud-variant` attribute appears on their container
+        // either).
+        container.setAttribute("data-hud-variant", context.variant);
+        this.#variantObserver = watchVariantForMediaEmbed(container, () => this.#applyMediaEmbedLifecycleAll());
+      }
     } catch (err) {
       if (err instanceof HudError) throw err;
       throw new ThemeMountFailedError(context.theme, context.version, err);
@@ -305,6 +342,7 @@ export class SvgRenderer implements RendererLifecycle {
       throw new Error("SvgRenderer.setData() called before mount() resolved");
     }
     this.#lastData = { ...data };
+    const mediaEmbedCapability = (this.#context?.manifest as Manifest | undefined)?.capabilities?.mediaEmbed;
 
     for (const [slotName, value] of Object.entries(data)) {
       const targets = this.#root.querySelectorAll<HTMLElement>(
@@ -315,6 +353,12 @@ export class SvgRenderer implements RendererLifecycle {
         continue; // Contract §6.3: unknown slot keys MUST be ignored, not throw.
       }
       for (const target of Array.from(targets)) {
+        // Story #43: an allowlisted embed URL diverts to the iframe path;
+        // everything else (including a plain photo URL) falls through to
+        // the generic path below, unchanged -- see class docstring.
+        if (slotName === "media" && this.#applyMediaSlotValue(target, value, mediaEmbedCapability)) {
+          continue;
+        }
         applySlotValue(target, slotName, value);
       }
     }
@@ -368,12 +412,27 @@ export class SvgRenderer implements RendererLifecycle {
     // Tear down the outgoing composition only after the incoming one mounted
     // successfully -- never leave the instance with neither.
     safeCall(this.#scriptHandle?.destroy);
+    // The outgoing composition's [data-slot="media"] target(s) are about to
+    // be discarded wholesale along with `this.#root` -- blank/remove any
+    // embed iframe mounted on them first (Contract §10.5/§17.2 point 4)
+    // rather than leaving that to `this.#root.remove()` alone. Hud replays
+    // the last `setData()` once this resolves (Contract §6.5, see below),
+    // which re-mounts a fresh embed on the new composition's target if the
+    // last `media` value was still an embed URL.
+    this.#teardownMediaEmbeds();
     this.#root.remove();
 
     this.#container?.appendChild(newRoot);
     this.#root = newRoot;
     this.#compositionKey = key;
     this.#currentVariant = variant;
+    if (this.#container && manifest.capabilities?.mediaEmbed) {
+      // Reflects into the `MutationObserver` from `mount()` (still watching
+      // this same container) so a later `data-hud-variant` change is
+      // observed even without an intervening `setData()` -- mirrors
+      // `CssRenderer`'s `#reflectVariantAttribute()`.
+      this.#container.setAttribute("data-hud-variant", variant);
+    }
     if (this.#lastViewport) this.resize(this.#lastViewport);
     // Contract §6.5 "MUST preserve slot data across the switch" is Hud's
     // job (it re-applies the last setData once this Promise resolves) --
@@ -387,8 +446,16 @@ export class SvgRenderer implements RendererLifecycle {
     try {
       safeCall(this.#scriptHandle?.destroy);
       this.#scriptHandle = undefined;
+      // Contract §17.1/§17.2: disconnect the variant observer (a real
+      // teardown target, mirroring -- and fixing -- HUD-04's own
+      // un-disconnected `MutationObserver`) and blank every embed iframe
+      // before it's removed.
+      this.#variantObserver?.disconnect();
+      this.#variantObserver = undefined;
+      this.#teardownMediaEmbeds();
       if (this.#container) {
         this.#container.innerHTML = "";
+        this.#container.removeAttribute("data-hud-variant");
       }
     } catch {
       // Contract §6.6: absolute guarantee -- never throw, even if the block
@@ -404,6 +471,7 @@ export class SvgRenderer implements RendererLifecycle {
       this.#lastData = {};
       this.#lastViewport = undefined;
       this.#warnedSlots.clear();
+      this.#mediaEmbedByTarget.clear();
       this.#mounted = false;
     }
   }
@@ -515,6 +583,48 @@ export class SvgRenderer implements RendererLifecycle {
     ) => unknown;
     const result = factory(root, context, api);
     return result && typeof result === "object" ? (result as ThemeScriptHandle) : undefined;
+  }
+
+  /**
+   * The `media` slot's mediaEmbed check (Story #43, `mediaEmbed.ts`'s
+   * per-value routing). Returns `true` if `value` was handled here (an
+   * iframe was mounted/updated on `target`) -- the caller must then skip
+   * `applySlotValue` for this target. Returns `false` for every other value
+   * (not a string, not an absolute URL, host not allowlisted, or no
+   * `capabilities.mediaEmbed` declared at all) -- in which case the caller
+   * MUST still run `applySlotValue`, and any embed previously mounted on
+   * `target` (from an earlier `setData` call) is torn down here first so a
+   * Theme reverting to a plain photo URL never leaves a stale iframe
+   * covering it.
+   */
+  #applyMediaSlotValue(target: HTMLElement, value: unknown, mediaEmbed: Manifest["capabilities"]["mediaEmbed"]): boolean {
+    const embedUrl = resolveMediaEmbedUrl(value, mediaEmbed);
+    if (embedUrl !== undefined) {
+      const state = mountMediaEmbed(target, embedUrl, this.#mediaEmbedByTarget.get(target));
+      this.#mediaEmbedByTarget.set(target, state);
+      applyMediaEmbedLifecycle(state, this.#currentVariant);
+      return true;
+    }
+    const existing = this.#mediaEmbedByTarget.get(target);
+    if (existing) {
+      unmountMediaEmbed(existing);
+      this.#mediaEmbedByTarget.delete(target);
+    }
+    return false;
+  }
+
+  #applyMediaEmbedLifecycleAll(): void {
+    for (const state of this.#mediaEmbedByTarget.values()) {
+      applyMediaEmbedLifecycle(state, this.#currentVariant);
+    }
+  }
+
+  /** Blanks + removes every currently-mounted embed iframe (Contract §10.5/§17.2 point 4: blank before removal) and forgets their targets -- used by both `setVariant()` (the outgoing composition's targets are about to be discarded wholesale) and `destroy()`. */
+  #teardownMediaEmbeds(): void {
+    for (const state of this.#mediaEmbedByTarget.values()) {
+      unmountMediaEmbed(state);
+    }
+    this.#mediaEmbedByTarget.clear();
   }
 
   #warnUnknownSlot(slotName: string): void {
