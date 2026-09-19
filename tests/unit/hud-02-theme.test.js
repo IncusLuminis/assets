@@ -81,6 +81,14 @@ describe("library/themes/hud-02 -- 'Object Report' (Story #12 AC)", () => {
     expect(manifest.capabilities.multiInstance).toBe(true);
   });
 
+  it("Story #43: declares capabilities.mediaEmbed with the HeyGen/YouTube hosts and src-swap lifecycle, matching HUD-04's shape (Contract §10.5, §16.2)", () => {
+    const manifest = loadManifest();
+    expect(manifest.capabilities.mediaEmbed).toEqual({
+      hosts: ["app.heygen.com", "www.youtube.com"],
+      lifecycle: "src-swap"
+    });
+  });
+
   it("every entrypoints.markup / styles / scripts path resolves to a real file inside the package", () => {
     const manifest = loadManifest();
     for (const [compositionKey, entrypoint] of Object.entries(manifest.entrypoints)) {

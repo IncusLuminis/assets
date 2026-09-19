@@ -222,6 +222,46 @@ viewer ids are randomly generated (`nc-hud02-aladin-<random>`) rather than
 an incrementing counter, since this script has no cross-instance module
 state to count from (Contract §16.5).
 
+## `media` slot: a plain photo URL, or a YouTube/HeyGen embed (Story #43)
+
+`data-slot="media"` is (and stays) the `<img>` showing the locked object's
+photo -- `setData({ media: "<photo-url>" })` sets its `src` directly, same
+as always. As of Story #43 this Theme also declares
+`capabilities.mediaEmbed: { hosts: ["app.heygen.com", "www.youtube.com"],
+lifecycle: "src-swap" }`, so the *same* `media` value can instead be a
+YouTube/HeyGen embed URL -- which one happens depends only on the value
+passed to `setData()`, not on any separate mode/config slot:
+
+- If the value is an absolute URL whose host is in
+  `capabilities.mediaEmbed.hosts` (and the Contract §16.2 fixed allowlist),
+  `SvgRenderer` mounts an iframe next to the `<img>`, hides the `<img>`
+  (`display:none` + a `data-hud-media-embed-active` marker), and applies
+  the `src-swap` lifecycle (parked at `about:blank` except at `maxi`,
+  restored on `setVariant("maxi")`).
+- Any other value -- a plain photo URL, a relative path, anything not on
+  the allowlist -- falls straight through to the existing `<img>.src`
+  behavior, exactly as if `mediaEmbed` were not declared at all.
+- Switching back and forth between the two (repeated `setData({ media })`
+  calls) correctly un-hides the `<img>`/removes the iframe each way -- no
+  leftover DOM from a prior value.
+
+This dispatch logic is shared with `hud-04` (which only ever sends an
+embed URL through this same path) and with `hud-01` (this Theme's
+sibling, same mechanism) via `src/runtime/renderers/mediaEmbed.ts` -- see
+that module's docstring for why the check is per-*value*, not
+per-manifest, which is specifically what lets this Theme's `media` slot do
+double duty without breaking its original plain-photo behavior. See
+`tests/unit/hud-02-e2e.test.js`'s "Story #43" describe block for the full
+behavioral test coverage (embed mount, plain-photo regression, switching
+both ways, `setVariant` src-swap lifecycle).
+
+**Not in scope for Story #43** (see `IncusLuminis/assets#43`'s issue
+comments): TikTok (not in the Contract's fixed host allowlist -- would need
+a Contract 1.0 amendment, an owner-level decision, not a Theme change), and
+no new "youtube-shorts" mode/composition (a portrait video embed would just
+be this same `mediaEmbed` mechanism paired with a portrait composition,
+which this Theme doesn't currently have and this Story didn't add).
+
 ## Tests
 
 - `tests/unit/hud-02-theme.test.js` -- manifest schema + semantic

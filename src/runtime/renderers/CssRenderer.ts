@@ -85,9 +85,14 @@ import {
   ThemeMountFailedError,
   VariantUnsupportedError
 } from "../contract/errors.js";
-
-/** Contract §16.2 -- the media-embed slice of the fixed allowlist. */
-const MEDIA_EMBED_ALLOWLIST: readonly string[] = ["app.heygen.com", "www.youtube.com", "player.vimeo.com"];
+import {
+  applyMediaEmbedLifecycle,
+  mountMediaEmbed,
+  resolveMediaEmbedUrl,
+  unmountMediaEmbed,
+  watchVariantForMediaEmbed,
+  type MediaEmbedState
+} from "./mediaEmbed.js";
 
 /** Fetches the text of a package-relative resource, already resolved to an absolute URL. */
 export type CssResourceFetcher = (url: string) => Promise<string>;
@@ -121,11 +126,6 @@ async function defaultFetchText(url: string): Promise<string> {
 /** Contract §9.3: "MUST NOT execute `<script>` inside `content`. (the Runtime SHOULD strip it)." A dependency-free, conservative regex strip -- a full sanitizer is a Runtime-wide concern beyond one renderer/Story. */
 function stripScriptTags(html: string): string {
   return html.replace(/<script[\s\S]*?<\/script\s*>/gi, "");
-}
-
-interface MediaEmbedState {
-  el: HTMLIFrameElement;
-  realSrc: string;
 }
 
 export class CssRenderer implements RendererLifecycle {
@@ -198,8 +198,8 @@ export class CssRenderer implements RendererLifecycle {
       await this.#loadScripts(root, entrypoint, context);
 
       this.#reflectVariantAttribute();
-      if (manifest.capabilities?.mediaEmbed) {
-        this.#watchVariantForMediaEmbed();
+      if (manifest.capabilities?.mediaEmbed && this.#container) {
+        this.#variantObserver = watchVariantForMediaEmbed(this.#container, () => this.#applyMediaEmbedLifecycle());
       }
     } catch (err) {
       // Contract §6.2: "leave `container` empty (no partial DOM)" on any
@@ -430,73 +430,44 @@ export class CssRenderer implements RendererLifecycle {
   #applyMediaSlot(value: unknown): void {
     const el = this.#slotEls.get("media");
     if (!el) return;
-    const mediaEmbed = this.#manifest?.capabilities?.mediaEmbed;
-    if (!mediaEmbed) {
-      // Plain `media` slot (HUD-03-style float image, no mediaEmbed
-      // capability): a URL string sets an <img> src if the markup put one
-      // there, else it's recorded as a data attribute for the Theme's own
-      // CSS (e.g. background-image) to key off.
-      if (typeof value !== "string") return;
-      if (el instanceof HTMLImageElement) {
-        el.src = value;
-      } else {
-        el.setAttribute("data-media-src", value);
-      }
-      return;
-    }
-    if (typeof value !== "string" || value.length === 0) return;
-    let url: URL;
-    try {
-      url = new URL(value);
-    } catch {
-      console.warn(`CssRenderer: setData({ media }) value "${value}" is not a valid absolute URL; ignored`);
-      return;
-    }
-    const hostAllowed = mediaEmbed.hosts.includes(url.hostname) && MEDIA_EMBED_ALLOWLIST.includes(url.hostname);
-    if (!hostAllowed) {
-      // Contract §16.2: hosts outside the fixed allowlist need a
-      // manifest-level declaration + knownDeviations justification, checked
-      // at publication (Story #3's semantic layer) -- at *runtime* an
-      // unlisted host is simply refused, never loaded.
-      console.warn(
-        `CssRenderer: setData({ media }) host "${url.hostname}" is not in capabilities.mediaEmbed.hosts / the Contract §16.2 allowlist; ignored`
-      );
-      return;
-    }
-    this.#mountMediaEmbedIframe(el, url.href);
-  }
+    if (typeof value !== "string" || value.length === 0) return; // Contract §6.3: absent/empty value is a no-op, not a reset -- unchanged from pre-Story-#43 behaviour on both paths below.
 
-  #mountMediaEmbedIframe(slotEl: HTMLElement, src: string): void {
-    if (!this.#mediaEmbed) {
-      const iframe = document.createElement("iframe");
-      iframe.setAttribute("allow", "autoplay; encrypted-media");
-      iframe.setAttribute("loading", "lazy");
-      iframe.className = "hud-media-embed-iframe";
-      slotEl.appendChild(iframe);
-      this.#mediaEmbed = { el: iframe, realSrc: src };
-    } else {
-      this.#mediaEmbed.realSrc = src;
+    const mediaEmbed = this.#manifest?.capabilities?.mediaEmbed;
+    const embedUrl = resolveMediaEmbedUrl(value, mediaEmbed);
+    if (embedUrl !== undefined) {
+      this.#mediaEmbed = mountMediaEmbed(el, embedUrl, this.#mediaEmbed);
+      this.#applyMediaEmbedLifecycle();
+      return;
     }
-    this.#applyMediaEmbedLifecycle();
+
+    // Not an embed target for this value -- see `mediaEmbed.ts`'s per-value
+    // routing docstring (Story #43). Tear down any embed mounted for a
+    // PREVIOUS value first, so switching back to a plain photo URL doesn't
+    // leave a stale iframe (or a hidden <img>) behind.
+    if (this.#mediaEmbed) {
+      unmountMediaEmbed(this.#mediaEmbed);
+      this.#mediaEmbed = undefined;
+    }
+    // Plain `media` slot (HUD-03-style float image): a URL string sets an
+    // <img> src if the markup put one there, else it's recorded as a data
+    // attribute for the Theme's own CSS (e.g. background-image) to key off.
+    if (el instanceof HTMLImageElement) {
+      el.src = value;
+    } else {
+      el.setAttribute("data-media-src", value);
+    }
   }
 
   /** Contract §10.5 `lifecycle: "src-swap"`: parked at `about:blank` except at `maxi`, mirroring the HUD-04 baseline's collapse/expand pause behaviour (Inventory §1.32-§1.33). */
   #applyMediaEmbedLifecycle(): void {
     if (!this.#mediaEmbed) return;
-    this.#mediaEmbed.el.src = this.#variant === "maxi" ? this.#mediaEmbed.realSrc : "about:blank";
+    applyMediaEmbedLifecycle(this.#mediaEmbed, this.#variant);
   }
 
   #reflectVariantAttribute(): void {
     if (this.#container && this.#variant) {
       this.#container.setAttribute("data-hud-variant", this.#variant);
     }
-  }
-
-  /** A real teardown target (`destroy()` disconnects it): mirrors -- and fixes -- HUD-04's un-disconnected `MutationObserver` (Inventory §1.33, §1.35 "never disconnected"). */
-  #watchVariantForMediaEmbed(): void {
-    if (!this.#container) return;
-    this.#variantObserver = new MutationObserver(() => this.#applyMediaEmbedLifecycle());
-    this.#variantObserver.observe(this.#container, { attributes: true, attributeFilter: ["data-hud-variant"] });
   }
 
   // ---------------------------------------------------------------------
@@ -508,8 +479,7 @@ export class CssRenderer implements RendererLifecycle {
     this.#variantObserver?.disconnect();
     this.#variantObserver = undefined;
     if (this.#mediaEmbed) {
-      this.#mediaEmbed.el.src = "about:blank"; // Contract §10.5/§17.2 point 4: blank before removal.
-      this.#mediaEmbed.el.remove();
+      unmountMediaEmbed(this.#mediaEmbed); // Contract §10.5/§17.2 point 4: blank before removal.
       this.#mediaEmbed = undefined;
     }
     for (const el of this.#scriptEls) el.remove();
