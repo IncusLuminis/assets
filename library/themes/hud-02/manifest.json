@@ -50,7 +50,8 @@
       "timing": { "simbad": "page-load", "vizier": "lazy", "ads": "lazy" }
     },
     "modes": { "values": ["object", "html"], "default": "object", "config": "mode" },
-    "multiInstance": true
+    "multiInstance": true,
+    "mediaEmbed": { "hosts": ["app.heygen.com", "www.youtube.com"], "lifecycle": "src-swap" }
   },
   "entrypoints": {
     "maxi:landscape": {

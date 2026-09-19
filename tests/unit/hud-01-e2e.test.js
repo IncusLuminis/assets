@@ -601,3 +601,106 @@ describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Ala
     expect(load).toHaveBeenCalledWith({ name: "simbad", host: "simbad.cds.unistra.fr", kind: "fetch" });
   });
 });
+
+describe("Story #43: capabilities.mediaEmbed on hud-01's existing (image) media slot", () => {
+  let hud;
+  let hostEl;
+
+  const YOUTUBE_URL = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+  const PHOTO_URL = "https://example.com/photo.jpg";
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("no real network in tests"))));
+  });
+
+  afterEach(() => {
+    hud?.destroy();
+    hostEl?.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("setData({ media: <allowlisted YouTube URL> }) mounts an iframe and hides the real <img> in place", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    const img = root.querySelector('[data-slot="media"]');
+    expect(img).toBeInstanceOf(HTMLImageElement);
+
+    hud.setData({ media: YOUTUBE_URL });
+
+    const iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe).not.toBeNull();
+    expect(iframe.src).toBe(YOUTUBE_URL);
+    expect(img.style.display).toBe("none");
+  });
+
+  it("setData({ media: <non-allowlisted photo URL> }) still sets the plain <img>.src directly -- the per-value routing regression test", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    hud.setData({ media: PHOTO_URL });
+
+    const img = root.querySelector('[data-slot="media"]');
+    expect(img.src).toBe(PHOTO_URL);
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).toBeNull();
+    expect(img.style.display).not.toBe("none");
+  });
+
+  it("switching media between an embed URL and a photo URL via repeated setData() calls restores/removes the right element each way", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    const img = root.querySelector('[data-slot="media"]');
+
+    hud.setData({ media: YOUTUBE_URL });
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).not.toBeNull();
+    expect(img.style.display).toBe("none");
+
+    hud.setData({ media: PHOTO_URL });
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).toBeNull();
+    expect(img.style.display).not.toBe("none");
+    expect(img.src).toBe(PHOTO_URL);
+
+    hud.setData({ media: YOUTUBE_URL });
+    const iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe).not.toBeNull();
+    expect(iframe.src).toBe(YOUTUBE_URL);
+    expect(img.style.display).toBe("none");
+  });
+
+  it("setVariant() away from maxi parks the embed at about:blank (src-swap lifecycle), and restores it back at maxi", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+    hud.setData({ media: YOUTUBE_URL });
+
+    let root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    let iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe.src).toBe(YOUTUBE_URL);
+
+    await hud.setVariant("mini");
+    root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe).not.toBeNull(); // Hud replays the last setData() after setVariant() resolves (Contract §6.5).
+    expect(iframe.src).toBe("about:blank");
+
+    await hud.setVariant("maxi");
+    root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe.src).toBe(YOUTUBE_URL);
+  });
+});
