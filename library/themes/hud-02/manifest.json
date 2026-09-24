@@ -21,7 +21,7 @@
     "required": ["title"],
     "optional": [
       "subtitle", "media", "visualization", "primary", "secondary",
-      "status", "controls", "content", "footer", "objectName", "mode"
+      "status", "controls", "content", "footer", "objectName", "mode", "mediaPoster"
     ]
   },
   "customSlots": [
@@ -36,6 +36,12 @@
       "kind": "config",
       "required": false,
       "description": "Composition personality: \"object\" (Aladin + SIMBAD/VizieR/ADS, default) or \"html\" (plain content slot, no network). See this Theme's README for how mode is set in this 0.1 Runtime."
+    },
+    {
+      "name": "mediaPoster",
+      "kind": "url",
+      "required": false,
+      "description": "Static poster/thumbnail shown instead of a live embed at `micro` (Story #45 -- a live iframe is unusable at micro's ~87x130px thumbnail size). Ignored at maxi/mini, where mediaEmbed plays live."
     }
   ],
   "capabilities": {

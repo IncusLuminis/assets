@@ -126,15 +126,19 @@ describe("library/themes/hud-01 -- 'Object Lock' (Story #11 AC)", () => {
     }
   });
 
-  it("maxi:landscape's markup carries a [data-slot] element for every declared optional slot except mode/objectName (which are hidden config inputs)", () => {
+  it("maxi:landscape's markup carries a [data-slot] element for every declared optional slot except mode/objectName/mediaPoster (which are hidden config inputs / not DOM-mapped)", () => {
     const manifest = loadManifest();
     const html = fs.readFileSync(path.join(themeDir, manifest.entrypoints["maxi:landscape"].markup), "utf8");
-    const visibleOptionalSlots = manifest.slots.optional.filter((s) => s !== "mode" && s !== "objectName");
+    const visibleOptionalSlots = manifest.slots.optional.filter((s) => s !== "mode" && s !== "objectName" && s !== "mediaPoster");
     for (const slot of visibleOptionalSlots) {
       expect(html, `maxi:landscape: no [data-slot="${slot}"]`).toMatch(new RegExp(`data-slot="${slot}"`));
     }
     // mode/objectName are still present, just hidden (README "How mode/objectName reach the script").
     expect(html).toMatch(/data-slot="mode"/);
     expect(html).toMatch(/data-slot="objectName"/);
+    // mediaPoster (Story #45) deliberately has NO [data-slot="mediaPoster"] element anywhere --
+    // it is consumed directly out of setData()'s data argument for the micro-variant poster
+    // degradation, not DOM-mapped (see mediaEmbed.ts / SvgRenderer.ts class docstrings).
+    expect(html).not.toMatch(/data-slot="mediaPoster"/);
   });
 });

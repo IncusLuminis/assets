@@ -19,8 +19,16 @@
   },
   "slots": {
     "required": ["title"],
-    "optional": ["subtitle", "media", "content", "footer"]
+    "optional": ["subtitle", "media", "content", "footer", "mediaPoster"]
   },
+  "customSlots": [
+    {
+      "name": "mediaPoster",
+      "kind": "url",
+      "required": false,
+      "description": "Static poster/thumbnail shown instead of a live embed at `micro` (Story #45 -- a live iframe is unusable at micro's ~87x130px thumbnail size). Ignored at maxi/mini, where mediaEmbed plays live."
+    }
+  ],
   "capabilities": {
     "animation": true,
     "htmlSlot": true,

@@ -30,6 +30,20 @@
  * never sends a non-allowlisted `media` value today, so its behaviour is
  * bit-for-bit unchanged; it only adds a working fallback path that
  * previously silently dropped the value.
+ *
+ * ## `micro`-variant degradation, not a live embed (Story #45)
+ *
+ * `mountMediaEmbed`'s iframe makes sense at `maxi`/`mini`, but never at
+ * `micro` (~87x130px thumbnail, Contract's minimum vertical form): a live
+ * iframe there is either invisible or broken-looking and wastes a real
+ * network/CDN load nobody can usefully watch. `applyMicroEmbedPoster` /
+ * `removeMicroEmbedPoster` below are the `micro`-only alternative: a static
+ * poster image (a new `mediaPoster` custom slot's value, provided
+ * separately from `media`) plus a purely decorative, `pointer-events: none`
+ * play-icon overlay. The routing decision itself (call these instead of
+ * `mountMediaEmbed` when `variant === "micro"`) is each renderer's own call
+ * site's job, not this module's -- see `SvgRenderer.ts`'s and
+ * `CssRenderer.ts`'s own "Story #45" docs for exactly where.
  */
 import type { MediaEmbedCapability } from "../contract/manifest.js";
 import type { Variant } from "../contract/variants.js";
@@ -131,6 +145,107 @@ export function unmountMediaEmbed(state: MediaEmbedState): void {
 /** Contract §10.5 `lifecycle: "src-swap"`: parked at `about:blank` except at `maxi`, mirroring the HUD-04 baseline's collapse/expand pause behaviour. */
 export function applyMediaEmbedLifecycle(state: MediaEmbedState, variant: Variant | undefined): void {
   state.el.src = variant === "maxi" ? state.realSrc : "about:blank";
+}
+
+/**
+ * Renderer-owned bookkeeping for one mounted `micro`-variant poster+play-icon
+ * overlay (Story #45), opaque to callers beyond passing it back into these
+ * functions -- mirrors `MediaEmbedState`'s role for the live-embed path.
+ */
+export interface MicroPosterState {
+  /** The decorative, non-interactive play-icon overlay element. */
+  overlay: HTMLElement;
+  /**
+   * Only set when `slotEl` was a `<div data-slot="media">` container
+   * (HUD-04 shape) and this function created a plain `<img>` child inside
+   * it to hold the poster -- `removeMicroEmbedPoster` removes it again.
+   * Not set for the HUD-01/02 `<img data-slot="media">` shape, where
+   * `slotEl` itself is reused directly (same distinction `MediaEmbedState
+   * .hiddenImage` draws for the live-embed path).
+   */
+  createdImage?: HTMLImageElement;
+}
+
+/**
+ * Story #45 -- `variant === "micro"` embed degradation. A live iframe at
+ * micro's ~87x130px thumbnail size is either invisible or broken-looking,
+ * and wastes a real network/CDN load nobody can usefully watch (see this
+ * module's/the calling renderer's "Story #45" docs for the full
+ * background). Instead of `mountMediaEmbed`, callers route a `media` value
+ * that resolves to an allowlisted embed host through this function when
+ * `variant === "micro"`: it shows a static poster image (`posterUrl`, the
+ * new `mediaPoster` custom slot's value) plus a purely decorative,
+ * non-interactive play-icon overlay.
+ *
+ * Handles both of `mountMediaEmbed`'s slot shapes:
+ * - HUD-01/02: `slotEl` IS the `<img data-slot="media">` -- its `src` is
+ *   set directly to `posterUrl`.
+ * - HUD-04: `slotEl` is an empty `<div data-slot="media">` container -- a
+ *   plain `<img>` child is created (and reused across repeated calls) to
+ *   hold the poster.
+ *
+ * **Fallback when `posterUrl` is falsy/empty** (no `mediaPoster` value
+ * provided): this is a deliberate no-op beyond tearing down any
+ * previously-mounted poster/overlay from an earlier value -- it leaves
+ * whatever the composition already shows for the slot alone, rather than
+ * inventing a generic placeholder graphic. That's its own small design
+ * task, not something worth doing inside this fix; the caller is still
+ * responsible for never falling through to the generic plain-`<img>`
+ * handling in this case (that would set the `<img>`'s `src` to the raw,
+ * un-embeddable-at-this-size embed URL itself, producing a broken-image
+ * icon) -- see `resolveMediaEmbedUrl`'s per-value routing rule and the
+ * calling renderer's own `micro` branch for how that's guaranteed.
+ *
+ * The play-icon overlay is never interactive: `pointer-events: none` is
+ * set here via inline style (so it holds regardless of a Theme's own CSS)
+ * -- issue #45 requires it never intercept a click meant for a future
+ * expand-to-`maxi` toggle wrapper (issue #46, explicitly out of scope
+ * here; no click handler of any kind is added by this function).
+ */
+export function applyMicroEmbedPoster(
+  slotEl: HTMLElement,
+  posterUrl: string | undefined,
+  existing: MicroPosterState | undefined
+): MicroPosterState | undefined {
+  if (!posterUrl) {
+    if (existing) removeMicroEmbedPoster(existing);
+    return undefined;
+  }
+
+  let imgEl: HTMLImageElement;
+  let createdImage: HTMLImageElement | undefined = existing?.createdImage;
+  if (slotEl instanceof HTMLImageElement) {
+    imgEl = slotEl;
+  } else if (createdImage) {
+    imgEl = createdImage;
+  } else {
+    imgEl = document.createElement("img");
+    imgEl.setAttribute("data-hud-media-poster-image", "");
+    slotEl.appendChild(imgEl);
+    createdImage = imgEl;
+  }
+  imgEl.src = posterUrl;
+  imgEl.removeAttribute("data-hud-empty");
+
+  let overlay = existing?.overlay;
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.className = "hud-media-play-icon";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.setAttribute("data-hud-media-play-icon", "");
+    // Belt-and-suspenders, enforced regardless of a Theme's own CSS -- see
+    // module docstring above and issue #45's AC.
+    overlay.style.pointerEvents = "none";
+    imgEl.insertAdjacentElement("afterend", overlay);
+  }
+
+  return { overlay, createdImage };
+}
+
+/** Reverses `applyMicroEmbedPoster` -- removes the play-icon overlay (and, for the HUD-04 div shape, the `<img>` that function created). */
+export function removeMicroEmbedPoster(state: MicroPosterState): void {
+  state.overlay.remove();
+  state.createdImage?.remove();
 }
 
 /**
