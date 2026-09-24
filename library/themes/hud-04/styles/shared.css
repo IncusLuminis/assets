@@ -493,6 +493,37 @@
   z-index: 0;
 }
 
+/*
+ * Story #45 -- mediaEmbed micro-variant degradation. `applyMicroEmbedPoster`
+ * (src/runtime/renderers/mediaEmbed.ts) creates a plain <img> inside
+ * `.nc-hud-media` (styled by the existing `.hud-04 .nc-hud-media img` rule
+ * above) plus this overlay as its next sibling -- both paint after (on top
+ * of) `.nc-reconnect` in DOM order, at the same default stacking level, so
+ * no z-index is needed to cover it. Purely decorative: `pointer-events:
+ * none` is also enforced inline by that JS (belt-and-suspenders) so it can
+ * never intercept a click meant for a future expand-to-maxi toggle wrapper
+ * (issue #46, not built here). Only ever created at `micro` (the only
+ * composition this renderer's micro-degradation path applies to).
+ */
+.hud-04 .hud-media-play-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.hud-04 .hud-media-play-icon::before {
+  content: "";
+  width: 0;
+  height: 0;
+  margin-left: 3px; /* optical centering for a right-pointing triangle */
+  border-style: solid;
+  border-width: 9px 0 9px 15px;
+  border-color: transparent transparent transparent rgba(230,255,255,.92);
+  filter: drop-shadow(0 0 4px rgba(80,220,255,.85));
+}
+
 /* ── Mini card (mini:landscape composition — see mini/landscape/hud.css) ──
    Source: `.nc-hp-mini-card` etc. in blogger-hud03-template.css. Rewritten
    from an absolutely-positioned, opacity-toggled overlay (it sits on top of

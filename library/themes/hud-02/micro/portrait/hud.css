@@ -45,3 +45,31 @@
   object-fit: cover; filter: brightness(.72) contrast(1.18) saturate(.85);
   background: #05070c;
 }
+
+/*
+ * Story #45 -- mediaEmbed micro-variant degradation: the play-icon overlay
+ * `applyMicroEmbedPoster` (src/runtime/renderers/mediaEmbed.ts) inserts as
+ * `.nc-or-image`'s next sibling when a `media` value resolves to a live
+ * embed at this `micro` composition. Purely decorative: `pointer-events:
+ * none` is also enforced inline by that JS (belt-and-suspenders) so it can
+ * never intercept a click meant for a future expand-to-maxi toggle wrapper
+ * (issue #46, not built here).
+ */
+.hud-media-play-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.hud-media-play-icon::before {
+  content: "";
+  width: 0;
+  height: 0;
+  margin-left: 3px; /* optical centering for a right-pointing triangle */
+  border-style: solid;
+  border-width: 8px 0 8px 14px;
+  border-color: transparent transparent transparent rgba(230,255,255,.92);
+  filter: drop-shadow(0 0 4px rgba(80,220,255,.85));
+}
