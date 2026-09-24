@@ -124,6 +124,60 @@ describe("End-to-end: mount hud-04 through Hud + the real CssRenderer (issue #13
     expect(hostEl.children.length).toBe(0);
   });
 
+  it("Story #45: micro + setData({ media: <allowlisted URL>, mediaPoster: <poster URL> }) shows a static poster + non-interactive play-icon, never an iframe", async () => {
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    hud = makeHud("micro");
+
+    await hud.mount(hostEl);
+    const scopedRoot = hostEl.querySelector("[data-hud-theme='hud-04']");
+    const shadow = scopedRoot.shadowRoot;
+
+    hud.setData({ title: "КОМАНДОР КЕЛЛАН", media: MEDIA_URL, mediaPoster: "https://example.com/poster.jpg" });
+
+    expect(shadow.querySelector('[data-slot="media"] iframe')).toBeNull();
+
+    const posterImg = shadow.querySelector('[data-slot="media"] img');
+    expect(posterImg).not.toBeNull();
+    expect(posterImg.src).toBe("https://example.com/poster.jpg");
+
+    const playIcon = shadow.querySelector(".hud-media-play-icon");
+    expect(playIcon).not.toBeNull();
+    expect(playIcon.style.pointerEvents).toBe("none");
+
+    // The pre-existing RECONNECTING label is still there in the DOM (Story
+    // #45 doesn't remove it) -- the poster img/play-icon simply paint over
+    // it (see shared.css "Story #45" comment on paint order).
+    expect(shadow.querySelector(".nc-reconnect")).not.toBeNull();
+  });
+
+  it("Story #45: micro + no mediaPoster provided leaves the media slot's existing (RECONNECTING) display untouched -- no poster image, no play-icon", async () => {
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    hud = makeHud("micro");
+
+    await hud.mount(hostEl);
+    const scopedRoot = hostEl.querySelector("[data-hud-theme='hud-04']");
+    const shadow = scopedRoot.shadowRoot;
+
+    hud.setData({ title: "КОМАНДОР КЕЛЛАН", media: MEDIA_URL }); // no mediaPoster this time
+
+    expect(shadow.querySelector('[data-slot="media"] iframe')).toBeNull();
+    expect(shadow.querySelector('[data-slot="media"] img')).toBeNull(); // no poster img created either
+    expect(shadow.querySelector(".hud-media-play-icon")).toBeNull();
+    expect(shadow.querySelector(".nc-reconnect")).not.toBeNull(); // untouched
+  });
+
+  // NOTE: mirrors hud-01/hud-02-e2e.test.js's identical comment -- a real
+  // setVariant("maxi"|"mini") <-> setVariant("micro") round trip cannot be
+  // exercised for hud-04 either: the same 3-of-6 orientation/variant combo
+  // restriction applies here too (maxi/mini landscape-only, micro
+  // portrait-only; Contract §14.4 fixes orientation for an instance's
+  // lifetime). The pre-existing "maxi -> setVariant(mini)" test above
+  // already proves the maxi<->mini live-embed src-swap path this Story
+  // leaves untouched; the `micro` branch is exercised directly by mounting
+  // AT micro (the two tests above).
+
   it("fails locally with a typed error and never touches the host when a required asset 404s (Contract §20.3)", async () => {
     hostEl = document.createElement("div");
     document.body.appendChild(hostEl);
