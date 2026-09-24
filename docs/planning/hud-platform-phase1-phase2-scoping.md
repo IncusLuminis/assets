@@ -36,6 +36,22 @@ The **legacy** widgets (`widgets/panels/hud-01`, pre-Contract, what "Local" mode
 
 **Recommendation: Option 1.** It gets to the same end-user outcome (a real external site embeds one HUD and gets a working toggle) without reopening a frozen, carefully-reasoned spec. But this is the owner's call, not something to default silently — flagging it as **open question #1** below.
 
+#### A.1.1 — Under Option 1: where does "expanded" actually render? Two real, different answers
+
+Once Option 1 is picked, "the wrapper calls `setVariant()`" still leaves open a genuinely consequential question: **does the container itself grow to fit `maxi`, or does `maxi` render somewhere else entirely?** The answer is different depending on the page the HUD sits in, and the wrapper needs to support **both**, chosen per-embed by whoever places the HUD — the Runtime/Theme itself stays identical either way; only the wrapper's behavior differs.
+
+**Mode `inline`** — the pattern the real legacy widget already uses in production today (confirmed directly: `.nc-ol-widget { position: relative; width: 100%; max-height: 600px; overflow: hidden; transition: max-height 1000ms; }`, no overlay, no `position: fixed` anywhere in the mechanism). The mount container sits in normal document flow with **no fixed height** (content-driven, `height: auto`). On toggle: the wrapper calls `hud.setVariant("maxi")` on the *same* `Hud` instance, mounted into the *same* container; `SvgRenderer`/`CssRenderer` tear down the old composition's DOM and mount the new (larger) one in its place; the container naturally grows to fit it (ordinary block-level sizing — no manual height math), and the surrounding page reflows around it exactly like an accordion / `<details>` element. Right fit for a linear document (a Blogger post, an article body) where there's room below the HUD for the page to push down.
+
+**Mode `modal`** — needed anywhere the HUD sits in a **spatially fixed layout** with no reflow room around it (the concrete case raised: `stellar-attractor-site`'s cockpit ("пульт") — a `micro` instrument gauge sitting in a fixed position among other fixed instruments; growing it in place would just overlap its neighbors, there's nowhere for surrounding content to go). Here, the small instance is never touched at all:
+
+1. The small/collapsed instance (`hudSmall`, whatever variant the site placed) keeps mounted exactly where it always was, on the cockpit layout, untouched.
+2. On toggle-open: the wrapper creates a new overlay root (fixed position, dimmed backdrop, above the whole console) and mounts a **second, independent** `Hud` instance (`hudLarge`, `variant: "maxi"`) into it — same `theme`/`version`/orientation, and `setData()` called with whatever `hudSmall` is currently showing (a copy at open-time, not a live binding — see the open question below).
+3. On toggle-close: `hudLarge.destroy()`, remove the overlay. `hudSmall` was never touched, so there is nothing to "restore" — it's already exactly as it was.
+
+Neither mode requires any change to `Hud`/`SvgRenderer`/`CssRenderer`/the Contract — both are pure wrapper-layer behavior built on the existing public API (`mount`/`setVariant`/`setData`/`destroy`). What the wrapper needs is an explicit **per-embed configuration** (e.g. `expand-mode="inline"` vs. `expand-mode="modal"`) — it cannot infer which one is correct from the Theme or the Contract; only whoever places the HUD on a given page knows whether there's reflow room around it.
+
+One compliance note for whoever builds this: the toggle button itself must be rendered by the **wrapper**, as a sibling/parent of the Theme's own mount root — never injected into the DOM subtree the mounted Theme owns. Otherwise it's easy to accidentally violate §7.2's "`maxi` composition MUST render... with no collapse toggle" by mistake (the rule is about what the *Theme* renders inside its own mount, not about whether *some* toggle exists on the page near it).
+
 ### A.2 — `micro` is real but effectively untested for the content types that matter most
 
 The manifests genuinely declare `micro:portrait` as supported, and the composition markup exists, for all 4 Themes. But:
@@ -67,7 +83,8 @@ The owner's "frame fills container width, scales height proportionally" requirem
 
 - [ ] Design + implement the micro-embed degradation behavior (§A.2) — likely "no live iframe at micro, static poster/placeholder instead" — across hud-01, hud-02, hud-04.
 - [ ] Test coverage: `mediaEmbed` at `micro` (all 3 Themes that declare it), object-mode async paths at `micro` (hud-01/02).
-- [ ] `<nebula-hud>` Web Component adapter (or equivalent) that owns the toggle-button chrome + drives `setVariant()` — the Option-1 answer to the intrinsic-toggle ask. This was already reserved for "0.2" in the original Plan; the owner's new requirement makes it load-bearing for Phase 1 rather than a nice-to-have.
+- [ ] `<nebula-hud>` Web Component adapter (or equivalent) that owns the toggle-button chrome + drives `setVariant()`/mounts the second instance — the Option-1 answer to the intrinsic-toggle ask, supporting **both** `inline` and `modal` expand modes (§A.1.1), selected per-embed. This was already reserved for "0.2" in the original Plan; the owner's new requirement makes it load-bearing for Phase 1 rather than a nice-to-have.
+- [ ] Decide the `modal` mode's data-sync behavior (open question #6 below) before building it — affects the wrapper's actual implementation, not just its UI.
 - [ ] Decide + record whether full portrait coverage (§A.4) is in scope for "Phase 1 done" or deferred again.
 
 ---
@@ -106,5 +123,24 @@ Today, a Theme becomes real by: living under `library/themes/<id>/`, passing `np
 3. **Portrait coverage**: is full `maxi:portrait`/`mini:portrait` authoring for HUD-01..04 part of "Phase 1 done," or still deferred (as it has been since the original Contract freeze)?
 4. **Phase 2 storage/publish path**: reuse the existing local-checkout + build + deploy pipeline (recommended), or does Phase 2 need its own?
 5. **Phase 2 composition authoring scope**: start with editing-existing-compositions only (recommended), or is from-scratch visual authoring actually wanted for Phase 2 itself?
+6. **`modal` mode data sync** (§A.1.1) — **RESOLVED (owner, 2026-09-24): snapshot-at-open.** The overlay/`maxi` instance is seeded with whatever the small instance shows at the moment the toggle opens it; no live re-sync while open. Closing/reopening refreshes it. Revisit only if a real consumer needs live sync later.
+7. **Toggle-wrapper scope vs. Phase 1** — **RESOLVED (owner, 2026-09-24): separate/parallel track.** `<nebula-hud>` (or equivalent) is its own Story/Epic, sequenced alongside Phase 1, not blocking the micro/mediaEmbed completion work in §A.2/§A.6 — neither depends on the other.
+8. **Which `expand-mode` first** — **RESOLVED (owner, 2026-09-24): `inline` first, `modal` second.** Two sequential Stories on the toggle-wrapper track: `inline` (same instance, no overlay/backdrop, no data-sync question) lands first; `modal` (the `stellar-attractor-site` cockpit case, snapshot-at-open per #6) follows as a strict superset.
+9. **Portrait coverage** (§A.4) — **RESOLVED (owner, 2026-09-24): still deferred.** Not part of "Phase 1 done." Landscape-native Themes stay landscape-native; portrait stays `micro`-only, exactly as since the original Contract freeze. Revisit as its own future Epic if/when a real portrait-native Theme (HUD-10 or otherwise) is scheduled.
 
-Once these are answered, B.1-B.4 (plus the Phase 1 punch list in A.6) translate fairly directly into Epics/Stories on the existing `IncusLuminis/projects/7` board, following the same Coder/Validator dispatch pattern used for every Story so far.
+All nine questions are now resolved for Phase 1's own scope (#1-#3, #6-#9). Only Phase 2's own open questions (#2, #4, #5 — `bitmap`/`webm`, storage/publish path, composition-authoring scope) remain, and don't block writing Phase 1 Epics/Stories.
+
+## Phase 1 — resulting Story shape (post owner decisions, 2026-09-24)
+
+Two independent tracks, neither blocking the other:
+
+**Track A — finish HUD-01..04 (svg/css) + micro (§A.2, §A.6)**
+- Design + implement micro-embed degradation (mediaEmbed at `micro` → static poster/placeholder, not a live iframe) across hud-01/hud-02/hud-04.
+- Test coverage: `mediaEmbed` at `micro` for all 3 Themes that declare it; object-mode async paths (SIMBAD/Aladin failure handling) at `micro` for hud-01/hud-02.
+- No portrait-coverage work (deferred, #9) — scope stays within the already-supported `maxi:landscape`/`mini:landscape`/`micro:portrait` combinations.
+
+**Track B — toggle-wrapper (parallel, separate Epic, e.g. `<nebula-hud>`)**
+- Story B1: `inline` expand mode. Same `Hud` instance, `setVariant()` on toggle click, no-fixed-height container, no backdrop/overlay chrome. Proves the toggle button itself (top-left, rendered by the wrapper not the Theme — see the §A.1.1 compliance note) and the expanded↔collapsed click cycle.
+- Story B2: `modal` expand mode (depends on B1's toggle-button chrome, reuses it). Second `Hud` instance mounted into a fixed-position dimmed overlay on open; `setData()` snapshot copied from the small instance at open-time (#6); `destroy()` on close; small instance never touched. `stellar-attractor-site`'s cockpit is the concrete first consumer to validate against.
+
+Once Track A and Track B1/B2 are written up as real Epics/Stories on `IncusLuminis/projects/7`, they follow the same Coder/Validator dispatch pattern used for every Story so far. Phase 2 (B.1-B.4 above) still needs open questions #2/#4/#5 answered before its own Epics/Stories get written.
