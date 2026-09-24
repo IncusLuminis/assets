@@ -96,13 +96,18 @@
  *   (§A.1.1's compliance note): an accidentally Theme-owned toggle would
  *   violate Contract §7.2 by mistake even though the Contract itself never
  *   changes. See `tests/unit/nebula-hud.test.js` for the regression test.
- * - **Renderer/ThemeSource wiring**: each `<nebula-hud>` instance builds its
- *   own `RendererRegistry` (via `createDefaultRendererRegistry()`, with
- *   `svg`/`css` registered -- the two real, shipped engines) and its own
- *   `RegistryThemeSource(cdnBaseUrl)`, passed directly as `Hud`'s second
- *   constructor argument. This mirrors exactly how this repo's own tests
- *   inject a `FileSystemThemeSource` -- `Hud`'s dependency-injection seam
- *   was built for precisely this kind of self-contained wiring.
+ * - **Renderer/ThemeSource wiring**: by default, each `<nebula-hud>`
+ *   instance builds its own `RendererRegistry` (via
+ *   `createDefaultRendererRegistry()`, with `svg`/`css` registered -- the
+ *   two real, shipped engines) and its own `RegistryThemeSource(cdnBaseUrl)`,
+ *   passed directly as `Hud`'s second constructor argument. Two public
+ *   instance properties, `.themeSource` and `.rendererRegistry`, let an
+ *   embedder (or a test) override either before the element is connected --
+ *   this mirrors `Hud`'s own constructor-injection seam (`HudDependencies`)
+ *   exactly, for exactly the same reason: this repo's own tests need to
+ *   mount a real `Hud` + real renderer against `FileSystemThemeSource`
+ *   fixtures instead of a live Registry/CDN fetch, without the production
+ *   attribute-driven path (the copy-paste embed case) changing at all.
  *
  * ## What this element deliberately does NOT do
  *
@@ -117,7 +122,7 @@
  *   or the Contract -- purely additive, wrapper-layer only.
  */
 import { Hud } from "../core/Hud.js";
-import { createDefaultRendererRegistry } from "../core/RendererRegistry.js";
+import { createDefaultRendererRegistry, RendererRegistry } from "../core/RendererRegistry.js";
 import { SvgRenderer } from "../renderers/SvgRenderer.js";
 import { CssRenderer } from "../renderers/CssRenderer.js";
 import { RegistryThemeSource } from "../registry/RegistryThemeSource.js";
@@ -125,6 +130,7 @@ import { isOrientation, isVariant } from "../contract/variants.js";
 import type { Orientation, Variant } from "../contract/variants.js";
 import type { HudError } from "../contract/errors.js";
 import type { RendererUnsupportedError } from "../renderers/RendererUnsupportedError.js";
+import type { ThemeSource } from "../core/ThemeSource.js";
 
 /** Matches every other consumer this session (`RegistryThemeSource`'s own default). */
 export const DEFAULT_CDN_BASE_URL = "https://assets-4gy.pages.dev/";
@@ -132,6 +138,17 @@ export const DEFAULT_CDN_BASE_URL = "https://assets-4gy.pages.dev/";
 const TAG_NAME = "nebula-hud";
 
 export class NebulaHud extends HTMLElement {
+  /**
+   * Test/advanced-embedding seam mirroring `Hud`'s own `HudDependencies`
+   * constructor argument -- see the file docstring's "Renderer/ThemeSource
+   * wiring". Most consumers never set these; the default,
+   * attribute-driven `RegistryThemeSource` wiring covers the copy-paste
+   * embed case. Must be set before the element is connected (a later
+   * assignment has no effect on an already-mounted instance).
+   */
+  themeSource: ThemeSource | undefined;
+  rendererRegistry: RendererRegistry | undefined;
+
   #shadow: ShadowRoot | undefined;
   #mountEl: HTMLDivElement | undefined;
   #toggleButton: HTMLButtonElement | undefined;
@@ -141,9 +158,33 @@ export class NebulaHud extends HTMLElement {
   #expanded = false;
   #dataOverride: unknown;
   #connected = false;
+  #readyPromise: Promise<void> = Promise.resolve();
+  #togglePromise: Promise<void> = Promise.resolve();
 
   static get observedAttributes(): string[] {
     return ["data"];
+  }
+
+  /**
+   * Resolves once the current connect's initial `hud.mount()` attempt has
+   * settled (success or failure -- failures are already logged via
+   * `console.error`/`onError`, never rethrown here). Not required for the
+   * copy-paste embed case (mounting is fire-and-forget by design), but a
+   * useful hook for tests and for any consumer that wants to know when the
+   * initial content is actually in the DOM.
+   */
+  get ready(): Promise<void> {
+    return this.#readyPromise;
+  }
+
+  /**
+   * Resolves once the most recently clicked toggle's `setVariant()` call
+   * (and this wrapper's own optimistic-flip/revert bookkeeping around it)
+   * has settled. Same rationale as `.ready` -- a hook for tests/consumers,
+   * not required for normal click-driven usage.
+   */
+  get toggling(): Promise<void> {
+    return this.#togglePromise;
   }
 
   /**
@@ -172,7 +213,7 @@ export class NebulaHud extends HTMLElement {
     // static-content custom element normally would.
     this.#connected = true;
     this.#buildShadowDom();
-    void this.#mountHud();
+    this.#readyPromise = this.#mountHud();
   }
 
   disconnectedCallback(): void {
@@ -225,7 +266,9 @@ export class NebulaHud extends HTMLElement {
     button.setAttribute("aria-expanded", "false");
     button.setAttribute("aria-label", "Expand");
     button.textContent = "⊕"; // circled plus -- swaps to circled minus once expanded
-    button.addEventListener("click", () => void this.#handleToggleClick());
+    button.addEventListener("click", () => {
+      this.#togglePromise = this.#handleToggleClick();
+    });
     shadow.appendChild(button);
     this.#toggleButton = button;
   }
@@ -247,10 +290,15 @@ export class NebulaHud extends HTMLElement {
     this.#expanded = false;
     this.#updateToggleUi();
 
-    const rendererRegistry = createDefaultRendererRegistry();
-    rendererRegistry.register("svg", () => new SvgRenderer());
-    rendererRegistry.register("css", () => new CssRenderer());
-    const themeSource = new RegistryThemeSource(cdnBaseUrl);
+    const rendererRegistry =
+      this.rendererRegistry ??
+      (() => {
+        const registry = createDefaultRendererRegistry();
+        registry.register("svg", () => new SvgRenderer());
+        registry.register("css", () => new CssRenderer());
+        return registry;
+      })();
+    const themeSource = this.themeSource ?? new RegistryThemeSource(cdnBaseUrl);
 
     let hud: Hud;
     try {
