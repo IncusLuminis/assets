@@ -226,6 +226,55 @@ no new "youtube-shorts" mode/composition (a portrait video embed would just
 be this same `mediaEmbed` mechanism paired with a portrait composition,
 which this Theme doesn't currently have and this Story didn't add).
 
+## `mediaPoster` slot + micro degradation: no live embed at `micro` (Story #45)
+
+A live iframe embed makes sense at `maxi`/`mini`, but never at `micro`:
+this Theme's `micro:portrait` composition is an ~87x130px thumbnail
+(`.nc-ol-panel`), and a real YouTube/HeyGen iframe there is either
+invisible or broken-looking, and wastes a real network/CDN load nobody can
+usefully watch. As of Story #45, `variant === "micro"` changes what an
+allowlisted `media` embed URL does:
+
+- **No iframe is ever mounted at `micro`.** `SvgRenderer` diverts the same
+  per-value `resolveMediaEmbedUrl` match (see "Story #43" above) to
+  `mediaEmbed.ts`'s `applyMicroEmbedPoster` instead of `mountMediaEmbed`.
+- A new optional custom slot, **`mediaPoster`** (`kind: "url"`) -- set via
+  `setData({ mediaPoster: "<poster-image-url>" })`, independently of
+  `media` -- is shown as a static poster image directly in the existing
+  `<img data-slot="media">` element (the same element the live-embed path
+  would otherwise hide), plus a purely decorative, non-interactive
+  (`pointer-events: none`) play-icon overlay (`.hud-media-play-icon`) on
+  top of it.
+- **If `mediaPoster` is not provided**, this is a deliberate no-op: no
+  poster, no play-icon, whatever the `<img>` already showed (or its empty
+  initial state) is left completely untouched -- the incoming embed URL is
+  never written to the `<img>`'s `src` (that would just produce a broken
+  image icon). Inventing a generic placeholder graphic for this case was
+  judged its own small design task, not worth doing inside this fix; see
+  `mediaEmbed.ts`'s `applyMicroEmbedPoster` docstring for the same
+  reasoning in code.
+- `mediaPoster` is consumed directly out of `setData()`'s data argument,
+  not through a `[data-slot="mediaPoster"]` element -- there isn't one in
+  any composition's markup, by design (it has no DOM location of its own
+  to occupy; it only ever feeds into the `media` slot's own element at
+  `micro`).
+- `maxi`/`mini` are completely unaffected: `mediaPoster` is ignored there,
+  and the real live-embed path (previous section) is unchanged. Switching
+  variant away from `micro` remounts the whole composition and Hud replays
+  the last `setData()`, so the real embed mounts again exactly as before.
+
+See `tests/unit/hud-01-e2e.test.js`'s "Story #45" describe block for the
+poster/play-icon/no-iframe coverage, and its neighboring "Story #36
+regression, confirmed at micro" block, which asserts directly (not just
+assumes) that `micro:portrait`'s empty `scripts: []` entrypoint means the
+object-mode SIMBAD fetch / Aladin CDN load never fire when mounting at
+`micro` at all.
+
+**Out of scope for Story #45** (tracked separately, `IncusLuminis/assets#46`):
+any click-to-expand/toggle behavior. The play-icon overlay is intentionally
+inert -- `pointer-events: none` -- so it can never intercept a click meant
+for a future expand-to-`maxi` toggle wrapper placed on or around the HUD.
+
 ## Tests
 
 - `tests/unit/hud-01-theme.test.js` -- manifest schema + semantic
