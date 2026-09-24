@@ -95,6 +95,7 @@ needed.
 | `media` | no | `.nc-hud-media` (maxi/micro) / `.nc-hp-mini-video-wrap` (mini) | see "mediaEmbed wiring" |
 | `content` | no | `.nc-hp-text` | `capabilities.htmlSlot: true` — consumer HTML body copy |
 | `footer` | no | `.nc-hp-frame-ticker span` | maxi only — not rendered at `mini`/`micro` density, matching the real baseline (the ticker is hidden by the same `@media(max-width:900px)` rule micro:portrait is built from, and the mini-card never had a ticker) |
+| `mediaPoster` (custom, `kind: "url"`) | no | none — not DOM-mapped | Story #45: `micro`-only poster/thumbnail shown instead of a live embed, see "micro degradation" below |
 
 `status` is intentionally **not** exposed as a slot: `.nc-reconnect` is
 Theme-owned decoration (Contract §9.2 "`status` … is almost entirely
@@ -115,6 +116,49 @@ element and keeps its `src` in sync with the mount container's
 `data-slot="media"` markup other than the container + (in `maxi`/`micro`) the
 `.nc-reconnect` label — the `<iframe>` element itself is entirely
 renderer-owned, never hand-authored.
+
+## `mediaPoster` slot + micro degradation: no live embed at `micro` (Story #45)
+
+The mechanism above makes sense at `maxi`/`mini`, but never at `micro`:
+`micro:portrait` is a thumbnail-density composition (see "micro:portrait"
+above), and a real HeyGen iframe there is either invisible or
+broken-looking, and wastes a real network/CDN load nobody can usefully
+watch. As of Story #45, `variant === "micro"` changes what an allowlisted
+`media` embed URL does:
+
+- **No iframe is ever mounted at `micro`.** `CssRenderer` diverts the same
+  per-value `resolveMediaEmbedUrl` match to `mediaEmbed.ts`'s
+  `applyMicroEmbedPoster` instead of `mountMediaEmbed`.
+- A new optional custom slot, **`mediaPoster`** (`kind: "url"`) -- set via
+  `setData({ mediaPoster: "<poster-image-url>" })`, independently of
+  `media` -- is shown as a static poster `<img>` created inside the
+  `.nc-hud-media`/`data-slot="media"` container (this package supplies no
+  hand-authored `<img>` there, same as it supplies no hand-authored
+  `<iframe>`), plus a purely decorative, non-interactive
+  (`pointer-events: none`) play-icon overlay (`.hud-media-play-icon`) on
+  top of it. Both paint after (on top of) the pre-existing `.nc-reconnect`
+  label in DOM order -- no `z-index` needed, see `styles/shared.css`'s
+  "Story #45" comment.
+- **If `mediaPoster` is not provided**, this is a deliberate no-op: no
+  poster `<img>` is created, no play-icon, `.nc-reconnect` is left showing
+  exactly as it already does for any `micro` mount with no live embed --
+  the incoming embed URL is never written anywhere near the media slot's
+  `data-media-src` attribute or an `<img>`'s `src` (which would just be a
+  broken image). Inventing a generic placeholder graphic for this case was
+  judged its own small design task, not worth doing inside this fix.
+- `maxi`/`mini` are completely unaffected: `mediaPoster` is ignored there,
+  and the live-embed mechanism above is unchanged. Switching variant away
+  from `micro` remounts the whole composition and Hud replays the last
+  `setData()`, so the real embed mounts again exactly as before.
+
+See `tests/unit/css-renderer-hud-04-e2e.test.js`'s two "Story #45" tests
+for the poster/play-icon/no-iframe coverage and the no-`mediaPoster`
+fallback.
+
+**Out of scope for Story #45** (tracked separately, `IncusLuminis/assets#46`):
+any click-to-expand/toggle behavior. The play-icon overlay is intentionally
+inert -- `pointer-events: none` -- so it can never intercept a click meant
+for a future expand-to-`maxi` toggle wrapper placed on or around the HUD.
 
 The RECONNECTING… CSS is copied verbatim from the real source:
 `.nc-hud-media iframe[src="about:blank"] { opacity: 0 }` (`blogger-hud03-

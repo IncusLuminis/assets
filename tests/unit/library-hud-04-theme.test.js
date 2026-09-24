@@ -69,10 +69,10 @@ describe("library/themes/hud-04 -- HUD-04 packaged as a CSS-engine Theme (issue 
     expect(manifest.capabilities.htmlSlot).toBe(true);
   });
 
-  it("ships title as the only required slot; subtitle/media/content/footer optional (Inventory §1.36)", () => {
+  it("ships title as the only required slot; subtitle/media/content/footer/mediaPoster optional (Inventory §1.36, Story #45)", () => {
     const manifest = loadManifest();
     expect(manifest.slots.required).toEqual(["title"]);
-    expect(manifest.slots.optional.sort()).toEqual(["content", "footer", "media", "subtitle"]);
+    expect(manifest.slots.optional.sort()).toEqual(["content", "footer", "media", "mediaPoster", "subtitle"]);
   });
 
   it("declares no scripts -- mediaEmbed/slot wiring is entirely CssRenderer's built-in extension points (README 'Behavioral diffs' item 1)", () => {

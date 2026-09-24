@@ -601,3 +601,212 @@ describe("Story #36 regression: SIMBAD/Papers race conditions and the hidden Ala
     expect(load).toHaveBeenCalledWith({ name: "simbad", host: "simbad.cds.unistra.fr", kind: "fetch" });
   });
 });
+
+describe("Story #43: capabilities.mediaEmbed on hud-01's existing (image) media slot", () => {
+  let hud;
+  let hostEl;
+
+  const YOUTUBE_URL = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+  const PHOTO_URL = "https://example.com/photo.jpg";
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("no real network in tests"))));
+  });
+
+  afterEach(() => {
+    hud?.destroy();
+    hostEl?.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("setData({ media: <allowlisted YouTube URL> }) mounts an iframe and hides the real <img> in place", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    const img = root.querySelector('[data-slot="media"]');
+    expect(img).toBeInstanceOf(HTMLImageElement);
+
+    hud.setData({ media: YOUTUBE_URL });
+
+    const iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe).not.toBeNull();
+    expect(iframe.src).toBe(YOUTUBE_URL);
+    expect(img.style.display).toBe("none");
+  });
+
+  it("setData({ media: <non-allowlisted photo URL> }) still sets the plain <img>.src directly -- the per-value routing regression test", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    hud.setData({ media: PHOTO_URL });
+
+    const img = root.querySelector('[data-slot="media"]');
+    expect(img.src).toBe(PHOTO_URL);
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).toBeNull();
+    expect(img.style.display).not.toBe("none");
+  });
+
+  it("switching media between an embed URL and a photo URL via repeated setData() calls restores/removes the right element each way", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    const img = root.querySelector('[data-slot="media"]');
+
+    hud.setData({ media: YOUTUBE_URL });
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).not.toBeNull();
+    expect(img.style.display).toBe("none");
+
+    hud.setData({ media: PHOTO_URL });
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).toBeNull();
+    expect(img.style.display).not.toBe("none");
+    expect(img.src).toBe(PHOTO_URL);
+
+    hud.setData({ media: YOUTUBE_URL });
+    const iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe).not.toBeNull();
+    expect(iframe.src).toBe(YOUTUBE_URL);
+    expect(img.style.display).toBe("none");
+  });
+
+  it("setVariant() away from maxi parks the embed at about:blank (src-swap lifecycle), and restores it back at maxi", async () => {
+    ({ hud } = mountHud());
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+    hud.setData({ media: YOUTUBE_URL });
+
+    let root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    let iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe.src).toBe(YOUTUBE_URL);
+
+    await hud.setVariant("mini");
+    root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe).not.toBeNull(); // Hud replays the last setData() after setVariant() resolves (Contract §6.5).
+    expect(iframe.src).toBe("about:blank");
+
+    await hud.setVariant("maxi");
+    root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    iframe = root.querySelector("iframe.hud-media-embed-iframe");
+    expect(iframe.src).toBe(YOUTUBE_URL);
+  });
+});
+
+describe("Story #45: mediaEmbed micro-variant degradation (hud-01) -- static poster + play-icon, never a live iframe", () => {
+  let hud;
+  let hostEl;
+
+  const YOUTUBE_URL = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+  const POSTER_URL = "https://example.com/poster.jpg";
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("no real network in tests"))));
+  });
+
+  afterEach(() => {
+    hud?.destroy();
+    hostEl?.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("setData({ media: <allowlisted URL>, mediaPoster: <poster URL> }) at micro shows the poster + a non-interactive play-icon, never an iframe", async () => {
+    ({ hud } = mountHud({ variant: "micro", orientation: "portrait" }));
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    hud.setData({ media: YOUTUBE_URL, mediaPoster: POSTER_URL });
+
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).toBeNull();
+
+    const img = root.querySelector('[data-slot="media"]');
+    expect(img).toBeInstanceOf(HTMLImageElement);
+    expect(img.src).toBe(POSTER_URL);
+    expect(img.style.display).not.toBe("none"); // never hidden the way the live-embed path hides it
+
+    const playIcon = root.querySelector(".hud-media-play-icon");
+    expect(playIcon).not.toBeNull();
+    expect(playIcon.style.pointerEvents).toBe("none");
+  });
+
+  it("no mediaPoster provided: no live embed, no play-icon, and the existing <img> is left untouched (documented fallback choice)", async () => {
+    ({ hud } = mountHud({ variant: "micro", orientation: "portrait" }));
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    const img = root.querySelector('[data-slot="media"]');
+    expect(img.hasAttribute("src")).toBe(false); // untouched initial state
+
+    hud.setData({ media: YOUTUBE_URL }); // no mediaPoster this time
+
+    expect(root.querySelector("iframe.hud-media-embed-iframe")).toBeNull();
+    expect(root.querySelector(".hud-media-play-icon")).toBeNull();
+    // The value is a would-be embed URL -- it must NOT land on <img>.src as a
+    // broken image (that's the whole reason `resolveMediaEmbedUrl`'s match
+    // is diverted before the generic applySlotValue path ever sees it).
+    expect(img.hasAttribute("src")).toBe(false);
+  });
+
+  // NOTE: a real setVariant("maxi"|"mini") <-> setVariant("micro") round
+  // trip cannot be exercised here -- Contract §14.4 fixes orientation for
+  // an instance's whole lifetime, and hud-01's manifest only supports
+  // micro AT portrait while maxi/mini are landscape-only (the same 3-of-6
+  // combo restriction documented in
+  // docs/planning/hud-platform-phase1-phase2-scoping.md §A.4). `setVariant`
+  // between them therefore always throws VariantUnsupportedError today, for
+  // any data, embed-related or not -- not something this Story changes or
+  // needs to newly cover. The pre-existing Story #43 "setVariant() away
+  // from maxi" test above already proves the maxi<->mini live-embed path
+  // this Story leaves untouched; `#applyMediaSlotValue`'s `micro` branch
+  // above is exercised directly by mounting AT micro (the two tests above).
+});
+
+describe("Story #36 regression, confirmed at micro (hud-01): mounting micro:portrait directly never starts the object-mode SIMBAD/Aladin async paths", () => {
+  let hud;
+  let hostEl;
+
+  afterEach(() => {
+    hud?.destroy();
+    hostEl?.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("mounting micro:portrait directly dispatches no SIMBAD fetch and no skyViewer/Aladin CDN load attempt -- micro:portrait has no scripts entrypoint at all (README 'Compositions vs. the real baseline'), so the async paths exercised by the maxi-only Story #36 suite above simply never run here; asserted directly rather than assumed", async () => {
+    const fetchMock = vi.fn(() => Promise.reject(new Error("no real network in tests")));
+    vi.stubGlobal("fetch", fetchMock);
+
+    let load;
+    ({ hud, load } = mountHud({ variant: "micro", orientation: "portrait" }));
+    hostEl = document.createElement("div");
+    document.body.appendChild(hostEl);
+
+    await hud.mount(hostEl);
+    await flushAsync();
+
+    expect(load).not.toHaveBeenCalled(); // no skyViewer/simbad externalResourceLoader hook fired
+    expect(fetchMock).not.toHaveBeenCalled(); // no direct SIMBAD/VizieR/ADS fetch either
+
+    // Confirms the theme really did mount (not just silently no-op) --
+    // the micro composition's own static structure is present.
+    const root = hostEl.querySelector("[data-hud-theme='hud-01']");
+    expect(root.querySelector(".nc-ol-widget--micro")).not.toBeNull();
+  });
+});

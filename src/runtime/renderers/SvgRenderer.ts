@@ -42,6 +42,44 @@
  *   insertions from `requestExternalResource` are intentionally left in
  *   place (§6.6: "MAY remain in `document.head` after `destroy()`") since
  *   they are shared, page-scoped, and de-duplicated across instances.
+ *
+ * ## `capabilities.mediaEmbed` (Story #43)
+ *
+ * Ported from `CssRenderer.ts` into the shared `./mediaEmbed.js` module (see
+ * that file's docstring for the per-value routing rule) so HUD-01/HUD-02
+ * can accept a YouTube/HeyGen embed URL through their existing `media` slot
+ * without losing that slot's original, still-supported plain-photo-`<img>`
+ * behaviour. `setData()` below checks each `media`-slot target against
+ * `resolveMediaEmbedUrl` BEFORE falling into the generic `applySlotValue`
+ * path; only a value that resolves to an allowlisted embed host is
+ * diverted, everything else (including every non-allowlisted absolute URL,
+ * e.g. a photo CDN link) reaches `applySlotValue` exactly as before. A
+ * `MutationObserver` on the mount container's `data-hud-variant` attribute
+ * (set here on `mount()`/`setVariant()`, mirroring `CssRenderer`'s own
+ * convention) implements the `"src-swap"` lifecycle (parked at
+ * `about:blank` off-`maxi`) and is disconnected in `destroy()`.
+ *
+ * ## `micro`-variant degradation, not a live embed (Story #45)
+ *
+ * At `variant === "micro"`, a `media` value that would otherwise resolve to
+ * a live embed (`resolveMediaEmbedUrl` returns a real URL) is diverted
+ * again -- this time to `mediaEmbed.ts`'s `applyMicroEmbedPoster` instead of
+ * `mountMediaEmbed`: no iframe is ever created at `micro` (unusable at
+ * ~87x130px, and a wasted network/CDN load). A new optional custom slot,
+ * `mediaPoster` (a plain URL, see this Theme's `manifest.json`/README), is
+ * shown as a static poster image in the same `<img data-slot="media">`
+ * element instead, with a purely decorative, non-interactive
+ * (`pointer-events: none`) play-icon overlay on top. `mediaPoster` is
+ * consumed directly out of `setData()`'s `data` argument (stashed in
+ * `#currentMediaPoster`, not DOM-mapped -- there is no
+ * `[data-slot="mediaPoster"]` element in any composition) rather than
+ * flowing through the generic per-slot loop below, since it has no element
+ * of its own to warn about if absent. Switching variant away from `micro`
+ * (`setVariant("mini"|"maxi")`) fully remounts the composition and Hud
+ * replays the last `setData()`, so the real live-embed path above runs
+ * again unchanged -- this only ever touches `micro`'s own behaviour. No
+ * click-to-expand/interaction logic of any kind is added here (issue #46,
+ * a separate, parallel track).
  */
 import type { MountContext, RendererLifecycle, Viewport } from "./RendererInterface.js";
 import type {
@@ -60,6 +98,17 @@ import {
   ThemeMountFailedError,
   VariantUnsupportedError
 } from "../contract/errors.js";
+import {
+  applyMediaEmbedLifecycle,
+  applyMicroEmbedPoster,
+  mountMediaEmbed,
+  removeMicroEmbedPoster,
+  resolveMediaEmbedUrl,
+  unmountMediaEmbed,
+  watchVariantForMediaEmbed,
+  type MediaEmbedState,
+  type MicroPosterState
+} from "./mediaEmbed.js";
 
 /** Fetches the text content of a package-relative resource, already resolved to an absolute URL against `context.assetBaseUrl`. */
 export type ResourceTextLoader = (url: string) => Promise<string>;
@@ -246,6 +295,13 @@ export class SvgRenderer implements RendererLifecycle {
   #lastData: Record<string, unknown> = {};
   #lastViewport: Viewport | undefined;
   #warnedSlots = new Set<string>();
+  /** Keyed by the `[data-slot="media"]` target element, since `setData()`'s generic slot-mapping loop supports (in principle) more than one match per name -- mirrors `CssRenderer`'s single `#mediaEmbed` field, generalised to per-target. */
+  #mediaEmbedByTarget = new Map<HTMLElement, MediaEmbedState>();
+  /** Story #45: the `micro`-variant poster+play-icon overlay state, keyed the same way as `#mediaEmbedByTarget`. */
+  #microPosterByTarget = new Map<HTMLElement, MicroPosterState>();
+  /** Story #45: the current `mediaPoster` custom slot value, stashed from `setData()`'s `data` argument directly (not DOM-mapped -- see class docstring). `undefined` means "not provided" (or explicitly cleared). */
+  #currentMediaPoster: string | undefined;
+  #variantObserver: MutationObserver | undefined;
 
   constructor(options: SvgRendererOptions = {}) {
     this.#loadText = options.loadText ?? defaultLoadText;
@@ -293,6 +349,16 @@ export class SvgRenderer implements RendererLifecycle {
       container.appendChild(root);
       this.#root = root;
       this.#compositionKey = key;
+
+      if (manifest.capabilities?.mediaEmbed) {
+        // Contract §10.5 src-swap lifecycle -- see class docstring "Story
+        // #43" section. Only set up for Themes that actually declare the
+        // capability, so this is a no-op for every other `engine: "svg"`
+        // Theme (no `data-hud-variant` attribute appears on their container
+        // either).
+        container.setAttribute("data-hud-variant", context.variant);
+        this.#variantObserver = watchVariantForMediaEmbed(container, () => this.#applyMediaEmbedLifecycleAll());
+      }
     } catch (err) {
       if (err instanceof HudError) throw err;
       throw new ThemeMountFailedError(context.theme, context.version, err);
@@ -305,8 +371,21 @@ export class SvgRenderer implements RendererLifecycle {
       throw new Error("SvgRenderer.setData() called before mount() resolved");
     }
     this.#lastData = { ...data };
+    const mediaEmbedCapability = (this.#context?.manifest as Manifest | undefined)?.capabilities?.mediaEmbed;
+
+    // Story #45: `mediaPoster` has no `[data-slot="mediaPoster"]` element of
+    // its own in any composition -- it's consumed directly here as a plain
+    // data value for the `micro`-variant poster degradation below, not
+    // routed through the generic per-slot loop (which would otherwise warn
+    // "unknown slot" every time, incorrectly, since it IS a declared custom
+    // slot -- just not a DOM-mapped one). See class docstring "Story #45".
+    if (Object.prototype.hasOwnProperty.call(data, "mediaPoster")) {
+      const posterValue = (data as Record<string, unknown>).mediaPoster;
+      this.#currentMediaPoster = typeof posterValue === "string" && posterValue.length > 0 ? posterValue : undefined;
+    }
 
     for (const [slotName, value] of Object.entries(data)) {
+      if (slotName === "mediaPoster") continue;
       const targets = this.#root.querySelectorAll<HTMLElement>(
         `[data-slot="${cssEscapeAttrValue(slotName)}"]`
       );
@@ -315,6 +394,12 @@ export class SvgRenderer implements RendererLifecycle {
         continue; // Contract §6.3: unknown slot keys MUST be ignored, not throw.
       }
       for (const target of Array.from(targets)) {
+        // Story #43: an allowlisted embed URL diverts to the iframe path;
+        // everything else (including a plain photo URL) falls through to
+        // the generic path below, unchanged -- see class docstring.
+        if (slotName === "media" && this.#applyMediaSlotValue(target, value, mediaEmbedCapability)) {
+          continue;
+        }
         applySlotValue(target, slotName, value);
       }
     }
@@ -368,12 +453,28 @@ export class SvgRenderer implements RendererLifecycle {
     // Tear down the outgoing composition only after the incoming one mounted
     // successfully -- never leave the instance with neither.
     safeCall(this.#scriptHandle?.destroy);
+    // The outgoing composition's [data-slot="media"] target(s) are about to
+    // be discarded wholesale along with `this.#root` -- blank/remove any
+    // embed iframe mounted on them first (Contract §10.5/§17.2 point 4)
+    // rather than leaving that to `this.#root.remove()` alone. Hud replays
+    // the last `setData()` once this resolves (Contract §6.5, see below),
+    // which re-mounts a fresh embed on the new composition's target if the
+    // last `media` value was still an embed URL.
+    this.#teardownMediaEmbeds();
+    this.#teardownMicroPosters();
     this.#root.remove();
 
     this.#container?.appendChild(newRoot);
     this.#root = newRoot;
     this.#compositionKey = key;
     this.#currentVariant = variant;
+    if (this.#container && manifest.capabilities?.mediaEmbed) {
+      // Reflects into the `MutationObserver` from `mount()` (still watching
+      // this same container) so a later `data-hud-variant` change is
+      // observed even without an intervening `setData()` -- mirrors
+      // `CssRenderer`'s `#reflectVariantAttribute()`.
+      this.#container.setAttribute("data-hud-variant", variant);
+    }
     if (this.#lastViewport) this.resize(this.#lastViewport);
     // Contract §6.5 "MUST preserve slot data across the switch" is Hud's
     // job (it re-applies the last setData once this Promise resolves) --
@@ -387,8 +488,17 @@ export class SvgRenderer implements RendererLifecycle {
     try {
       safeCall(this.#scriptHandle?.destroy);
       this.#scriptHandle = undefined;
+      // Contract §17.1/§17.2: disconnect the variant observer (a real
+      // teardown target, mirroring -- and fixing -- HUD-04's own
+      // un-disconnected `MutationObserver`) and blank every embed iframe
+      // before it's removed.
+      this.#variantObserver?.disconnect();
+      this.#variantObserver = undefined;
+      this.#teardownMediaEmbeds();
+      this.#teardownMicroPosters();
       if (this.#container) {
         this.#container.innerHTML = "";
+        this.#container.removeAttribute("data-hud-variant");
       }
     } catch {
       // Contract §6.6: absolute guarantee -- never throw, even if the block
@@ -404,6 +514,7 @@ export class SvgRenderer implements RendererLifecycle {
       this.#lastData = {};
       this.#lastViewport = undefined;
       this.#warnedSlots.clear();
+      this.#mediaEmbedByTarget.clear();
       this.#mounted = false;
     }
   }
@@ -515,6 +626,79 @@ export class SvgRenderer implements RendererLifecycle {
     ) => unknown;
     const result = factory(root, context, api);
     return result && typeof result === "object" ? (result as ThemeScriptHandle) : undefined;
+  }
+
+  /**
+   * The `media` slot's mediaEmbed check (Story #43, `mediaEmbed.ts`'s
+   * per-value routing). Returns `true` if `value` was handled here (an
+   * iframe was mounted/updated on `target`) -- the caller must then skip
+   * `applySlotValue` for this target. Returns `false` for every other value
+   * (not a string, not an absolute URL, host not allowlisted, or no
+   * `capabilities.mediaEmbed` declared at all) -- in which case the caller
+   * MUST still run `applySlotValue`, and any embed previously mounted on
+   * `target` (from an earlier `setData` call) is torn down here first so a
+   * Theme reverting to a plain photo URL never leaves a stale iframe
+   * covering it.
+   */
+  #applyMediaSlotValue(target: HTMLElement, value: unknown, mediaEmbed: Manifest["capabilities"]["mediaEmbed"]): boolean {
+    const embedUrl = resolveMediaEmbedUrl(value, mediaEmbed);
+    if (embedUrl !== undefined) {
+      if (this.#currentVariant === "micro") {
+        // Story #45: never mount a live iframe at `micro` -- see class
+        // docstring. Show the `mediaPoster` value (if any) as a static
+        // poster + decorative play-icon instead; if there's a stale live
+        // embed on this target from a prior (non-micro) state, tear it down
+        // first (defense in depth -- `setVariant()` already discards the
+        // whole composition on a real variant switch, so this only matters
+        // for same-variant data-only changes).
+        const existingEmbed = this.#mediaEmbedByTarget.get(target);
+        if (existingEmbed) {
+          unmountMediaEmbed(existingEmbed);
+          this.#mediaEmbedByTarget.delete(target);
+        }
+        const posterState = applyMicroEmbedPoster(target, this.#currentMediaPoster, this.#microPosterByTarget.get(target));
+        if (posterState) this.#microPosterByTarget.set(target, posterState);
+        else this.#microPosterByTarget.delete(target);
+        return true;
+      }
+      const state = mountMediaEmbed(target, embedUrl, this.#mediaEmbedByTarget.get(target));
+      this.#mediaEmbedByTarget.set(target, state);
+      applyMediaEmbedLifecycle(state, this.#currentVariant);
+      return true;
+    }
+    const existing = this.#mediaEmbedByTarget.get(target);
+    if (existing) {
+      unmountMediaEmbed(existing);
+      this.#mediaEmbedByTarget.delete(target);
+    }
+    const existingPoster = this.#microPosterByTarget.get(target);
+    if (existingPoster) {
+      removeMicroEmbedPoster(existingPoster);
+      this.#microPosterByTarget.delete(target);
+    }
+    return false;
+  }
+
+  #applyMediaEmbedLifecycleAll(): void {
+    for (const state of this.#mediaEmbedByTarget.values()) {
+      applyMediaEmbedLifecycle(state, this.#currentVariant);
+    }
+  }
+
+  /** Blanks + removes every currently-mounted embed iframe (Contract §10.5/§17.2 point 4: blank before removal) and forgets their targets -- used by both `setVariant()` (the outgoing composition's targets are about to be discarded wholesale) and `destroy()`. */
+  #teardownMediaEmbeds(): void {
+    for (const state of this.#mediaEmbedByTarget.values()) {
+      unmountMediaEmbed(state);
+    }
+    this.#mediaEmbedByTarget.clear();
+  }
+
+  /** Story #45 counterpart to `#teardownMediaEmbeds()` -- forgets every currently-mounted `micro` poster/play-icon overlay; used at the same two call sites (the outgoing composition's targets are about to be discarded wholesale either way). */
+  #teardownMicroPosters(): void {
+    for (const state of this.#microPosterByTarget.values()) {
+      removeMicroEmbedPoster(state);
+    }
+    this.#microPosterByTarget.clear();
   }
 
   #warnUnknownSlot(slotName: string): void {

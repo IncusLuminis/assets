@@ -187,6 +187,94 @@ randomly generated (`nc-hud01-aladin-<random>`) rather than an incrementing
 counter, since this script has no cross-instance module state to count
 from (Contract §16.5).
 
+## `media` slot: a plain photo URL, or a YouTube/HeyGen embed (Story #43)
+
+`data-slot="media"` is (and stays) the `<img>` showing the locked object's
+photo -- `setData({ media: "<photo-url>" })` sets its `src` directly, same
+as always. As of Story #43 this Theme also declares
+`capabilities.mediaEmbed: { hosts: ["app.heygen.com", "www.youtube.com"],
+lifecycle: "src-swap" }`, so the *same* `media` value can instead be a
+YouTube/HeyGen embed URL -- which one happens depends only on the value
+passed to `setData()`, not on any separate mode/config slot:
+
+- If the value is an absolute URL whose host is in
+  `capabilities.mediaEmbed.hosts` (and the Contract §16.2 fixed allowlist),
+  `SvgRenderer` mounts an iframe next to the `<img>`, hides the `<img>`
+  (`display:none` + a `data-hud-media-embed-active` marker), and applies
+  the `src-swap` lifecycle (parked at `about:blank` except at `maxi`,
+  restored on `setVariant("maxi")`).
+- Any other value -- a plain photo URL, a relative path, anything not on
+  the allowlist -- falls straight through to the existing `<img>.src`
+  behavior, exactly as if `mediaEmbed` were not declared at all.
+- Switching back and forth between the two (repeated `setData({ media })`
+  calls) correctly un-hides the `<img>`/removes the iframe each way -- no
+  leftover DOM from a prior value.
+
+This dispatch logic is shared with `hud-04` (which only ever sends an
+embed URL through this same path) via `src/runtime/renderers/mediaEmbed.ts`
+-- see that module's docstring for why the check is per-*value*, not
+per-manifest, which is specifically what lets this Theme's `media` slot do
+double duty without breaking its original plain-photo behavior. See
+`tests/unit/hud-01-e2e.test.js`'s "Story #43" describe block for the full
+behavioral test coverage (embed mount, plain-photo regression, switching
+both ways, `setVariant` src-swap lifecycle).
+
+**Not in scope for Story #43** (see `IncusLuminis/assets#43`'s issue
+comments): TikTok (not in the Contract's fixed host allowlist -- would need
+a Contract 1.0 amendment, an owner-level decision, not a Theme change), and
+no new "youtube-shorts" mode/composition (a portrait video embed would just
+be this same `mediaEmbed` mechanism paired with a portrait composition,
+which this Theme doesn't currently have and this Story didn't add).
+
+## `mediaPoster` slot + micro degradation: no live embed at `micro` (Story #45)
+
+A live iframe embed makes sense at `maxi`/`mini`, but never at `micro`:
+this Theme's `micro:portrait` composition is an ~87x130px thumbnail
+(`.nc-ol-panel`), and a real YouTube/HeyGen iframe there is either
+invisible or broken-looking, and wastes a real network/CDN load nobody can
+usefully watch. As of Story #45, `variant === "micro"` changes what an
+allowlisted `media` embed URL does:
+
+- **No iframe is ever mounted at `micro`.** `SvgRenderer` diverts the same
+  per-value `resolveMediaEmbedUrl` match (see "Story #43" above) to
+  `mediaEmbed.ts`'s `applyMicroEmbedPoster` instead of `mountMediaEmbed`.
+- A new optional custom slot, **`mediaPoster`** (`kind: "url"`) -- set via
+  `setData({ mediaPoster: "<poster-image-url>" })`, independently of
+  `media` -- is shown as a static poster image directly in the existing
+  `<img data-slot="media">` element (the same element the live-embed path
+  would otherwise hide), plus a purely decorative, non-interactive
+  (`pointer-events: none`) play-icon overlay (`.hud-media-play-icon`) on
+  top of it.
+- **If `mediaPoster` is not provided**, this is a deliberate no-op: no
+  poster, no play-icon, whatever the `<img>` already showed (or its empty
+  initial state) is left completely untouched -- the incoming embed URL is
+  never written to the `<img>`'s `src` (that would just produce a broken
+  image icon). Inventing a generic placeholder graphic for this case was
+  judged its own small design task, not worth doing inside this fix; see
+  `mediaEmbed.ts`'s `applyMicroEmbedPoster` docstring for the same
+  reasoning in code.
+- `mediaPoster` is consumed directly out of `setData()`'s data argument,
+  not through a `[data-slot="mediaPoster"]` element -- there isn't one in
+  any composition's markup, by design (it has no DOM location of its own
+  to occupy; it only ever feeds into the `media` slot's own element at
+  `micro`).
+- `maxi`/`mini` are completely unaffected: `mediaPoster` is ignored there,
+  and the real live-embed path (previous section) is unchanged. Switching
+  variant away from `micro` remounts the whole composition and Hud replays
+  the last `setData()`, so the real embed mounts again exactly as before.
+
+See `tests/unit/hud-01-e2e.test.js`'s "Story #45" describe block for the
+poster/play-icon/no-iframe coverage, and its neighboring "Story #36
+regression, confirmed at micro" block, which asserts directly (not just
+assumes) that `micro:portrait`'s empty `scripts: []` entrypoint means the
+object-mode SIMBAD fetch / Aladin CDN load never fire when mounting at
+`micro` at all.
+
+**Out of scope for Story #45** (tracked separately, `IncusLuminis/assets#46`):
+any click-to-expand/toggle behavior. The play-icon overlay is intentionally
+inert -- `pointer-events: none` -- so it can never intercept a click meant
+for a future expand-to-`maxi` toggle wrapper placed on or around the HUD.
+
 ## Tests
 
 - `tests/unit/hud-01-theme.test.js` -- manifest schema + semantic

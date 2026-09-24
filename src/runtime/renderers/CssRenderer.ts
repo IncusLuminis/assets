@@ -73,6 +73,25 @@
  * / iframe-`load` detection UI (Inventory §1.32) is explicitly optional for
  * this Story and not implemented -- the extension point (validated host ->
  * iframe in the `media` slot, kept in sync with variant) is what's required.
+ *
+ * ## `micro`-variant degradation, not a live embed (Story #45)
+ *
+ * At `variant === "micro"`, a `media` value that would otherwise resolve to
+ * a live embed is diverted to `mediaEmbed.ts`'s `applyMicroEmbedPoster`
+ * instead of `mountMediaEmbed`: no iframe is created at `micro` (unusable
+ * at HUD-04's ~87x130px-equivalent thumbnail density, and a wasted
+ * network/CDN load). The new optional `mediaPoster` custom slot (a plain
+ * URL) is shown as a static poster `<img>` inside the `data-slot="media"`
+ * container instead, with a purely decorative, non-interactive
+ * (`pointer-events: none`) play-icon overlay on top. `mediaPoster` is
+ * consumed directly out of `setData()`'s `data` argument (stashed in
+ * `#currentMediaPoster`), not routed through `#applySlot`'s generic
+ * per-name dispatch, since it has no `[data-slot="mediaPoster"]` element of
+ * its own. Switching variant away from `micro` fully remounts the
+ * composition (`setVariant()`), and Hud replays the last `setData()`, so
+ * the real live-embed path runs again unchanged -- this only ever touches
+ * `micro`'s own behaviour. No click-to-expand/interaction logic is added
+ * here (issue #46, a separate, parallel track).
  */
 import type { MountContext, RendererLifecycle, Viewport } from "./RendererInterface.js";
 import type { EntrypointEntry, Manifest } from "../contract/manifest.js";
@@ -85,9 +104,17 @@ import {
   ThemeMountFailedError,
   VariantUnsupportedError
 } from "../contract/errors.js";
-
-/** Contract §16.2 -- the media-embed slice of the fixed allowlist. */
-const MEDIA_EMBED_ALLOWLIST: readonly string[] = ["app.heygen.com", "www.youtube.com", "player.vimeo.com"];
+import {
+  applyMediaEmbedLifecycle,
+  applyMicroEmbedPoster,
+  mountMediaEmbed,
+  removeMicroEmbedPoster,
+  resolveMediaEmbedUrl,
+  unmountMediaEmbed,
+  watchVariantForMediaEmbed,
+  type MediaEmbedState,
+  type MicroPosterState
+} from "./mediaEmbed.js";
 
 /** Fetches the text of a package-relative resource, already resolved to an absolute URL. */
 export type CssResourceFetcher = (url: string) => Promise<string>;
@@ -123,11 +150,6 @@ function stripScriptTags(html: string): string {
   return html.replace(/<script[\s\S]*?<\/script\s*>/gi, "");
 }
 
-interface MediaEmbedState {
-  el: HTMLIFrameElement;
-  realSrc: string;
-}
-
 export class CssRenderer implements RendererLifecycle {
   readonly #fetchText: CssResourceFetcher;
 
@@ -144,6 +166,10 @@ export class CssRenderer implements RendererLifecycle {
   #scriptEls: HTMLScriptElement[] = [];
   #slotEls = new Map<string, HTMLElement>();
   #mediaEmbed: MediaEmbedState | undefined;
+  /** Story #45: the `micro`-variant poster+play-icon overlay state. */
+  #microPoster: MicroPosterState | undefined;
+  /** Story #45: the current `mediaPoster` custom slot value, stashed from `setData()`'s `data` argument directly (not DOM-mapped -- see class docstring). */
+  #currentMediaPoster: string | undefined;
   #variantObserver: MutationObserver | undefined;
   #isolationOutcome: CssIsolationOutcome | undefined;
 
@@ -198,8 +224,8 @@ export class CssRenderer implements RendererLifecycle {
       await this.#loadScripts(root, entrypoint, context);
 
       this.#reflectVariantAttribute();
-      if (manifest.capabilities?.mediaEmbed) {
-        this.#watchVariantForMediaEmbed();
+      if (manifest.capabilities?.mediaEmbed && this.#container) {
+        this.#variantObserver = watchVariantForMediaEmbed(this.#container, () => this.#applyMediaEmbedLifecycle());
       }
     } catch (err) {
       // Contract §6.2: "leave `container` empty (no partial DOM)" on any
@@ -223,7 +249,16 @@ export class CssRenderer implements RendererLifecycle {
       // for us; a direct pre-mount call is a misuse case.
       throw new Error("CssRenderer.setData() called before mount() resolved");
     }
+    // Story #45: `mediaPoster` has no `[data-slot="mediaPoster"]` element of
+    // its own -- consumed directly here as a plain data value for the
+    // `micro`-variant poster degradation, not routed through `#applySlot`'s
+    // generic per-name dispatch. See class docstring "Story #45".
+    if (Object.prototype.hasOwnProperty.call(data, "mediaPoster")) {
+      const posterValue = (data as Record<string, unknown>).mediaPoster;
+      this.#currentMediaPoster = typeof posterValue === "string" && posterValue.length > 0 ? posterValue : undefined;
+    }
     for (const [name, value] of Object.entries(data)) {
+      if (name === "mediaPoster") continue;
       this.#applySlot(name, value);
     }
   }
@@ -430,73 +465,62 @@ export class CssRenderer implements RendererLifecycle {
   #applyMediaSlot(value: unknown): void {
     const el = this.#slotEls.get("media");
     if (!el) return;
-    const mediaEmbed = this.#manifest?.capabilities?.mediaEmbed;
-    if (!mediaEmbed) {
-      // Plain `media` slot (HUD-03-style float image, no mediaEmbed
-      // capability): a URL string sets an <img> src if the markup put one
-      // there, else it's recorded as a data attribute for the Theme's own
-      // CSS (e.g. background-image) to key off.
-      if (typeof value !== "string") return;
-      if (el instanceof HTMLImageElement) {
-        el.src = value;
-      } else {
-        el.setAttribute("data-media-src", value);
-      }
-      return;
-    }
-    if (typeof value !== "string" || value.length === 0) return;
-    let url: URL;
-    try {
-      url = new URL(value);
-    } catch {
-      console.warn(`CssRenderer: setData({ media }) value "${value}" is not a valid absolute URL; ignored`);
-      return;
-    }
-    const hostAllowed = mediaEmbed.hosts.includes(url.hostname) && MEDIA_EMBED_ALLOWLIST.includes(url.hostname);
-    if (!hostAllowed) {
-      // Contract §16.2: hosts outside the fixed allowlist need a
-      // manifest-level declaration + knownDeviations justification, checked
-      // at publication (Story #3's semantic layer) -- at *runtime* an
-      // unlisted host is simply refused, never loaded.
-      console.warn(
-        `CssRenderer: setData({ media }) host "${url.hostname}" is not in capabilities.mediaEmbed.hosts / the Contract §16.2 allowlist; ignored`
-      );
-      return;
-    }
-    this.#mountMediaEmbedIframe(el, url.href);
-  }
+    if (typeof value !== "string" || value.length === 0) return; // Contract §6.3: absent/empty value is a no-op, not a reset -- unchanged from pre-Story-#43 behaviour on both paths below.
 
-  #mountMediaEmbedIframe(slotEl: HTMLElement, src: string): void {
-    if (!this.#mediaEmbed) {
-      const iframe = document.createElement("iframe");
-      iframe.setAttribute("allow", "autoplay; encrypted-media");
-      iframe.setAttribute("loading", "lazy");
-      iframe.className = "hud-media-embed-iframe";
-      slotEl.appendChild(iframe);
-      this.#mediaEmbed = { el: iframe, realSrc: src };
-    } else {
-      this.#mediaEmbed.realSrc = src;
+    const mediaEmbed = this.#manifest?.capabilities?.mediaEmbed;
+    const embedUrl = resolveMediaEmbedUrl(value, mediaEmbed);
+    if (embedUrl !== undefined) {
+      if (this.#variant === "micro") {
+        // Story #45: never mount a live iframe at `micro` -- see class
+        // docstring. Tear down any stale live embed on this target first
+        // (defense in depth; a real variant switch already discards the
+        // whole composition via `#teardownComposition()`), then show the
+        // `mediaPoster` value (if any) as a static poster + decorative
+        // play-icon instead.
+        if (this.#mediaEmbed) {
+          unmountMediaEmbed(this.#mediaEmbed);
+          this.#mediaEmbed = undefined;
+        }
+        this.#microPoster = applyMicroEmbedPoster(el, this.#currentMediaPoster, this.#microPoster);
+        return;
+      }
+      this.#mediaEmbed = mountMediaEmbed(el, embedUrl, this.#mediaEmbed);
+      this.#applyMediaEmbedLifecycle();
+      return;
     }
-    this.#applyMediaEmbedLifecycle();
+
+    // Not an embed target for this value -- see `mediaEmbed.ts`'s per-value
+    // routing docstring (Story #43). Tear down any embed (or Story #45
+    // micro poster/overlay) mounted for a PREVIOUS value first, so switching
+    // back to a plain photo URL doesn't leave anything stale behind.
+    if (this.#mediaEmbed) {
+      unmountMediaEmbed(this.#mediaEmbed);
+      this.#mediaEmbed = undefined;
+    }
+    if (this.#microPoster) {
+      removeMicroEmbedPoster(this.#microPoster);
+      this.#microPoster = undefined;
+    }
+    // Plain `media` slot (HUD-03-style float image): a URL string sets an
+    // <img> src if the markup put one there, else it's recorded as a data
+    // attribute for the Theme's own CSS (e.g. background-image) to key off.
+    if (el instanceof HTMLImageElement) {
+      el.src = value;
+    } else {
+      el.setAttribute("data-media-src", value);
+    }
   }
 
   /** Contract §10.5 `lifecycle: "src-swap"`: parked at `about:blank` except at `maxi`, mirroring the HUD-04 baseline's collapse/expand pause behaviour (Inventory §1.32-§1.33). */
   #applyMediaEmbedLifecycle(): void {
     if (!this.#mediaEmbed) return;
-    this.#mediaEmbed.el.src = this.#variant === "maxi" ? this.#mediaEmbed.realSrc : "about:blank";
+    applyMediaEmbedLifecycle(this.#mediaEmbed, this.#variant);
   }
 
   #reflectVariantAttribute(): void {
     if (this.#container && this.#variant) {
       this.#container.setAttribute("data-hud-variant", this.#variant);
     }
-  }
-
-  /** A real teardown target (`destroy()` disconnects it): mirrors -- and fixes -- HUD-04's un-disconnected `MutationObserver` (Inventory §1.33, §1.35 "never disconnected"). */
-  #watchVariantForMediaEmbed(): void {
-    if (!this.#container) return;
-    this.#variantObserver = new MutationObserver(() => this.#applyMediaEmbedLifecycle());
-    this.#variantObserver.observe(this.#container, { attributes: true, attributeFilter: ["data-hud-variant"] });
   }
 
   // ---------------------------------------------------------------------
@@ -508,10 +532,14 @@ export class CssRenderer implements RendererLifecycle {
     this.#variantObserver?.disconnect();
     this.#variantObserver = undefined;
     if (this.#mediaEmbed) {
-      this.#mediaEmbed.el.src = "about:blank"; // Contract §10.5/§17.2 point 4: blank before removal.
-      this.#mediaEmbed.el.remove();
+      unmountMediaEmbed(this.#mediaEmbed); // Contract §10.5/§17.2 point 4: blank before removal.
       this.#mediaEmbed = undefined;
     }
+    // Story #45: the poster/overlay elements are about to be discarded
+    // wholesale along with the rest of this composition's DOM below -- just
+    // forget the bookkeeping (no external side effect like an iframe's `src`
+    // to blank first).
+    this.#microPoster = undefined;
     for (const el of this.#scriptEls) el.remove();
     this.#scriptEls = [];
     for (const el of this.#styleEls) el.remove();
