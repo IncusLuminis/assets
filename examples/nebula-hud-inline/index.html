@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lt;nebula-hud&gt; inline mode -- example (Story B1, #46)</title>
+<style>
+  body {
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    font: 16px/1.6 system-ui, sans-serif;
+    background: #10141c;
+    color: #dfe6ee;
+  }
+  h1 { font-size: 1.4rem; }
+  p { color: #b7c2cf; }
+  code { background: #1c2331; padding: 0.1em 0.35em; border-radius: 4px; }
+  .marker {
+    margin-top: 2rem;
+    padding: 0.75rem 1rem;
+    border: 1px dashed #3a4657;
+    border-radius: 6px;
+    color: #8fd6a8;
+  }
+</style>
+</head>
+<body>
+
+<h1>&lt;nebula-hud&gt; -- inline expand/collapse example</h1>
+
+<p>
+  This page demonstrates the <code>inline</code> expand mode of the
+  <code>&lt;nebula-hud&gt;</code> Web Component adapter
+  (<code>src/runtime/adapters/nebula-hud.ts</code>, IncusLuminis/assets#46).
+  It requires zero JavaScript beyond the one <code>&lt;script type="module"&gt;</code>
+  import below -- the element registers and mounts itself.
+</p>
+
+<p>
+  The element below starts collapsed (<code>variant="mini"</code>). Click its
+  top-left toggle button: it calls <code>hud.setVariant("maxi")</code> on the
+  exact same <code>Hud</code> instance, mounted into the exact same
+  container. There is no fixed height on the container, so it grows to fit
+  whatever composition is now mounted -- watch the "AFTER THE HUD" marker
+  below get pushed down the page as it expands, and pulled back up when you
+  collapse it again. This is real document reflow, not an overlay.
+</p>
+
+<!--
+  Real, packaged hud-03 Theme (engine: "css", Contract 1.0), fetched from
+  the live Registry/CDN this session's other consumers already use
+  (cdn-base-url defaults to https://assets-4gy.pages.dev/ -- omitted here on
+  purpose to demonstrate the default). "data" is the zero-extra-JS initial
+  setData() path (see nebula-hud.ts's docstring) -- a JSON string read once
+  at connect. version="latest" here (Contract §4.4/§14.1 allows this in
+  dev) rather than a pinned SemVer, so this example page keeps working as
+  the live Registry's published hud-03 version moves forward -- a real
+  production embed SHOULD pin an explicit version instead.
+-->
+<nebula-hud
+  theme="hud-03"
+  version="latest"
+  orientation="landscape"
+  variant="mini"
+  data='{"title":"AKEMI HANA","subtitle":"OUTPOST 42","content":"<p>Navigation officer, Outpost 42. Specialises in routing through unstable Outer Belt sectors.</p><p>Click the toggle in the top-left corner to expand this panel to its full (maxi) composition -- and click it again to collapse it back to this mini card.</p>"}'
+></nebula-hud>
+
+<p class="marker">&darr; AFTER THE HUD &darr; -- watch this get pushed down when you expand the panel above, and pulled back up when you collapse it.</p>
+
+<p>
+  Some more page content, so there is real room below the element for the
+  page to reflow into. In a spatially fixed layout with no reflow room
+  (e.g. a HUD sitting among other fixed instruments), <code>inline</code>
+  mode is the wrong choice -- that case is <code>modal</code> mode, a
+  separate, not-yet-built follow-up (see
+  <code>src/runtime/adapters/README.md</code>).
+</p>
+
+<script type="module">
+  // Bundled by `npm run build` -> dist/runtime/index.js (Story #5's
+  // pipeline). Importing it registers <nebula-hud> as a side effect (see
+  // nebula-hud.ts's docstring) -- nothing else in this page's own script is
+  // required. Serve this page from the repo root, e.g.:
+  //
+  //   npm run build && python3 -m http.server 8080
+  //   open http://localhost:8080/examples/nebula-hud-inline/
+  //
+  import "/dist/runtime/index.js";
+</script>
+
+</body>
+</html>

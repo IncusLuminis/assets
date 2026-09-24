@@ -10,9 +10,12 @@
  * below; swapping it in required no change to `Hud`/`ThemeResolver`, exactly
  * as `core/ThemeSource.ts` promised. As #9/#10 land, they register their
  * renderers on a `RendererRegistry` (see `core/RendererRegistry.ts`) rather
- * than adding new exports to this file.
+ * than adding new exports to this file. `adapters/` (Story #46) is the
+ * first consumer built on top of all of the above rather than part of the
+ * Contract/Runtime itself -- see that directory's README.
  */
 export * from "./renderers/index.js";
 export * from "./contract/index.js";
 export * from "./core/index.js";
 export * from "./registry/index.js";
+export * from "./adapters/index.js";
