@@ -53,11 +53,14 @@
   (cdn-base-url defaults to https://assets-4gy.pages.dev/ -- omitted here on
   purpose to demonstrate the default). "data" is the zero-extra-JS initial
   setData() path (see nebula-hud.ts's docstring) -- a JSON string read once
-  at connect.
+  at connect. version="latest" here (Contract §4.4/§14.1 allows this in
+  dev) rather than a pinned SemVer, so this example page keeps working as
+  the live Registry's published hud-03 version moves forward -- a real
+  production embed SHOULD pin an explicit version instead.
 -->
 <nebula-hud
   theme="hud-03"
-  version="0.1.0"
+  version="latest"
   orientation="landscape"
   variant="mini"
   data='{"title":"AKEMI HANA","subtitle":"OUTPOST 42","content":"<p>Navigation officer, Outpost 42. Specialises in routing through unstable Outer Belt sectors.</p><p>Click the toggle in the top-left corner to expand this panel to its full (maxi) composition -- and click it again to collapse it back to this mini card.</p>"}'
