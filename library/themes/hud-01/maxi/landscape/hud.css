@@ -276,6 +276,7 @@
 /* ── Object mode vs. html mode ───────────────────────────────────── */
 
 .nc-ol-widget[data-mode="object"] .nc-hud-01-html-slot { display: none; }
+.nc-ol-widget[data-mode="html"] .nc-hud-01-html-slot { display: block; }
 .nc-ol-widget[data-mode="html"] .nc-ol-left,
 .nc-ol-widget[data-mode="html"] .nc-ol-right,
 .nc-ol-widget[data-mode="html"] .nc-ol-toolbar { display: none; }
