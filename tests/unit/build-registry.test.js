@@ -188,7 +188,7 @@ describe("build-registry.ts -- buildRegistryIndex()/buildRegistry() (issue #1 AC
     expect(valid, errors.join("\n")).toBe(true);
 
     expect(index.themes.map((t) => t.id)).toEqual(["hud-01", "hud-02", "hud-03", "hud-04"]);
-    expect(index.themes.find((t) => t.id === "hud-01").latest).toBe("0.1.0");
+    expect(index.themes.find((t) => t.id === "hud-01").latest).toBe("0.1.1");
     expect(index.themes.find((t) => t.id === "hud-04").latest).toBe("1.0.0");
 
     const outputPath = writeRegistryIndex(index, { registryRoot });
