@@ -266,7 +266,7 @@
      while the SVG stretches to match it exactly (preserveAspectRatio=
      "none"). bottom: -12px (was -42px) lands the bar on/near that same
      line's bottom edge (y=394 of 420, 26px above the panel's own bottom). */
-  position: absolute; left: auto; right: 2.1667%; bottom: -12px;
+  position: absolute; left: auto; right: 2.1667%; bottom: -6px;
   display: flex; align-items: center; justify-content: flex-end; gap: 10px;
   padding: 6px 10px; z-index: 40;
 }
@@ -274,7 +274,12 @@
 .nc-ol-tb-sep { width: 1px; height: 18px; background: rgba(80,220,255,.25); }
 .nc-ol-tb-btn {
   font-family: "Share Tech Mono", monospace; font-size: 10px; letter-spacing: .1em;
-  background: rgba(0,10,20,.7); color: rgba(80,220,255,.7);
+  /* Solid, matching the widget's own base background (#000, see
+     .nc-ol-widget) instead of a translucent navy fill -- a fill this close
+     to the surrounding background reads as "empty" so the cyan text/border
+     carry the button's shape, rather than a visibly-different-toned box
+     competing with them for attention. */
+  background: #000; color: rgba(80,220,255,.7);
   border: 1px solid rgba(80,220,255,.35); border-radius: 2px;
   padding: 4px 8px; cursor: pointer;
 }
