@@ -267,12 +267,13 @@
      "none"). bottom: -12px (was -42px) lands the bar on/near that same
      line's bottom edge (y=394 of 420, 26px above the panel's own bottom).
      transform shifts it further left by 30% of its own (content-driven,
-     not fixed) width and up by exactly its own height -- percentages of
+     not fixed) width and up by half its own height -- percentages of
      self via `transform`, not the `right`/`bottom` anchor's units (%
      of the panel), since the panel's width is fluid but this offset is
-     meant to track the bar's own size regardless. */
+     meant to track the bar's own size regardless. (Was -100% Y; owner
+     feedback said the full-height lift was too much, lowered to -50%.) */
   position: absolute; left: auto; right: 2.1667%; bottom: -6px;
-  transform: translate(-30%, -100%);
+  transform: translate(-30%, -50%);
   display: flex; align-items: center; justify-content: flex-end; gap: 10px;
   padding: 6px 10px; z-index: 40;
 }

@@ -298,20 +298,38 @@
 /* ── Toolbar ─────────────────────────────────────────────────────── */
 
 .nc-or-toolbar {
-  position: absolute; bottom: 42px; right: 0; left: 0;
+  /* Same treatment as hud-01's toolbar (#54-#57): right-aligned to the
+     frame's thin inner border line rather than the outer panel edge --
+     nc-or-frame-inner's right edge sits at x=1140 of the frame SVG's
+     0-1200 viewBox, i.e. 5% in from the panel's own right edge (a %, not
+     a fixed px value, since the panel's width is fluid while the SVG
+     stretches to match it exactly). bottom: 54px lands it on that same
+     line's own y (366 of 420 -- panel height is fixed, so px is fine
+     vertically). Content-sized box (no more left:0 + wide padding) instead
+     of a full-width bar. */
+  position: absolute; left: auto; right: 5%; bottom: 54px;
   display: flex; align-items: center; justify-content: flex-end; gap: 10px;
-  padding: 6px 30px; z-index: 35;
+  padding: 6px 10px; z-index: 35;
 }
 .nc-or-tb-group { display: flex; gap: 6px; }
 .nc-or-tb-sep { width: 1px; height: 18px; background: rgba(80,220,255,.25); }
 .nc-or-tb-btn {
   font-family: "Share Tech Mono", monospace; font-size: 10px; letter-spacing: .1em;
-  background: rgba(0,10,20,.7); color: rgba(80,220,255,.7);
+  /* Solid #000 (matches .nc-or-widget's own base background), not a
+     translucent navy fill -- see hud-01's identical #55 fix for why. */
+  background: #000; color: rgba(80,220,255,.7);
   border: 1px solid rgba(80,220,255,.35); border-radius: 2px;
   padding: 4px 8px; cursor: pointer;
 }
 .nc-or-tb-btn:hover { color: rgba(140,235,255,.95); border-color: rgba(140,235,255,.6); }
-.nc-or-tb-btn[aria-pressed="true"] { color: #d8ffff; background: rgba(80,220,255,.18); border-color: rgba(80,220,255,.75); box-shadow: 0 0 8px rgba(80,220,255,.35); }
+.nc-or-tb-btn[aria-pressed="true"] {
+  /* Opaque (two-layer background), not a single translucent color -- see
+     hud-01's identical #56 fix: a translucent fill let whatever sits
+     behind the toolbar at a lower z-index show through. */
+  color: #d8ffff;
+  background: linear-gradient(rgba(80,220,255,.18), rgba(80,220,255,.18)), #000;
+  border-color: rgba(80,220,255,.75); box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
 
 /* ── Object mode vs. html mode ───────────────────────────────────── */
 
