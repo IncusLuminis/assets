@@ -40,7 +40,7 @@ function createNebulaHud(attrs = {}) {
   );
   el.rendererRegistry = rendererRegistry;
   el.setAttribute("theme", "hud-01");
-  el.setAttribute("version", "0.1.0");
+  el.setAttribute("version", "0.1.1");
   el.setAttribute("orientation", "landscape");
   for (const [key, value] of Object.entries(attrs)) {
     el.setAttribute(key, value);

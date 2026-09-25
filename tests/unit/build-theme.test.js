@@ -196,7 +196,7 @@ describe("build-theme.ts -- buildTheme() (issue #1 AC, prerequisite Theme-packag
 
     const result = buildTheme("hud-01", { repoRoot: REPO_ROOT, distRoot });
 
-    expect(result.version).toBe("0.1.0");
+    expect(result.version).toBe("0.1.1");
     expect(result.files).toContain("scripts/hud-01.js");
     expect(result.files).toContain("styles/shared.css");
     expect(result.files).toContain("maxi/landscape/hud.html");

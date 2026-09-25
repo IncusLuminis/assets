@@ -3,7 +3,7 @@
   "contractVersion": "1.0",
   "id": "hud-01",
   "name": "Object Lock",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Astronomical object-lock HUD: Aladin Lite sky viewer + SIMBAD/VizieR/ADS data panels, or a plain HTML content frame (Contract 1.0 -- Story #11).",
   "engine": "svg",
   "baseVersion": "1.0.0",

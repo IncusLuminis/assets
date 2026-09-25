@@ -38,7 +38,7 @@ function mountHud(overrides = {}, loadImpl = async () => {}) {
     () => new SvgRenderer({ loadText: loadTextFromFileUrl, externalResourceLoader: { load } })
   );
   const hud = new Hud(
-    { theme: "hud-02", version: "0.1.0", variant: "maxi", orientation: "landscape", ...overrides },
+    { theme: "hud-02", version: "0.1.1", variant: "maxi", orientation: "landscape", ...overrides },
     { themeSource, rendererRegistry }
   );
   return { hud, load };

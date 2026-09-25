@@ -3,7 +3,7 @@
   "contractVersion": "1.0",
   "id": "hud-02",
   "name": "Object Report",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Astronomical object-report HUD: dual-SVG frame + contour-runner overlay, Aladin Lite sky viewer + SIMBAD/VizieR/ADS data panels, or a plain HTML content frame (Contract 1.0 -- Story #12).",
   "engine": "svg",
   "baseVersion": "1.0.0",
