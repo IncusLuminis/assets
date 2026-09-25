@@ -316,6 +316,7 @@
 /* ── Object mode vs. html mode ───────────────────────────────────── */
 
 .nc-or-widget[data-mode="object"] .nc-hud-02-html-slot { display: none; }
+.nc-or-widget[data-mode="html"] .nc-hud-02-html-slot { display: block; }
 .nc-or-widget[data-mode="html"] .nc-or-left,
 .nc-or-widget[data-mode="html"] .nc-or-right,
 .nc-or-widget[data-mode="html"] .nc-or-toolbar { display: none; }
