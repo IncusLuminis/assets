@@ -258,8 +258,16 @@
 /* ── Toolbar ─────────────────────────────────────────────────────── */
 
 .nc-ol-toolbar {
-  position: absolute; left: 0; right: 0; bottom: -42px;
-  display: flex; align-items: center; gap: 10px;
+  /* Right-aligned to the frame's thin inner border line, not the outer
+     panel edge -- that line's right edge sits at x=1174 of the frame SVG's
+     0-1200 viewBox (nc-ol-frame-inner's path), i.e. 2.1667% in from the
+     panel's own right edge; expressed as a percentage (not a fixed px
+     value) since the panel's width is fluid (`1fr` in nc-ol-panel's grid)
+     while the SVG stretches to match it exactly (preserveAspectRatio=
+     "none"). bottom: -12px (was -42px) lands the bar on/near that same
+     line's bottom edge (y=394 of 420, 26px above the panel's own bottom). */
+  position: absolute; left: auto; right: 2.1667%; bottom: -12px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
   padding: 6px 10px; z-index: 40;
 }
 .nc-ol-tb-group { display: flex; gap: 6px; }
