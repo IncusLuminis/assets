@@ -21,7 +21,7 @@
     "required": ["title"],
     "optional": [
       "subtitle", "media", "visualization", "primary", "secondary",
-      "status", "controls", "content", "footer", "objectName", "mode", "mediaPoster"
+      "status", "content", "footer", "objectName", "mode", "mediaPoster"
     ]
   },
   "customSlots": [
