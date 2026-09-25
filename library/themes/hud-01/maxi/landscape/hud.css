@@ -265,8 +265,14 @@
      value) since the panel's width is fluid (`1fr` in nc-ol-panel's grid)
      while the SVG stretches to match it exactly (preserveAspectRatio=
      "none"). bottom: -12px (was -42px) lands the bar on/near that same
-     line's bottom edge (y=394 of 420, 26px above the panel's own bottom). */
+     line's bottom edge (y=394 of 420, 26px above the panel's own bottom).
+     transform shifts it further left by 30% of its own (content-driven,
+     not fixed) width and up by exactly its own height -- percentages of
+     self via `transform`, not the `right`/`bottom` anchor's units (%
+     of the panel), since the panel's width is fluid but this offset is
+     meant to track the bar's own size regardless. */
   position: absolute; left: auto; right: 2.1667%; bottom: -6px;
+  transform: translate(-30%, -100%);
   display: flex; align-items: center; justify-content: flex-end; gap: 10px;
   padding: 6px 10px; z-index: 40;
 }
