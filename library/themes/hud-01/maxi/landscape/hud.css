@@ -284,7 +284,18 @@
   padding: 4px 8px; cursor: pointer;
 }
 .nc-ol-tb-btn:hover { color: rgba(140,235,255,.95); border-color: rgba(140,235,255,.6); }
-.nc-ol-tb-btn[aria-pressed="true"] { color: #d8ffff; background: rgba(80,220,255,.18); border-color: rgba(80,220,255,.75); box-shadow: 0 0 8px rgba(80,220,255,.35); }
+.nc-ol-tb-btn[aria-pressed="true"] {
+  color: #d8ffff;
+  /* Two background layers, not one: the translucent cyan tint on its own
+     let the frame's inner border line (z-index 30, directly behind the
+     toolbar's z-index 40) show through, since the toolbar sits right on
+     that line -- it looked like the line was cutting through/under the
+     button. Layering the same tint over an opaque #000 base keeps the
+     identical visible color but stops anything behind it from showing
+     through, matching the (already opaque, already fine) unpressed state. */
+  background: linear-gradient(rgba(80,220,255,.18), rgba(80,220,255,.18)), #000;
+  border-color: rgba(80,220,255,.75); box-shadow: 0 0 8px rgba(80,220,255,.35);
+}
 
 /* ── Object mode vs. html mode ───────────────────────────────────── */
 
