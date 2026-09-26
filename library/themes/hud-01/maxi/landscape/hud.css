@@ -309,7 +309,18 @@
 .nc-ol-widget[data-mode="html"] .nc-ol-left,
 .nc-ol-widget[data-mode="html"] .nc-ol-right,
 .nc-ol-widget[data-mode="html"] .nc-ol-toolbar { display: none; }
-.nc-ol-widget[data-mode="html"] .nc-ol-panel { grid-template-columns: 1fr; }
+/* Ported from the real baseline (blogger-hud01-template.css: "HTML mode:
+   auto-height panel (spec §10 -- height adapts to content)") -- this
+   Theme's own `.nc-ol-panel` was left hardcoded at `height: 420px` even
+   in html mode, so any content taller than that (e.g. #61's floated
+   image) got clipped by the html-slot's own `overflow: auto` instead of
+   the panel growing to fit it, the way the real baseline always has. */
+.nc-ol-widget[data-mode="html"] .nc-ol-panel {
+  grid-template-columns: 1fr;
+  display: block;
+  height: auto;
+  min-height: 420px;
+}
 
 .nc-hud-01-html-slot { padding: 40px 48px; color: #cfffff; overflow: auto; }
 .nc-hud-01-html-slot h1, .nc-hud-01-html-slot h2, .nc-hud-01-html-slot h3 {
