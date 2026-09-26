@@ -258,22 +258,20 @@
 /* ── Toolbar ─────────────────────────────────────────────────────── */
 
 .nc-ol-toolbar {
-  /* Right-aligned to the frame's thin inner border line, not the outer
-     panel edge -- that line's right edge sits at x=1174 of the frame SVG's
-     0-1200 viewBox (nc-ol-frame-inner's path), i.e. 2.1667% in from the
-     panel's own right edge; expressed as a percentage (not a fixed px
-     value) since the panel's width is fluid (`1fr` in nc-ol-panel's grid)
-     while the SVG stretches to match it exactly (preserveAspectRatio=
-     "none"). bottom: -12px (was -42px) lands the bar on/near that same
-     line's bottom edge (y=394 of 420, 26px above the panel's own bottom).
-     transform shifts it further left by 30% of its own (content-driven,
-     not fixed) width and up by half its own height -- percentages of
-     self via `transform`, not the `right`/`bottom` anchor's units (%
-     of the panel), since the panel's width is fluid but this offset is
-     meant to track the bar's own size regardless. (Was -100% Y; owner
-     feedback said the full-height lift was too much, lowered to -50%.) */
-  position: absolute; left: auto; right: 2.1667%; bottom: -6px;
-  transform: translate(-30%, -50%);
+  /* Position is entirely driven by 4 CSS custom properties (Contract
+     `metadata.styleTokens`, see this Theme's manifest.json) rather than
+     hardcoded values -- every value below is a `var(--nc-toolbar-*, X)`
+     fallback, X being exactly this Theme's own tuned default (right:
+     2.1667% aligns to nc-ol-frame-inner's own right edge, x=1174 of the
+     frame SVG's 0-1200 viewBox; bottom/offset-x/offset-y are the owner's
+     own hand-tuned values from live feedback). A consumer overrides any
+     of these by setting the same custom property on the mount container
+     (or any ancestor) -- inherited CSS custom properties reach this
+     scoped root with no Runtime code involved. */
+  position: absolute; left: auto;
+  right: var(--nc-toolbar-right, 2.1667%);
+  bottom: var(--nc-toolbar-bottom, -6px);
+  transform: translate(var(--nc-toolbar-offset-x, -30%), var(--nc-toolbar-offset-y, -50%));
   display: flex; align-items: center; justify-content: flex-end; gap: 10px;
   padding: 6px 10px; z-index: 40;
 }

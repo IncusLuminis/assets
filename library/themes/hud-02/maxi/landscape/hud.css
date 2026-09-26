@@ -298,16 +298,19 @@
 /* ── Toolbar ─────────────────────────────────────────────────────── */
 
 .nc-or-toolbar {
-  /* Same treatment as hud-01's toolbar (#54-#57): right-aligned to the
-     frame's thin inner border line rather than the outer panel edge --
-     nc-or-frame-inner's right edge sits at x=1140 of the frame SVG's
-     0-1200 viewBox, i.e. 5% in from the panel's own right edge (a %, not
-     a fixed px value, since the panel's width is fluid while the SVG
-     stretches to match it exactly). bottom: 54px lands it on that same
-     line's own y (366 of 420 -- panel height is fixed, so px is fine
-     vertically). Content-sized box (no more left:0 + wide padding) instead
-     of a full-width bar. */
-  position: absolute; left: auto; right: 5%; bottom: 54px;
+  /* Position driven by CSS custom properties (Contract `metadata.
+     styleTokens`, see this Theme's manifest.json) -- same mechanism as
+     hud-01's toolbar, own tuned defaults: right: 5% aligns to
+     nc-or-frame-inner's own right edge (x=1140 of the frame SVG's 0-1200
+     viewBox); bottom: 54px lands on that same line's own y (366 of 420).
+     No offset-x/offset-y shift by default (0%) -- hud-01's -30%/-50% was
+     owner-tuned specifically for its own resulting position; this Theme's
+     tokens exist so the same kind of tuning can happen here too, without
+     a code change, if it's ever needed. */
+  position: absolute; left: auto;
+  right: var(--nc-toolbar-right, 5%);
+  bottom: var(--nc-toolbar-bottom, 54px);
+  transform: translate(var(--nc-toolbar-offset-x, 0%), var(--nc-toolbar-offset-y, 0%));
   display: flex; align-items: center; justify-content: flex-end; gap: 10px;
   padding: 6px 10px; z-index: 35;
 }
