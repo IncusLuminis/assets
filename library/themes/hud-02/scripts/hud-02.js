@@ -545,6 +545,28 @@ return (function () {
     if (slot) slot.setAttribute("aria-hidden", mode === "object" ? "true" : "false");
   }
 
+  // ── `media` in html mode: same mechanism as hud-01's identical code --
+  //    see that Theme's script for the full rationale. */
+  var currentMedia = "";
+
+  function applyHtmlModeMedia(url) {
+    var slot = q(".nc-hud-02-html-slot");
+    if (!slot) return;
+    var existing = slot.querySelector("img[data-hud-auto-media]");
+    if (!url) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (!existing) {
+      existing = document.createElement("img");
+      existing.className = "nc-hud-float-image";
+      existing.setAttribute("data-hud-auto-media", "");
+      existing.setAttribute("alt", "");
+      slot.insertBefore(existing, slot.firstChild);
+    }
+    if (existing.getAttribute("src") !== url) existing.setAttribute("src", url);
+  }
+
   // ── Init: assign the Aladin viewer id, wire the toolbar, start object
   //    mode with the default target (matches the real baseline's own
   //    `cfg.target || 'NGC 1300'` default -- Contract §16.3 "network during
@@ -601,6 +623,10 @@ return (function () {
           try { aladinInstance.gotoObject(target); } catch (e) { warn("gotoObject failed: " + e); }
         }
       }
+      if (Object.prototype.hasOwnProperty.call(data, "media") && typeof data.media === "string") {
+        currentMedia = data.media.trim();
+      }
+      applyHtmlModeMedia(currentMedia);
     },
     // Contract §17.1: REQUIRED. Removes every listener this script added,
     // cancels timers, aborts in-flight fetches. The real baseline has none
