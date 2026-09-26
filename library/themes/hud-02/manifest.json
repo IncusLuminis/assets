@@ -100,5 +100,37 @@
     { "code": "external-io-on-mount", "scope": "html-mode-initial-mount", "clause": "16.3",
       "note": "mount() unconditionally starts the object-mode SIMBAD fetch + Aladin CDN load before any queued setData({mode:'html'}) can be replayed (Contract §6.3: the Runtime replays queued setData only after mount() resolves, and this Theme's whole init sequence -- network calls included -- runs synchronously inside that same mount() call). A consumer intending html mode from the very first mount (e.g. hud.setData({mode:'html'}) called before mount()) still pays for this network I/O once; a later setData({mode:'html'}) correctly stops further object-mode work but cannot retroactively cancel calls already in flight. Root cause: MountContext (RendererInterface.ts) carries no config/initial-mode field a Theme script can read synchronously before this init sequence runs -- the same gap this package's README documents for objectName/mode in general. Not fixable inside this Theme script without that Runtime change; distinct from this same code's 'all'-scope entry above, which is object mode's own accepted page-load timing, not this html-mode leak.",
       "plannedResolution": "Runtime follow-up: extend MountContext with an initial config value (Epic #21 follow-up, tracked alongside hud-01/hud-02's README 'How mode/objectName reach the script' gap)." }
-  ]
+  ],
+  "metadata": {
+    "styleTokens": [
+      {
+        "name": "toolbarRight",
+        "cssVar": "--nc-toolbar-right",
+        "default": "5%",
+        "appliesTo": ["maxi:landscape"],
+        "description": "Right inset of the object-mode toolbar (RETICLE/DATA/PAPERS/CATALOGS), any CSS <length-percentage>. Default aligns it to the frame's own inner border line."
+      },
+      {
+        "name": "toolbarBottom",
+        "cssVar": "--nc-toolbar-bottom",
+        "default": "54px",
+        "appliesTo": ["maxi:landscape"],
+        "description": "Bottom offset of the toolbar, any CSS <length-percentage> (CSS `bottom` semantics: positive moves it up/inside the frame, negative moves it down/outside)."
+      },
+      {
+        "name": "toolbarOffsetX",
+        "cssVar": "--nc-toolbar-offset-x",
+        "default": "0%",
+        "appliesTo": ["maxi:landscape"],
+        "description": "Additional horizontal shift of the toolbar, applied via `transform: translateX(...)` -- a percentage here is relative to the toolbar's own (content-driven) width, not the panel."
+      },
+      {
+        "name": "toolbarOffsetY",
+        "cssVar": "--nc-toolbar-offset-y",
+        "default": "0%",
+        "appliesTo": ["maxi:landscape"],
+        "description": "Additional vertical shift of the toolbar, applied via `transform: translateY(...)` -- a percentage here is relative to the toolbar's own height, not the panel."
+      }
+    ]
+  }
 }
