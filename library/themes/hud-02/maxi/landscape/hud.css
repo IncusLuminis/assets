@@ -341,7 +341,15 @@
 .nc-or-widget[data-mode="html"] .nc-or-left,
 .nc-or-widget[data-mode="html"] .nc-or-right,
 .nc-or-widget[data-mode="html"] .nc-or-toolbar { display: none; }
-.nc-or-widget[data-mode="html"] .nc-or-panel { grid-template-columns: 1fr; }
+/* Same fix as hud-01's identical rule -- ported from the real baseline's
+   auto-height html-mode panel; this Theme's panel was hardcoded to a
+   fixed height even in html mode, clipping any content taller than that. */
+.nc-or-widget[data-mode="html"] .nc-or-panel {
+  grid-template-columns: 1fr;
+  display: block;
+  height: auto;
+  min-height: 420px;
+}
 
 .nc-hud-02-html-slot { padding: 40px 48px; color: #cfffff; overflow: auto; }
 .nc-hud-02-html-slot h1, .nc-hud-02-html-slot h2, .nc-hud-02-html-slot h3 {
