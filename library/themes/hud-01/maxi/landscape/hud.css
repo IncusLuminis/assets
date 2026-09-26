@@ -319,6 +319,27 @@
 .nc-hud-01-html-slot a { color: rgba(80,220,255,.9); }
 .nc-hud-01-html-slot img { max-width: 100%; display: block; }
 
+/* "Image" content archetype: an <img class="nc-hud-float-image"> placed
+   directly in the `content` HTML (html mode has no separate media-slot
+   wiring -- see #49's scope note), floated so paragraph text wraps around
+   it. Ported from the real baseline (blogger-hud01-template.css's
+   .nc-hud-float-image, examples/hud01-image.html) -- that version also
+   exposes float direction/size as CSS custom properties on the widget
+   (--nc-image-maxi-float etc.) and a companion absolute-positioned-text
+   clearance mechanism; this Theme's html-slot is plain normal-flow <p>
+   text, not that absolutely-positioned system, so a plain CSS float is
+   sufficient here -- ordinary reflow wraps the text with no extra
+   clearance math needed. */
+.nc-hud-01-html-slot .nc-hud-float-image {
+  float: left;
+  width: 28%;
+  height: auto;
+  max-width: none;
+  margin: 0 24px 16px 0;
+  border: 1px solid rgba(80,220,255,.35);
+  object-fit: contain;
+}
+
 /* ── Local keyframes (Theme-specific; not in styles/shared.css) ──── */
 
 @keyframes hudSpinner { to { transform: rotate(360deg); } }

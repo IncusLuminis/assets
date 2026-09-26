@@ -351,6 +351,18 @@
 .nc-hud-02-html-slot a { color: rgba(80,220,255,.9); }
 .nc-hud-02-html-slot img { max-width: 100%; display: block; }
 
+/* "Image" content archetype -- see hud-01's identical rule for the full
+   rationale (ported from blogger-hud02-template.css's .nc-hud-float-image). */
+.nc-hud-02-html-slot .nc-hud-float-image {
+  float: left;
+  width: 28%;
+  height: auto;
+  max-width: none;
+  margin: 0 24px 16px 0;
+  border: 1px solid rgba(80,220,255,.35);
+  object-fit: contain;
+}
+
 /* ── Local keyframes (Theme-specific; not in styles/shared.css) ──────
    hudSpinner02 is deliberately named differently from hud-01's local
    `hudSpinner` (Inv/Contract §15.6 concern: unscoped @keyframes are
